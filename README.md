@@ -1,70 +1,83 @@
-# TDesign 通用页面模板
+# PsyTwin-Pocket 微信小程序
 
-基于 TDesign 打造的通用页面模板，包含通用的登陆注册、个人中心、设置中心、信息流等等功能。
+基于 TDesign 开发的心理咨询/社交平台微信小程序 - 学生端心友圈功能。
 
-## 模版功能预览
+## 项目简介
 
-### 首页
+PsyTwin-Pocket 是一个面向学生的心理健康咨询与社交平台小程序，提供心友圈动态、消息聊天、个人中心等功能。
 
-<div style="display: flex">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/home-1.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/home-2.png">
-</div>
+## 技术栈
 
-### 信息发布
+- **框架**: 微信小程序 (WeChat Mini Program)
+- **UI 组件库**: TDesign Mini Program v1.11.2
+- **样式**: LESS
+- **代码规范**: ESLint (airbnb-base) + Prettier
 
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/publish-1.png">
-
-### 搜索页
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/search-1.png">
-
-### 个人中心
-<div style="display: flex">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-1.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-2.png">
-  <img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/user-3.png">
-</div>
-
-
-### 设置中心
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/setting-1.png">
-
-### 消息中心
-
-<img width="375" alt="image" src="https://tdesign.gtimg.com/miniprogram/template/message-1.png">
-
-
-## 开发预览
-### 目录结构（TODO: 生成目录结构树）
-
-
-### 在开发者工具中预览
-
-```bash
-# 安装项目依赖
-npm install
+## 目录结构
 
 ```
+├── api/                    # HTTP 请求层和服务定义
+├── behaviors/              # 微信小程序 mixins 共享逻辑
+├── components/             # 可复用 UI 组件
+├── config/                 # 运行时配置和环境变量
+├── mock/                   # 本地模拟数据系统
+├── pages/                  # 页面目录
+│   ├── home/               # 首页 tab
+│   ├── message/            # 消息 tab
+│   ├── my/                 # 我的 tab
+│   └── (分包)              # 搜索、聊天、登录等分包页面
+├── static/                 # 静态资源 (图标、图片)
+└── utils/                  # 工具函数
+```
 
-打开[微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)，导入整个项目，构建 npm 包，就可以预览示例了。
+## 功能模块
 
-### 基础库版本
+- **首页**: 心友圈动态流、发布功能
+- **消息**: 聊天消息列表
+- **我的**: 个人中心、设置
+- **搜索**: 帖子/用户搜索
+- **聊天**: 私信聊天
+- **登录**: 手机号登录、验证码登录
+- **数据中心**: 数据统计图表
+- **信息编辑**: 个人信息编辑
 
-最低基础库版本`^2.6.5`
+## 开发指南
 
+### 安装依赖
 
-## 贡献成员
+```bash
+npm install
+```
 
-<a href="https://github.com/TDesignOteam/tdesign-miniprogram-starter/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=TDesignOteam/tdesign-miniprogram-starter" />
-</a>
+### 开发预览
 
-## 反馈
+1. 打开[微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
+2. 导入整个项目
+3. 构建 npm 包
+4. 预览示例
 
-有任何问题，建议通过 [Github issues](https://github.com/TDesignOteam/tdesign-miniprogram-starter/issues) 反馈。
+### 代码检查
+
+```bash
+# 运行 ESLint 检查
+npm run lint
+
+# 自动修复大部分 lint 错误
+npm run lint:fix
+```
+
+### 配置说明
+
+- `config/index.js`: 切换 `isMock` 标志或修改 API 端点
+
+## 基础库版本
+
+最低基础库版本 `^2.6.5`
 
 ## 开源协议
 
-TDesign 遵循 [MIT 协议](https://github.com/TDesignOteam/tdesign-miniprogram-starter/blob/main/LICENSE)。
+MIT License
+
+## GitHub
+
+- 仓库地址: https://github.com/XingjianTian/PsyTwin-Pocket
