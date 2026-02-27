@@ -13,6 +13,8 @@ export default {
       birth: '1994-09-27',
       address: ['440000', '440300'],
       brief: '在你身边，为你设计',
+      // 角色标识：student 或 teacher
+      role: 'student',
       photos: [
         {
           url: getLocalUrl('/static/img_td.png', 'uploaded1.png'),

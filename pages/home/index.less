@@ -21,14 +21,20 @@
       background-color: @bg-color;
     }
   }
+}
 
-  .home-card-list {
+// 瀑布流布局
+.waterfall {
+  display: flex;
+  padding: 16rpx;
+  gap: 16rpx;
+
+  &-left,
+  &-right {
+    flex: 1;
     display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 24rpx 12rpx;
-    padding: 24rpx;
-    background-color: @bg-color;
+    flex-direction: column;
+    gap: 16rpx;
   }
 }
 

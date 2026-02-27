@@ -1,85 +1,92 @@
 import request from '~/api/request';
 
+const app = getApp();
+
 Page({
   data: {
     phoneNumber: '',
-    isPhoneNumber: false,
-    isCheck: false,
-    isSubmit: false,
-    isPasswordLogin: false,
-    passwordInfo: {
-      account: '',
-      password: '',
-    },
-    radioValue: '',
+    selectedRole: '', // 'student' 或 'teacher'
   },
 
-  /* 自定义功能函数 */
-  changeSubmit() {
-    if (this.data.isPasswordLogin) {
-      if (this.data.passwordInfo.account !== '' && this.data.passwordInfo.password !== '' && this.data.isCheck) {
-        this.setData({ isSubmit: true });
+  // 手机号输入
+  onPhoneInput(e) {
+    this.setData({
+      phoneNumber: e.detail.value,
+    });
+  },
+
+  // 选择身份
+  onSelectRole(e) {
+    const { role } = e.currentTarget.dataset;
+    this.setData({
+      selectedRole: role,
+    });
+  },
+
+  // 登录
+  async login() {
+    const { phoneNumber, selectedRole } = this.data;
+
+    if (!phoneNumber || !selectedRole) {
+      wx.showToast({
+        title: '请填写手机号并选择身份',
+        icon: 'none',
+      });
+      return;
+    }
+
+    wx.showLoading({ title: '登录中...' });
+
+    try {
+      const res = await request('/login/postPasswordLogin', 'post', {
+        data: {
+          account: phoneNumber,
+          password: 'mock_password', // mock 密码
+        },
+      });
+
+      if (res.success) {
+        // 保存 token
+        await wx.setStorageSync('access_token', res.data.token);
+        // 保存角色
+        await wx.setStorageSync('user_role', selectedRole);
+        // 更新 globalData
+        app.globalData.role = selectedRole;
+        // 触发角色变化事件，更新 TabBar
+        app.eventBus.emit('role-change', selectedRole);
+
+        wx.hideLoading();
+
+        // 根据角色跳转到对应首页
+        this.navigateByRole(selectedRole);
       } else {
-        this.setData({ isSubmit: false });
+        wx.hideLoading();
+        wx.showToast({
+          title: res.message || '登录失败',
+          icon: 'none',
+        });
       }
-    } else if (this.data.isPhoneNumber && this.data.isCheck) {
-      this.setData({ isSubmit: true });
-    } else {
-      this.setData({ isSubmit: false });
+    } catch (err) {
+      wx.hideLoading();
+      wx.showToast({
+        title: '登录失败',
+        icon: 'none',
+      });
     }
   },
 
-  // 手机号变更
-  onPhoneInput(e) {
-    const isPhoneNumber = /^[1][3,4,5,7,8,9][0-9]{9}$/.test(e.detail.value);
-    this.setData({
-      isPhoneNumber,
-      phoneNumber: e.detail.value,
-    });
-    this.changeSubmit();
-  },
-
-  // 用户协议选择变更
-  onCheckChange(e) {
-    const { value } = e.detail;
-    this.setData({
-      radioValue: value,
-      isCheck: value === 'agree',
-    });
-    this.changeSubmit();
-  },
-
-  onAccountChange(e) {
-    this.setData({ passwordInfo: { ...this.data.passwordInfo, account: e.detail.value } });
-    this.changeSubmit();
-  },
-
-  onPasswordChange(e) {
-    this.setData({ passwordInfo: { ...this.data.passwordInfo, password: e.detail.value } });
-    this.changeSubmit();
-  },
-
-  // 切换登录方式
-  changeLogin() {
-    this.setData({ isPasswordLogin: !this.data.isPasswordLogin, isSubmit: false });
-  },
-
-  async login() {
-    if (this.data.isPasswordLogin) {
-      const res = await request('/login/postPasswordLogin', 'post', { data: this.data.passwordInfo });
-      if (res.success) {
-        await wx.setStorageSync('access_token', res.data.token);
-        wx.switchTab({
-          url: `/pages/my/index`,
-        });
-      }
+  // 根据角色跳转到对应首页
+  navigateByRole(role) {
+    if (role === 'teacher') {
+      // 教师端：跳转到工作台（Tab 页面）
+      wx.switchTab({
+        url: '/pages/dataCenter/index',
+      });
     } else {
-      const res = await request('/login/getSendMessage', 'get');
-      if (res.success) {
-        wx.navigateTo({
-          url: `/pages/loginCode/loginCode?phoneNumber=${this.data.phoneNumber}`,
-        });
-      }
+      // 学生端：跳转到首页
+      wx.switchTab({
+        url: '/pages/home/index',
+      });
     }
   },
 });

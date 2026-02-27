@@ -8,32 +8,43 @@
           bind:refresh="onRefresh"
           loadingTexts="{{['下拉刷新', '松手刷新', '正在刷新', '刷新完成']}}"
         >
-          <view class="home-card-list">
-            <t-swiper
-              list="{{swiperList}}"
-              navigation="{{ { type: 'dots-bar' } }}"
-              height="488rpx"
-              style="width: 340rpx"
-            />
-            <card
-              wx:for="{{cardInfo}}"
-              wx:key="index"
-              desc="{{item.desc}}"
-              url="{{item.url}}"
-              tags="{{item.tags}}"
-            />
+          <view class="waterfall">
+            <!-- 左列 -->
+            <view class="waterfall-left">
+              <card
+                wx:for="{{leftList}}"
+                wx:key="id"
+                url="{{item.url}}"
+                desc="{{item.desc}}"
+                tags="{{item.tags}}"
+              />
+            </view>
+            <!-- 右列 -->
+            <view class="waterfall-right">
+              <card
+                wx:for="{{rightList}}"
+                wx:key="id"
+                url="{{item.url}}"
+                desc="{{item.desc}}"
+                tags="{{item.tags}}"
+              />
+            </view>
           </view>
         </t-pull-down-refresh>
       </t-tab-panel>
       <t-tab-panel label="我的关注" value="follow">
-        <view class="home-card-list">
-          <card
-            wx:for="{{focusCardInfo}}"
-            wx:key="index"
-            desc="{{item.desc}}"
-            url="{{item.url}}"
-            tags="{{item.tags}}"
-          />
+        <view class="waterfall">
+          <view class="waterfall-left">
+            <card
+              wx:for="{{focusCardInfo}}"
+              wx:key="index"
+              url="{{item.url}}"
+              desc="{{item.desc}}"
+              tags="{{item.tags}}"
+            />
+          </view>
+          <view class="waterfall-right">
+          </view>
         </view>
       </t-tab-panel>
     </t-tabs>

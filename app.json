@@ -1,5 +1,11 @@
 {
-  "pages": ["pages/home/index", "pages/message/index", "pages/my/index"],
+  "pages": [
+    "pages/home/index",
+    "pages/message/index",
+    "pages/my/index",
+    "pages/dataCenter/index",
+    "pages/appointment/index"
+  ],
   "usingComponents": {
     "t-toast": "tdesign-miniprogram/toast/toast"
   },
@@ -30,11 +36,6 @@
       "pages": ["loginCode"]
     },
     {
-      "root": "pages/dataCenter",
-      "name": "dataCenter",
-      "pages": ["index"]
-    },
-    {
       "root": "pages/setting",
       "name": "setting",
       "pages": ["index"]
@@ -48,7 +49,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "Weixin",
+    "navigationBarTitleText": "PsyTwin",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
@@ -57,6 +58,10 @@
       {
         "pagePath": "pages/home/index",
         "text": "首页"
+      },
+      {
+        "pagePath": "pages/dataCenter/index",
+        "text": "工作台"
       },
       {
         "pagePath": "pages/message/index",

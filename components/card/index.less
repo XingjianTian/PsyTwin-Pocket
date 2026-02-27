@@ -3,25 +3,52 @@
 .home-card {
   display: inline-flex;
   flex-direction: column;
-  width: 340rpx;
-  height: 488rpx;
-  border-radius: 9px;
+  width: 100%;
+  min-height: 100rpx;
+  border-radius: 12rpx;
   background: @bg-color-white;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  }
 
   &__image {
-    width: 340rpx;
-    height: 340rpx;
+    width: 100%;
+    height: 300rpx;
+    flex-shrink: 0;
   }
 
   &__info {
-    padding: 32rpx;
+    padding: 16rpx;
     font-weight: 400;
     font-size: @font-size-small;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  &__desc {
+    color: #333;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-all;
   }
 
   &__tag-group {
     display: flex;
-    gap: 16rpx;
-    margin-top: 16rpx;
+    flex-wrap: wrap;
+    gap: 8rpx;
+    margin-top: 8rpx;
+    overflow: hidden;
   }
 }

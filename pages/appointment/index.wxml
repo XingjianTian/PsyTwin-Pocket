@@ -1,0 +1,116 @@
+<view class="appointment-page">
+  <!-- Tab 栏 -->
+  <view class="appointment-tabs">
+    <view 
+      class="tab-item {{currentTab === 'services' ? 'active' : ''}}" 
+      bindtap="onTabChange" 
+      data-value="services"
+    >
+      可预约服务
+    </view>
+    <view 
+      class="tab-item {{currentTab === 'records' ? 'active' : ''}}" 
+      bindtap="onTabChange" 
+      data-value="records"
+    >
+      预约记录
+    </view>
+  </view>
+
+  <!-- 可预约服务 -->
+  <scroll-view class="services-list" scroll-y wx:if="{{currentTab === 'services'}}">
+    <view 
+      class="service-item" 
+      wx:for="{{services}}" 
+      wx:key="id"
+      bindtap="onServiceTap" 
+      data-id="{{item.id}}"
+      data-name="{{item.name}}"
+    >
+      <view class="service-icon">{{item.icon}}</view>
+      <view class="service-info">
+        <view class="service-name">{{item.name}}</view>
+        <view class="service-desc">{{item.description}}</view>
+        <view class="service-meta">
+          <text class="meta-item">⏱ {{item.duration}}分钟</text>
+          <text class="meta-item">📍 {{item.location}}</text>
+        </view>
+      </view>
+      <view class="service-arrow">→</view>
+    </view>
+  </scroll-view>
+
+  <!-- 预约记录 -->
+  <scroll-view class="records-list" scroll-y wx:if="{{currentTab === 'records'}}">
+    <block wx:if="{{records.length > 0}}">
+      <view 
+        class="record-item {{item.status}}" 
+        wx:for="{{records}}" 
+        wx:key="id"
+      >
+        <view class="record-header">
+          <text class="record-service">{{item.serviceName}}</text>
+          <text class="record-status">
+            {{item.status === 'pending' ? '待就诊' : item.status === 'completed' ? '已完成' : '已取消'}}
+          </text>
+        </view>
+        <view class="record-time">
+          <text>📅 {{item.date}}</text>
+          <text>🕐 {{item.time}}</text>
+        </view>
+        <view class="record-actions" wx:if="{{item.status === 'pending'}}">
+          <view class="action-btn cancel" bindtap="onCancelAppointment" data-id="{{item.id}}">取消预约</view>
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="empty-state">
+        <text class="empty-icon">📋</text>
+        <text class="empty-text">暂无预约记录</text>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 预约表单弹窗 -->
+  <view class="form-mask" wx:if="{{showForm}}" bindtap="onFormClose"></view>
+  <view class="form-popup" wx:if="{{showForm}}">
+    <view class="form-header">
+      <text class="form-title">预约 {{formData.serviceName}}</text>
+      <text class="form-close" bindtap="onFormClose">✕</text>
+    </view>
+    
+    <view class="form-body">
+      <view class="form-item">
+        <text class="form-label">选择日期</text>
+        <picker mode="date" bindchange="onDateChange">
+          <view class="form-picker">
+            {{formData.date || '请选择日期'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">选择时间</text>
+        <picker mode="selector" range="{{availableTimes}}" bindchange="onTimeChange">
+          <view class="form-picker">
+            {{formData.time || '请选择时间'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">预约事由（选填）</text>
+        <textarea 
+          class="form-textarea" 
+          placeholder="简单描述您的问题..." 
+          bindinput="onReasonInput"
+          value="{{formData.reason}}"
+        />
+      </view>
+    </view>
+
+    <view class="form-footer">
+      <view class="form-submit" bindtap="onSubmit">确认预约</view>
+    </view>
+  </view>
+</view>

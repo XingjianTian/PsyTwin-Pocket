@@ -10,6 +10,22 @@ if (config.isMock) {
 
 App({
   onLaunch() {
+    // 检查登录状态，未登录则跳转登录页
+    const token = wx.getStorageSync('access_token');
+    if (!token) {
+      wx.reLaunch({
+        url: '/pages/login/login',
+      });
+      return;
+    }
+
+    // 初始化角色
+    // 初始化角色
+    const role = wx.getStorageSync('user_role');
+    if (role) {
+      this.globalData.role = role;
+    }
+
     const updateManager = wx.getUpdateManager();
 
     updateManager.onCheckForUpdate((res) => {
@@ -35,6 +51,7 @@ App({
     userInfo: null,
     unreadNum: 0, // 未读消息数量
     socket: null, // SocketTask 对象
+    role: '', // 用户角色：student 或 teacher
   },
 
   /** 全局事件总线 */

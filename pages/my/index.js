@@ -1,87 +1,129 @@
 import request from '~/api/request';
 import useToastBehavior from '~/behaviors/useToast';
 
+const app = getApp();
+
 Page({
   behaviors: [useToastBehavior],
 
   data: {
     isLoad: false,
-    service: [],
-    personalInfo: {},
-    gridList: [
-      {
-        name: '全部发布',
-        icon: 'root-list',
-        type: 'all',
-        url: '',
-      },
-      {
-        name: '审核中',
-        icon: 'search',
-        type: 'progress',
-        url: '',
-      },
-      {
-        name: '已发布',
-        icon: 'upload',
-        type: 'published',
-        url: '',
-      },
-      {
-        name: '草稿箱',
-        icon: 'file-copy',
-        type: 'draft',
-        url: '',
-      },
-    ],
-
-    settingList: [
-      { name: '联系客服', icon: 'service', type: 'service' },
-      { name: '设置', icon: 'setting', type: 'setting', url: '/pages/setting/index' },
-    ],
+    role: 'student',
+    userInfo: {},
+    gridList: [],
+    menuList: [],
   },
 
   onLoad() {
-    this.getServiceList();
+    this.initData();
   },
 
-  async onShow() {
-    const Token = wx.getStorageSync('access_token');
-    const personalInfo = await this.getPersonalInfo();
+  onShow() {
+    this.initData();
+  },
 
-    if (Token) {
+  async initData() {
+    const role = wx.getStorageSync('user_role') || 'student';
+    const token = wx.getStorageSync('access_token');
+
+    if (token) {
+      const userInfo = await this.getUserInfo();
+
       this.setData({
+        role,
         isLoad: true,
-        personalInfo,
+        userInfo,
+        gridList: this.getGridList(role),
+        menuList: this.getMenuList(role),
       });
+    } else {
+      this.setData({ role });
     }
   },
 
-  getServiceList() {
-    request('/api/getServiceList').then((res) => {
-      const { service } = res.data.data;
-      this.setData({ service });
-    });
+  async getUserInfo() {
+    try {
+      const res = await request('/mock/student/my/info');
+      return res.data || {};
+    } catch (err) {
+      return {
+        nickname: '用户',
+        avatar: '',
+        role: this.data.role,
+      };
+    }
   },
 
-  async getPersonalInfo() {
-    const info = await request('/api/genPersonalInfo').then((res) => res.data.data);
-    return info;
+  getGridList(role) {
+    if (role === 'student') {
+      return [
+        { name: '我的档案', icon: '📋', url: '/pages/my/info-edit/index' },
+        { name: '服务预约', icon: '📅', url: '/pages/appointment/index' },
+        { name: '心理测评', icon: '📝', url: '' },
+        { name: 'VR 记录', icon: '🥽', url: '' },
+      ];
+    } else {
+      return [
+        { name: '我的排班', icon: '📅', url: '' },
+        { name: '学生管理', icon: '👥', url: '' },
+        { name: '预警列表', icon: '⚠️', url: '' },
+        { name: '数据中心', icon: '📊', url: '/pages/dataCenter/index' },
+      ];
+    }
   },
 
-  onLogin(e) {
+  getMenuList(role) {
+    if (role === 'student') {
+      return [
+        { name: '我的收藏', icon: '⭐', url: '' },
+        { name: '浏览历史', icon: '📖', url: '' },
+        { name: '消息通知', icon: '🔔', url: '' },
+        { name: '联系客服', icon: '💬', url: '' },
+        { name: '设置', icon: '⚙️', url: '/pages/setting/index' },
+      ];
+    } else {
+      return [
+        { name: '工作时间', icon: '⏰', url: '' },
+        { name: '预警设置', icon: '⚠️', url: '' },
+        { name: '消息通知', icon: '🔔', url: '' },
+        { name: '联系客服', icon: '💬', url: '' },
+        { name: '设置', icon: '⚙️', url: '/pages/setting/index' },
+      ];
+    }
+  },
+
+  onGridTap(e) {
+    const { url } = e.currentTarget.dataset;
+    if (url) {
+      wx.navigateTo({ url });
+    }
+  },
+
+  onMenuTap(e) {
+    const { url } = e.currentTarget.dataset;
+    if (url) {
+      wx.navigateTo({ url });
+    }
+  },
+
+  onEditProfile() {
     wx.navigateTo({
-      url: '/pages/login/login',
+      url: '/pages/my/info-edit/index',
     });
   },
 
-  onNavigateTo() {
-    wx.navigateTo({ url: `/pages/my/info-edit/index` });
-  },
-
-  onEleClick(e) {
-    const { name, url } = e.currentTarget.dataset.data;
-    if (url) return;
-    this.onShowToast('#t-toast', name);
+  onLogout() {
+    wx.showModal({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.clearStorageSync();
+          wx.reLaunch({
+            url: '/pages/login/login',
+          });
+        }
+      },
+    });
   },
 });

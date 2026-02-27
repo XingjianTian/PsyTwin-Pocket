@@ -1,25 +1,61 @@
-<wxs src="./index.wxs" module="utils" />
+<view class="message-container">
+  <!-- 标题 -->
+  <view class="message-header">
+    <text class="header-title">AI 对话</text>
+    <text class="header-subtitle">PsyTwin 时刻守护你的心理健康</text>
+  </view>
 
-<nav nav-type="title" title-text="全部消息"></nav>
-<scroll-view
-  class="message-list"
-  scroll-y
-  refresher-enabled
-  refresher-triggered="{{ loading }}"
-  bindrefresherrefresh="getMessageList"
->
-  <t-cell
-    wx:for="{{ messageList }}"
-    wx:key="index"
-    t-class-image="avatar"
-    t-class-description="content {{ utils.isRead(item.messages) ? '' : 'unread' }}"
-    image="{{ item.avatar }}"
-    title="{{ item.name }}"
-    description="{{ item.messages[item.messages.length - 1].content }}"
-    hover
-    bind:tap="toChat"
-    data-user-id="{{ item.userId }}"
+  <!-- 会话列表 -->
+  <scroll-view 
+    class="session-list" 
+    scroll-y
+    refresher-enabled
+    refresher-triggered="{{ loading }}"
+    bindrefresherrefresh="loadSessions"
   >
-    <t-badge slot="right-icon" count="{{ utils.computeUnreadNum(item.messages) }}" class="wrapper" />
-  </t-cell>
-</scroll-view>
+    <block wx:if="{{sessions.length > 0}}">
+      <view 
+        class="session-item" 
+        wx:for="{{sessions}}" 
+        wx:key="id"
+        bindtap="toChat" 
+        data-id="{{item.id}}"
+        data-type="{{item.type}}"
+        data-name="{{item.name}}"
+      >
+        <!-- 头像 -->
+        <view class="session-avatar">
+          <image src="{{item.avatar}}" mode="aspectFill" />
+          <view class="status-dot" wx:if="{{item.status === 'online'}}"></view>
+        </view>
+
+        <!-- 信息 -->
+        <view class="session-info">
+          <view class="session-header">
+            <text class="session-name">{{item.name}}</text>
+            <text class="session-time">{{item.lastMessageTime}}</text>
+          </view>
+          <view class="session-desc">
+            <text class="session-type">
+              {{item.type === 'ai' ? 'AI助手' : '咨询师'}}
+            </text>
+            <text class="session-last-msg">{{item.lastMessage}}</text>
+          </view>
+        </view>
+
+        <!-- 未读角标 -->
+        <view class="unread-badge" wx:if="{{item.unreadCount > 0}}">
+          {{item.unreadCount > 99 ? '99+' : item.unreadCount}}
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="empty-state">
+        <text class="empty-icon">💬</text>
+        <text class="empty-text">暂无会话</text>
+        <text class="empty-hint">可以开始和 AI 助手聊天啦</text>
+      </view>
+    </block>
+  </scroll-view>
+</view>
