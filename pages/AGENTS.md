@@ -25,7 +25,7 @@
 
 ## 规范
 - 每个页面必须由四个文件组成：`.js`, `.wxml`, `.less`, `.json`。
-- 模块导入需严格遵循根目录 `AGENTS.md` 中的 `import/order` 规则。
+- 模块导入需严格遵循根目录 `docs/AGENTS.md` 中的 `import/order` 规则。
 - 界面开发优先使用 `tdesign-miniprogram` 组件库。
 - 页面样式应通过 LESS 文件定义，禁止在 WXML 中使用内联样式。
 

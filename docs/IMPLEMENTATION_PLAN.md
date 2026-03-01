@@ -74,8 +74,7 @@ pages/
 
 ## 阶段三：学生端页面
 
-> 📄 详细规格说明见 [OPENSPECS_STUDENT.md](./OPENSPECS_STUDENT.md)
-
+#PX|> 📄 详细规格说明见 [OPENSPECS_STUDENT.md](./docs/OPENSPECS_STUDENT.md)
 ### 3.1 首页 - 心友圈 ✅ 已实现
 - [x] T3.1.1: pages/home/index.js - 双栏瀑布流展示
 - [x] T3.1.2: pages/home/index.wxml - 卡片组件渲染
