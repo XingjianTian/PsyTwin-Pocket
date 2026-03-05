@@ -1,54 +1,224 @@
 @import '/variable.less';
+@purple-primary: #7c3aed;
+@purple-light: #ede9fe;
 
 .home-card {
   display: inline-flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100rpx;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   background: @bg-color-white;
   overflow: hidden;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
 
   &:active {
     transform: scale(0.98);
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4rpx 20rpx rgba(124, 58, 237, 0.12);
+  }
+
+  // 头图容器
+  &__image-wrap {
+    position: relative;
+    width: 100%;
+
+    .anonymous-badge {
+      position: absolute;
+      top: 12rpx;
+      right: 12rpx;
+      width: 44rpx;
+      height: 44rpx;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 
   &__image {
     width: 100%;
     height: 300rpx;
-    flex-shrink: 0;
+    display: block;
   }
 
-  &__info {
-    padding: 16rpx;
-    font-weight: 400;
-    font-size: @font-size-small;
-    flex: 1;
-    overflow: hidden;
+  // 内容区
+  &__body {
+    padding: 18rpx 16rpx 16rpx;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10rpx;
   }
 
+  // 作者区（无图时在顶部）
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+
+    .author-avatar {
+      width: 56rpx;
+      height: 56rpx;
+      border-radius: 50%;
+      background: @purple-light;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      image {
+        width: 100%;
+        height: 100%;
+      }
+
+      &.avatar-anonymous {
+        background: #f3f4f6;
+      }
+    }
+
+    .author-name-wrap {
+      flex: 1;
+      min-width: 0;
+
+      .author-name {
+        display: block;
+        font-size: 24rpx;
+        font-weight: 600;
+        color: @gy1;
+        margin-bottom: 2rpx;
+      }
+
+      .author-dept {
+        font-size: 20rpx;
+        color: @gy3;
+      }
+    }
+
+    .teacher-tag {
+      display: flex;
+      align-items: center;
+      gap: 4rpx;
+      padding: 4rpx 10rpx;
+      background: @purple-light;
+      color: @purple-primary;
+      border-radius: 8rpx;
+      font-size: 18rpx;
+      flex-shrink: 0;
+    }
+  }
+
+  // 正文
   &__desc {
-    color: #333;
-    line-height: 1.4;
+    font-size: 26rpx;
+    color: @gy1;
+    line-height: 1.55;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     word-break: break-all;
   }
 
+  // 标签组
   &__tag-group {
     display: flex;
     flex-wrap: wrap;
     gap: 8rpx;
-    margin-top: 8rpx;
     overflow: hidden;
+  }
+
+  // 底部：有图样式
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4rpx;
+
+    .footer-author {
+      display: flex;
+      align-items: center;
+      gap: 8rpx;
+      flex: 1;
+      min-width: 0;
+
+      .footer-avatar {
+        width: 36rpx;
+        height: 36rpx;
+        border-radius: 50%;
+        background: @purple-light;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        image {
+          width: 100%;
+          height: 100%;
+        }
+
+        &.avatar-anonymous {
+          background: #f3f4f6;
+        }
+      }
+
+      .footer-name {
+        font-size: 20rpx;
+        color: @gy3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .teacher-tag-small {
+        width: 28rpx;
+        height: 28rpx;
+        background: @purple-light;
+        border-radius: 6rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: @purple-primary;
+        flex-shrink: 0;
+      }
+    }
+
+    .footer-like {
+      display: flex;
+      align-items: center;
+      gap: 6rpx;
+      flex-shrink: 0;
+
+      .like-count {
+        font-size: 20rpx;
+        color: @gy3;
+      }
+    }
+  }
+
+  // 底部：无图样式
+  &__footer-plain {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .footer-like-plain {
+      display: flex;
+      align-items: center;
+      gap: 6rpx;
+
+      .like-count {
+        font-size: 20rpx;
+        color: @gy3;
+      }
+    }
+
+    .footer-time {
+      font-size: 20rpx;
+      color: @gy3;
+    }
   }
 }

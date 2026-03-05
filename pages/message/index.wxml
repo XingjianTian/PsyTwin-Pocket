@@ -1,61 +1,79 @@
-<view class="message-container">
-  <!-- 标题 -->
-  <view class="message-header">
-    <text class="header-title">AI 对话</text>
-    <text class="header-subtitle">PsyTwin 时刻守护你的心理健康</text>
+<view class="ai-page">
+
+  <!-- ===== 顶部紫色渐变 Header ===== -->
+  <view class="ai-header">
+    <view class="brand-row">
+      <view class="brand-logo">
+        <t-icon name="heart" size="36rpx" color="#fff" />
+      </view>
+      <text class="brand-name">心图 AI</text>
+    </view>
+    <view class="greeting-line1">
+      <text class="greeting-hi">{{greeting}}，</text>
+      <text class="greeting-name">{{userName}}</text>
+    </view>
+    <view class="greeting-line2">今天有什么想聊的吗？</view>
   </view>
 
-  <!-- 会话列表 -->
-  <scroll-view 
-    class="session-list" 
-    scroll-y
-    refresher-enabled
-    refresher-triggered="{{ loading }}"
-    bindrefresherrefresh="loadSessions"
-  >
-    <block wx:if="{{sessions.length > 0}}">
-      <view 
-        class="session-item" 
-        wx:for="{{sessions}}" 
-        wx:key="id"
-        bindtap="toChat" 
-        data-id="{{item.id}}"
-        data-type="{{item.type}}"
-        data-name="{{item.name}}"
-      >
-        <!-- 头像 -->
-        <view class="session-avatar">
-          <image src="{{item.avatar}}" mode="aspectFill" />
-          <view class="status-dot" wx:if="{{item.status === 'online'}}"></view>
-        </view>
+  <!-- ===== 主体内容（可滚动） ===== -->
+  <!-- ===== 主体内容（可滚动） ===== -->
+  <scroll-view class="ai-scroll" scroll-y>
 
-        <!-- 信息 -->
-        <view class="session-info">
-          <view class="session-header">
-            <text class="session-name">{{item.name}}</text>
-            <text class="session-time">{{item.lastMessageTime}}</text>
-          </view>
-          <view class="session-desc">
-            <text class="session-type">
-              {{item.type === 'ai' ? 'AI助手' : '咨询师'}}
-            </text>
-            <text class="session-last-msg">{{item.lastMessage}}</text>
-          </view>
-        </view>
 
-        <!-- 未读角标 -->
-        <view class="unread-badge" wx:if="{{item.unreadCount > 0}}">
-          {{item.unreadCount > 99 ? '99+' : item.unreadCount}}
+    <!-- 建议 Chips -->
+    <view class="chips-area">
+      <view class="chips-label">你可以这样开始</view>
+      <view class="chip-list">
+        <view
+          class="chip-item"
+          wx:for="{{chips}}"
+          wx:key="id"
+          bindtap="onChipTap"
+          data-prompt="{{item.prompt}}"
+          data-index="{{index}}"
+        >
+          <view class="chip-icon-wrap chip-color-{{item.color}}">
+            <t-icon name="{{item.icon}}" size="36rpx" />
+          </view>
+          <view class="chip-text-wrap">
+            <view class="chip-title">{{item.title}}</view>
+            <view class="chip-desc">{{item.desc}}</view>
+          </view>
+          <t-icon name="chevron-right" size="28rpx" color="#9ca3af" />
         </view>
       </view>
-    </block>
+    </view>
 
-    <block wx:else>
-      <view class="empty-state">
-        <text class="empty-icon">💬</text>
-        <text class="empty-text">暂无会话</text>
-        <text class="empty-hint">可以开始和 AI 助手聊天啦</text>
+    <!-- 历史对话入口（若有历史） -->
+    <view class="history-area" wx:if="{{hasHistory}}">
+      <view class="history-label">最近对话</view>
+      <view class="history-item" bindtap="onEnterChat" data-prompt="">
+        <view class="history-avatar">
+          <t-icon name="chat" size="32rpx" color="#7c3aed" />
+        </view>
+        <view class="history-info">
+          <view class="history-title">继续上次对话</view>
+          <view class="history-last">{{lastMessage}}</view>
+        </view>
+        <t-icon name="chevron-right" size="28rpx" color="#d1d5db" />
       </view>
-    </block>
+    </view>
+
+    <!-- 底部占位，防止被输入栏遮挡 -->
+    <view class="scroll-bottom-pad"></view>
+
   </scroll-view>
+
+  <!-- ===== 底部输入栏（固定） ===== -->
+  <view class="input-bar">
+    <view class="input-wrap" bindtap="onEnterChat" data-prompt="">
+      <t-icon name="chat" size="36rpx" color="#9ca3af" />
+      <text class="input-placeholder">和心图 AI 聊聊吧…</text>
+      <view class="input-send-btn">
+        <t-icon name="arrow-up" size="32rpx" color="#fff" />
+      </view>
+    </view>
+    <view class="input-tips">心图 AI 不会存储你的对话，请放心倾诉</view>
+  </view>
+
 </view>

@@ -2,15 +2,15 @@
 
 ## 项目现状
 
-> 最后更新: 2026-02-27
+> 最后更新: 2026-03-02
 
 ### 当前实现状态
 
 | 组件 | 当前状态 | 说明 |
 |------|---------|------|
-| TabBar | 静态 3 标签 (home/message/my) | 计划改造为动态双套 Tab |
+| TabBar | 4 标签 (心墙/AI/工作台/我的) | 已实现双套 Tab |
 | 登录 | 基础登录页面 | 需添加角色选择 UI |
-| Mock | 统一 mock 路径 | 计划 student/teacher 双套 |
+| Mock | 统一 mock 路径 | 部分实现 student/teacher 双套 |
 | UserInfo | 基础用户信息 | 需添加 role 字段 |
 | WebSocket | 基础 chat 模拟 | 计划添加情绪标签/CBT/预警 |
 
@@ -18,21 +18,22 @@
 
 ```
 pages/
-├── home/           # 首页 - 心友圈动态流
-├── message/        # 消息 - 聊天列表
-├── my/            # 我的 - 个人中心
+├── home/           # 心墙 - 动态流
+├── message/        # AI - 对话列表
+├── my/            # 我的 - 个人中心(含教师徽章)
+├── dataCenter/    # 工作台 - 数据统计
+├── appointment/   # 预约 - 心理咨询/VR设备预约
 ├── search/        # 搜索 - 帖子/用户搜索
 ├── chat/          # 聊天 - 私信聊天
 ├── login/         # 登录 - 手机号登录
 ├── loginCode/     # 验证码登录
-├── dataCenter/    # 数据中心 - 统计图表
 ├── setting/       # 设置 - 系统设置
 └── release/       # 发布 - 发布动态
 ```
 
 ---
 
-## 阶段一：基础设施 (Foundation) ✅ 已启动
+## 阶段一：基础设施 (Foundation)
 
 ### 1.1 数据模型扩展
 - [ ] T1.1.1: mock/my/getPersonalInfo.js - 添加 role 字段 (student/teacher)
@@ -55,9 +56,9 @@ pages/
 ## 阶段二：动态 TabBar
 
 ### 2.1 Tab 配置重构
-- [ ] T2.1.1: custom-tab-bar/index.js - 从 app.globalData 读取 role
-- [ ] T2.1.2: custom-tab-bar/index.js - 根据 role 返回不同 tabList
-- [ ] T2.1.3: custom-tab-bar/index.wxml - 动态渲染 tab 项
+- [x] T2.1.1: custom-tab-bar/index.js - 从 app.globalData 读取 role
+- [x] T2.1.2: custom-tab-bar/index.js - 根据 role 返回不同 tabList
+- [x] T2.1.3: custom-tab-bar/index.wxml - 动态渲染 tab 项
 
 ### 2.2 Tab 图标准备
 - [ ] T2.2.1: static/tabbar/ - 创建 student 端图标
@@ -65,32 +66,32 @@ pages/
 - [ ] T2.2.3: custom-tab-bar/index.json - 动态切换图标路径
 
 ### 2.3 页面映射
+
 | 角色 | Tab 1 | Tab 2 | Tab 3 | Tab 4 |
 |------|-------|-------|-------|-------|
-| 学生 | 心友圈 | AI | 预约 | 我的 |
-| 教师 | 心友圈 | AI | 工作台 | 我的 |
+| 学生 | 心墙 | AI | 预约 | 我的 |
+| 教师 | 心墙 | AI | 工作台 | 我的 |
 
 ---
 
 ## 阶段三：学生端页面
 
-#PX|> 📄 详细规格说明见 [OPENSPECS_STUDENT.md](./docs/OPENSPECS_STUDENT.md)
-### 3.1 首页 - 心友圈 ✅ 已实现
+> 📄 详细规格说明见 [OPENSPECS_STUDENT.md](./docs/OPENSPECS_STUDENT.md)
+
+### 3.1 首页 - 心墙 ✅ 已实现
 - [x] T3.1.1: pages/home/index.js - 双栏瀑布流展示
 - [x] T3.1.2: pages/home/index.wxml - 卡片组件渲染
 - [x] T3.1.3: mock/student/home/getFeed.js - 动态数据
-- **注意**：去掉关注/广场/树洞 Tab，简化展示
 
-### 3.2 AI 对话页
-- [ ] T3.2.1: pages/message/index.js - AI 对话列表入口
-- [ ] T3.2.2: pages/message/index.wxml - 展示 AI 咨询师列表
+### 3.2 AI 对话页 ✅ 已实现
+- [x] T3.2.1: pages/message/index.js - AI 对话列表入口
+- [x] T3.2.2: pages/message/index.wxml - 展示 AI 咨询师列表
 
-### 3.3 预约页
-- [ ] T3.3.1: pages/appointment/index.js - 心理咨询/VR设备预约
-- [ ] T3.3.2: pages/appointment/index.wxml - 预约表单
-- **注意**：简化预约流程，直接展示可预约服务
+### 3.3 预约页 ✅ 已实现
+- [x] T3.3.1: pages/appointment/index.js - 心理咨询/VR设备预约
+- [x] T3.3.2: pages/appointment/index.wxml - 预约表单
 
-### 3.4 我的页 - 档案/设置 ✅ 已实现
+### 3.4 我的页 - 档案/设置 
 - [x] T3.4.1: pages/my/index.js - 用户信息 + 功能菜单
 - [x] T3.4.2: pages/my/index.wxml - 宫格菜单渲染
 - [x] T3.4.3: mock/my/getStudentProfile.js - 档案数据
@@ -99,39 +100,47 @@ pages/
 
 ## 阶段四：教师端页面
 
-### 4.1 工作台 - 预警/图表
-- [ ] T4.1.1: pages/dataCenter/index.js - 复用 dataCenter 为教师工作台
-- [ ] T4.1.2: pages/dataCenter/index.wxml - 预警列表 + 统计图表
-- [ ] T4.1.3: mock/workbench/warnings.js - 学生预警数据
-- [ ] T4.1.4: mock/workbench/stats.js - 统计图表数据
+> 📄 详细规格说明见 [OPENSPECS_TEACHER.md](./docs/OPENSPECS_TEACHER.md)
 
-### 4.2 AI 对话页
-- [ ] T4.2.1: pages/message/index.js - 复用消息页，AI 咨询入口
-- [ ] T4.2.2: pages/message/index.wxml - AI 咨询界面
+### 4.1 心墙 ✅ 已实现
+- [x] T4.1.1: pages/home/index.js - 复用首页
+- [x] T4.1.2: pages/home/index.wxml - 动态流展示
 
-### 4.3 我的页 - 排班/设置
-- [ ] T4.3.1: pages/my/index.js - 显示角色标识 + 排班入口
-- [ ] T4.3.2: pages/my/index.wxml - 教师专属菜单
-- [ ] T4.3.3: mock/my/getTeacherSchedule.js - 排班数据
+### 4.2 AI 对话页 ✅ 已实现
+- [x] T4.2.1: pages/message/index.js - AI 对话列表入口
+- [x] T4.2.2: pages/message/index.wxml - AI 咨询师列表
+- **注意**：当前文案偏学生端，需优化
+
+### 4.3 工作台（数据统计） 
+- [x] T4.3.1: pages/dataCenter/index.js - 统计页面
+- [x] T4.3.2: pages/dataCenter/index.wxml - 统计图表（整体情况/互动情况/完播率）
+- [x] T4.3.3: mock/dataCenter/ - 统计数据接口
+- **注意**：预警功能待实现（见阶段五）
+
+### 4.4 我的页 - 角色标识 
+- [x] T4.4.1: pages/my/index.js - 显示角色标识（教师徽章）
+- [x] T4.4.2: pages/my/index.wxml - 通用功能菜单
+- **注意**：排班功能待实现
+
 
 ---
 
-## 阶段五：WebSocket 扩展
+## 阶段五：高级功能（预警/情绪/CBT）
 
-### 5.1 情绪标签系统
-- [ ] T5.1.1: mock/chat/emotionTags.js - 情绪标签数据
-- [ ] T5.1.2: pages/chat/index.wxml - 消息携带情绪标签
-- [ ] T5.1.3: app.js WebSocket - 接收情绪数据
+### 5.1 预警系统
+- [ ] T5.1.1: mock/workbench/warnings.js - 学生预警数据
+- [ ] T5.1.2: mock/workbench/warningLevels.js - 预警级别定义
+- [ ] T5.1.3: pages/dataCenter/index.wxml - 按颜色区分预警级别
+- [ ] T5.1.4: app.js WebSocket - 实时推送预警通知
 
-### 5.2 CBT 卡片功能
-- [ ] T5.2.1: mock/chat/cbtCards.js - CBT 引导卡片数据
-- [ ] T5.2.2: pages/chat/index.wxml - AI 对话中嵌入 CBT 卡片
-- [ ] T5.2.3: components/cbt-card/ - 创建 CBT 卡片组件
+### 5.2 情绪标签系统
+- [ ] T5.2.1: mock/chat/emotionTags.js - 情绪标签数据
+- [ ] T5.2.2: pages/chat/index.wxml - 消息携带情绪标签
 
-### 5.3 预警级别系统
-- [ ] T5.3.1: mock/workbench/warningLevels.js - 预警级别定义
-- [ ] T5.3.2: pages/dataCenter/index.wxml - 按颜色区分预警级别
-- [ ] T5.3.3: app.js WebSocket - 实时推送预警通知
+### 5.3 CBT 卡片功能
+- [ ] T5.3.1: mock/chat/cbtCards.js - CBT 引导卡片数据
+- [ ] T5.3.2: pages/chat/index.wxml - AI 对话中嵌入 CBT 卡片
+- [ ] T5.3.3: components/cbt-card/ - 创建 CBT 卡片组件
 
 ---
 
@@ -142,7 +151,7 @@ pages/
 mock/
 ├── student/           # 学生端数据
 │   ├── home/getFeed.js
-│   ├── message/aiCounselors.js
+│   ├── message/getSessions.js
 │   └── my/profile.js
 ├── teacher/           # 教师端数据
 │   ├── workbench/warnings.js
@@ -152,8 +161,8 @@ mock/
 ```
 
 ### Mock 路由适配
-- [ ] T6.2.1: mock/index.js - 根据当前 role 选择数据源
-- [ ] T6.2.2: api/request.js - 传递 role 参数到 mock
+- [ ] T6.1.1: mock/index.js - 根据当前 role 选择数据源
+- [ ] T6.1.2: api/request.js - 传递 role 参数到 mock
 
 ---
 
@@ -170,8 +179,8 @@ mock/
         │
         └─ T2.2.1 ─ T2.2.2 ─ T2.2.3
 
-阶段三 (依赖 T1.3) - 部分完成
-阶段四 (依赖 T2.1)
+阶段三 (依赖 T1.3) - 已完成
+阶段四 (依赖 T2.1) - 已完成
 阶段五 (依赖 T3/T4)
 阶段六 (独立)
 ```
@@ -181,6 +190,7 @@ mock/
 ## 风险点
 
 ### 高风险
+
 | 风险 | 影响 | 缓解措施 |
 |------|------|---------|
 | TabBar 缓存 | 切换角色后 Tab 不刷新 | 使用 wx.reLaunch 而非 wx.switchTab |
@@ -188,6 +198,7 @@ mock/
 | WebSocket 断连 | 实时功能失效 | 添加重连机制 + 状态提示 |
 
 ### 中风险
+
 | 风险 | 影响 | 缓解措施 |
 |------|------|---------|
 | 页面栈混乱 | navigateBack 异常 | 统一使用 wx.reLaunch 跳转 |
@@ -201,7 +212,7 @@ mock/
 2. TabBar (阶段二) - 门面组件
 3. 学生端 (阶段三) - MVP 功能
 4. 教师端 (阶段四) - 完整双端
-5. WebSocket (阶段五) - 增值功能
+5. 高级功能 (阶段五) - 预警/情绪/CBT
 6. Mock 双套 (阶段六) - 数据隔离
 
 ---

@@ -2,14 +2,13 @@
 <view class="home-container">
   <view class="home-content">
     <t-tabs defaultValue="recommend">
-      <t-tab-panel label="推荐" value="recommend">
+      <t-tab-panel label="心墙" value="recommend">
         <t-pull-down-refresh
           value="{{enable}}"
           bind:refresh="onRefresh"
           loadingTexts="{{['下拉刷新', '松手刷新', '正在刷新', '刷新完成']}}"
         >
           <view class="waterfall">
-            <!-- 左列 -->
             <view class="waterfall-left">
               <card
                 wx:for="{{leftList}}"
@@ -17,9 +16,15 @@
                 url="{{item.url}}"
                 desc="{{item.desc}}"
                 tags="{{item.tags}}"
+                nickname="{{item.nickname}}"
+                avatar="{{item.avatar}}"
+                role="{{item.role}}"
+                department="{{item.department}}"
+                is-anonymous="{{item.isAnonymous}}"
+                like-count="{{item.likeCount}}"
+                created-at="{{item.createdAt}}"
               />
             </view>
-            <!-- 右列 -->
             <view class="waterfall-right">
               <card
                 wx:for="{{rightList}}"
@@ -27,6 +32,13 @@
                 url="{{item.url}}"
                 desc="{{item.desc}}"
                 tags="{{item.tags}}"
+                nickname="{{item.nickname}}"
+                avatar="{{item.avatar}}"
+                role="{{item.role}}"
+                department="{{item.department}}"
+                is-anonymous="{{item.isAnonymous}}"
+                like-count="{{item.likeCount}}"
+                created-at="{{item.createdAt}}"
               />
             </view>
           </view>
@@ -41,10 +53,16 @@
               url="{{item.url}}"
               desc="{{item.desc}}"
               tags="{{item.tags}}"
+              nickname="{{item.nickname}}"
+              avatar="{{item.avatar}}"
+              role="{{item.role}}"
+              department="{{item.department}}"
+              is-anonymous="{{item.isAnonymous}}"
+              like-count="{{item.likeCount}}"
+              created-at="{{item.createdAt}}"
             />
           </view>
-          <view class="waterfall-right">
-          </view>
+          <view class="waterfall-right"></view>
         </view>
       </t-tab-panel>
     </t-tabs>

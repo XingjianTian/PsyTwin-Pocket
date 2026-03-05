@@ -37,7 +37,7 @@ Component({
           {
             icon: 'home',
             value: 'home',
-            label: '心友圈',
+            label: '心墙',
           },
           {
             icon: 'chat',
@@ -60,7 +60,7 @@ Component({
           {
             icon: 'home',
             value: 'home',
-            label: '心友圈',
+            label: '心墙',
           },
           {
             icon: 'dashboard',
@@ -84,7 +84,7 @@ Component({
           {
             icon: 'home',
             value: 'home',
-            label: '心友圈',
+            label: '心墙',
           },
           {
             icon: 'chat',

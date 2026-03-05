@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-27
 
 ### Added
-- 初始化 PsyTwin-Pocket 微信小程序 - 学生端心友圈功能
+- 初始化 PsyTwin-Pocket 微信小程序 - 学生端心墙功能
 - TDesign 组件库升级到 v1.11.2
 - 首页、发布页样式调整
 - 统一的 page 页面配置

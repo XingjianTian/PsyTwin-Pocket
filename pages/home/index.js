@@ -15,7 +15,7 @@ Page({
       .catch(() => ({}));
 
     const feedData = cardRes?.follow || cardRes?.square || [];
-    const limitedData = feedData.slice(0, 4);
+    const limitedData = feedData.slice(0, 8);
 
     const cardData = this.formatCards(limitedData);
     const { leftList, rightList } = this.distributeCards(cardData);
@@ -30,9 +30,16 @@ Page({
   formatCards(data) {
     return data.map((item, index) => ({
       id: item.id,
-      url: item.content?.images?.[0] || `https://picsum.photos/300/${300 + index * 50}?random=${index}`,
-      desc: item.content?.text?.slice(0, 60) || item.author?.nickname + '的分享',
+      url: item.content?.images?.[0] || '',
+      desc: item.content?.text || '',
       tags: this.generateTags(item),
+      nickname: item.author?.nickname || '匿名的你',
+      avatar: item.author?.avatar || '',
+      role: item.author?.role || 'student',
+      department: item.author?.department || '',
+      isAnonymous: item.content?.isAnonymous || false,
+      likeCount: item.stats?.likeCount || 0,
+      createdAt: item.createdAt || '',
     }));
   },
 
@@ -78,7 +85,7 @@ Page({
       .catch(() => ({}));
 
     const feedData = cardRes?.follow || cardRes?.square || [];
-    const limitedData = feedData.slice(0, 4);
+    const limitedData = feedData.slice(0, 8);
     const cardData = this.formatCards(limitedData);
     const { leftList, rightList } = this.distributeCards(cardData);
 

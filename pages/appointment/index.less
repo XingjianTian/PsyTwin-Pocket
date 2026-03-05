@@ -1,28 +1,125 @@
-@primary-color: #0052d9;
 @import '/variable.less';
 
-.appointment-page {
-  min-height: 100vh;
-  background-color: #f5f5f5;
+// 品牌主色 - 与后台管理系统对齐的紫色系
+@purple-primary: #7c3aed;
+@purple-light: #ede9fe;
+@purple-hover: #6d28d9;
 
-  // Tab 栏
-  .appointment-tabs {
+// 状态色
+@color-available: #10b981; // 绿色 - 可用
+@color-available-bg: #d1fae5;
+@color-busy: #f59e0b; // 橙色 - 使用中
+@color-busy-bg: #fef3c7;
+@color-maintenance: #ef4444; // 红色 - 维护中
+@color-maintenance-bg: #fee2e2;
+
+// 预约记录状态色
+@color-pending: #3b82f6; // 蓝色 - 待就诊
+@color-pending-bg: #dbeafe;
+@color-confirmed: @purple-primary; // 紫色 - 已确认
+@color-confirmed-bg: @purple-light;
+@color-completed: @color-available; // 绿色 - 已完成
+@color-completed-bg: @color-available-bg;
+@color-cancelled: #9ca3af; // 灰色 - 已取消
+@color-cancelled-bg: #f3f4f6;
+
+// 通用
+@card-radius: 20rpx;
+@card-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
+@card-shadow-hover: 0 4rpx 24rpx rgba(124, 58, 237, 0.12);
+
+// 房间图标背景色
+@icon-bg-counseling: #ede9fe;
+@icon-color-counseling: @purple-primary;
+@icon-bg-vr: #dbeafe;
+@icon-color-vr: #3b82f6;
+@icon-bg-group: #d1fae5;
+@icon-color-group: #10b981;
+
+.appt-page {
+  min-height: 100vh;
+  background-color: @bg-color;
+  padding-bottom: calc(@tab-bar-height + env(safe-area-inset-bottom));
+
+  // ===== 顶部 Header =====
+  .appt-header {
+    background: linear-gradient(135deg, @purple-primary 0%, #9f67fa 100%);
+    padding: 48rpx 32rpx 40rpx;
+
+    .header-title {
+      font-size: 36rpx;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 32rpx;
+      letter-spacing: 1rpx;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: @card-radius;
+      padding: 20rpx 0;
+
+      .stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6rpx;
+
+        .stat-num {
+          font-size: 44rpx;
+          font-weight: 700;
+          color: #fff;
+          line-height: 1.2;
+
+          &.available-color {
+            color: #a7f3d0; // 浅绿
+          }
+
+          &.busy-color {
+            color: #fde68a; // 浅橙
+          }
+        }
+
+        .stat-label {
+          font-size: 22rpx;
+          color: rgba(255, 255, 255, 0.75);
+        }
+      }
+
+      .stat-divider {
+        width: 1rpx;
+        height: 48rpx;
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+  }
+
+  // ===== Tab 栏 =====
+  .appt-tabs {
     display: flex;
     background-color: #fff;
-    border-bottom: 1rpx solid #eee;
+    border-bottom: 1rpx solid @gray3;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 
     .tab-item {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 8rpx;
       height: 88rpx;
       font-size: 28rpx;
-      color: #999;
+      color: @gy2;
       position: relative;
+      transition: color 0.2s;
 
-      &.active {
-        color: #333;
+      &.tab-active {
+        color: @purple-primary;
         font-weight: 600;
 
         &::after {
@@ -31,183 +128,543 @@
           bottom: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 48rpx;
+          width: 56rpx;
           height: 6rpx;
-          background-color: @primary-color;
+          background-color: @purple-primary;
           border-radius: 3rpx;
         }
       }
-    }
-  }
 
-  // 服务列表
-  .services-list {
-    padding: 24rpx;
-  }
-
-  .service-item {
-    display: flex;
-    align-items: center;
-    background-color: #fff;
-    border-radius: 16rpx;
-    padding: 24rpx;
-    margin-bottom: 20rpx;
-
-    .service-icon {
-      width: 96rpx;
-      height: 96rpx;
-      background-color: #f0f0f0;
-      border-radius: 16rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48rpx;
-      margin-right: 20rpx;
-    }
-
-    .service-info {
-      flex: 1;
-
-      .service-name {
-        font-size: 32rpx;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 8rpx;
-      }
-
-      .service-desc {
-        font-size: 26rpx;
-        color: #666;
-        margin-bottom: 12rpx;
-      }
-
-      .service-meta {
+      .tab-badge {
+        min-width: 32rpx;
+        height: 32rpx;
+        background-color: #ef4444;
+        color: #fff;
+        font-size: 20rpx;
+        border-radius: 16rpx;
         display: flex;
-        gap: 20rpx;
-
-        .meta-item {
-          font-size: 24rpx;
-          color: #999;
-        }
+        align-items: center;
+        justify-content: center;
+        padding: 0 8rpx;
+        line-height: 1;
       }
     }
-
-    .service-arrow {
-      font-size: 32rpx;
-      color: #ccc;
-    }
   }
 
-  // 预约记录
-  .records-list {
-    padding: 24rpx;
+  // ===== 内容区 =====
+  .tab-content {
+    height: calc(100vh - 280rpx - @tab-bar-height);
   }
 
-  .record-item {
-    background-color: #fff;
-    border-radius: 16rpx;
-    padding: 24rpx;
-    margin-bottom: 20rpx;
+  // ===== 筛选器 =====
+  .filter-bar {
+    display: flex;
+    gap: 16rpx;
+    padding: 24rpx 24rpx 8rpx;
+    flex-wrap: nowrap;
+    overflow-x: auto;
 
-    &.pending {
-      border-left: 6rpx solid #1890ff;
+    &::-webkit-scrollbar {
+      display: none;
     }
 
-    &.completed {
-      border-left: 6rpx solid #52c41a;
-    }
-
-    &.cancelled {
-      border-left: 6rpx solid #999;
-      opacity: 0.6;
-    }
-
-    .record-header {
+    .filter-chip {
+      flex-shrink: 0;
+      height: 56rpx;
+      padding: 0 24rpx;
+      border-radius: 28rpx;
+      background-color: #fff;
+      border: 1rpx solid @gray3;
+      font-size: 24rpx;
+      color: @gy2;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 16rpx;
+      white-space: nowrap;
+      transition: all 0.2s;
 
-      .record-service {
-        font-size: 30rpx;
+      &.filter-chip-active {
+        background-color: @purple-light;
+        border-color: @purple-primary;
+        color: @purple-primary;
         font-weight: 600;
-        color: #333;
+      }
+    }
+  }
+
+  // ===== 房间卡片列表 =====
+  .room-list {
+    padding: 16rpx 24rpx 24rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+  }
+
+  .room-card {
+    background: #fff;
+    border-radius: @card-radius;
+    padding: 28rpx;
+    box-shadow: @card-shadow;
+    overflow: hidden;
+
+    // 卡片头部
+    .room-card-header {
+      display: flex;
+      align-items: center;
+      gap: 20rpx;
+      margin-bottom: 20rpx;
+
+      .room-icon-wrap {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 20rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.room-icon-counseling {
+          background-color: @icon-bg-counseling;
+          color: @icon-color-counseling;
+        }
+
+        &.room-icon-vr {
+          background-color: @icon-bg-vr;
+          color: @icon-color-vr;
+        }
+
+        &.room-icon-group {
+          background-color: @icon-bg-group;
+          color: @icon-color-group;
+        }
       }
 
-      .record-status {
-        font-size: 24rpx;
-        padding: 4rpx 12rpx;
-        border-radius: 4rpx;
+      .room-info {
+        flex: 1;
+        min-width: 0;
 
-        .pending & {
-          color: #1890ff;
-          background-color: rgba(24, 144, 255, 0.1);
+        .room-name {
+          font-size: 30rpx;
+          font-weight: 600;
+          color: @gy1;
+          margin-bottom: 6rpx;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .completed & {
-          color: #52c41a;
-          background-color: rgba(82, 196, 26, 0.1);
+        .room-location {
+          display: flex;
+          align-items: center;
+          gap: 4rpx;
+          font-size: 22rpx;
+          color: @gy3;
+        }
+      }
+
+      // 状态徽章
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 6rpx;
+        padding: 8rpx 16rpx;
+        border-radius: 20rpx;
+        font-size: 22rpx;
+        font-weight: 500;
+        flex-shrink: 0;
+
+        .status-dot {
+          width: 12rpx;
+          height: 12rpx;
+          border-radius: 50%;
         }
 
-        .cancelled & {
-          color: #999;
-          background-color: #f5f5f5;
+        &.status-available {
+          background-color: @color-available-bg;
+          color: @color-available;
+
+          .status-dot {
+            background-color: @color-available;
+            box-shadow: 0 0 0 4rpx rgba(16, 185, 129, 0.2);
+          }
+        }
+
+        &.status-busy {
+          background-color: @color-busy-bg;
+          color: @color-busy;
+
+          .status-dot {
+            background-color: @color-busy;
+            box-shadow: 0 0 0 4rpx rgba(245, 158, 11, 0.2);
+          }
+        }
+
+        &.status-maintenance {
+          background-color: @color-maintenance-bg;
+          color: @color-maintenance;
+
+          .status-dot {
+            background-color: @color-maintenance;
+          }
         }
       }
     }
 
-    .record-time {
+    // 设备列表
+    .device-list {
       display: flex;
-      gap: 24rpx;
-      font-size: 26rpx;
-      color: #666;
-      margin-bottom: 16rpx;
+      flex-wrap: wrap;
+      gap: 10rpx;
+      margin-bottom: 20rpx;
+
+      .device-tag {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        padding: 6rpx 16rpx;
+        background-color: @bg-color;
+        border-radius: 8rpx;
+        font-size: 22rpx;
+        color: @gy2;
+
+        .device-dot {
+          width: 10rpx;
+          height: 10rpx;
+          border-radius: 50%;
+
+          &.device-dot-online {
+            background-color: @color-available;
+          }
+
+          &.device-dot-offline {
+            background-color: @color-cancelled;
+          }
+        }
+      }
     }
 
-    .record-actions {
-      display: flex;
-      justify-content: flex-end;
+    // 使用中会话信息
+    .session-info {
+      background: @color-busy-bg;
+      border-radius: 12rpx;
+      padding: 20rpx;
+      margin-bottom: 20rpx;
 
-      .action-btn {
-        padding: 8rpx 24rpx;
+      .session-user {
+        display: flex;
+        align-items: center;
+        gap: 8rpx;
+        font-size: 26rpx;
+        font-weight: 600;
+        color: @gy1;
+        margin-bottom: 10rpx;
+      }
+
+      .session-plan {
         font-size: 24rpx;
-        border-radius: 4rpx;
+        color: @gy2;
+        margin-bottom: 14rpx;
 
-        &.cancel {
-          color: #ff4d4f;
-          background-color: rgba(255, 77, 79, 0.1);
+        .plan-label {
+          color: @gy3;
+        }
+      }
+
+      .session-progress {
+        .progress-info {
+          display: flex;
+          justify-content: space-between;
+          font-size: 22rpx;
+          color: @gy3;
+          margin-bottom: 8rpx;
+        }
+
+        .progress-bar-wrap {
+          height: 8rpx;
+          background-color: rgba(245, 158, 11, 0.2);
+          border-radius: 4rpx;
+          overflow: hidden;
+
+          .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, @color-busy, #fbbf24);
+            border-radius: 4rpx;
+            transition: width 0.3s;
+          }
+        }
+      }
+    }
+
+    // 房间描述
+    .room-desc {
+      font-size: 24rpx;
+      color: @gy3;
+      margin-bottom: 24rpx;
+      line-height: 1.5;
+    }
+
+    // 操作按钮
+    .room-actions {
+      display: flex;
+
+      .btn-primary {
+        flex: 1;
+        height: 72rpx;
+        background: linear-gradient(135deg, @purple-primary, #9f67fa);
+        color: #fff;
+        border-radius: 36rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8rpx;
+        font-size: 28rpx;
+        font-weight: 500;
+        box-shadow: 0 4rpx 16rpx rgba(124, 58, 237, 0.3);
+
+        &:active {
+          opacity: 0.85;
+          transform: scale(0.98);
+        }
+      }
+
+      .btn-secondary {
+        flex: 1;
+        height: 72rpx;
+        background: @bg-color;
+        color: @gy2;
+        border-radius: 36rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28rpx;
+        border: 1rpx solid @gray3;
+      }
+
+      .btn-disabled {
+        flex: 1;
+        height: 72rpx;
+        background: @bg-color;
+        color: @color-cancelled;
+        border-radius: 36rpx;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28rpx;
+        border: 1rpx dashed @gray3;
+      }
+    }
+  }
+
+  // ===== 预约记录 =====
+  .record-list {
+    padding: 16rpx 24rpx 24rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 20rpx;
+  }
+
+  .record-card {
+    display: flex;
+    background: #fff;
+    border-radius: @card-radius;
+    box-shadow: @card-shadow;
+    overflow: hidden;
+
+    // 左侧彩色状态条
+    .record-strip {
+      width: 8rpx;
+      flex-shrink: 0;
+
+      &.record-strip-pending {
+        background-color: @color-pending;
+      }
+
+      &.record-strip-confirmed {
+        background-color: @color-confirmed;
+      }
+
+      &.record-strip-completed {
+        background-color: @color-completed;
+      }
+
+      &.record-strip-cancelled {
+        background-color: @color-cancelled;
+      }
+    }
+
+    .record-body {
+      flex: 1;
+      padding: 24rpx;
+      min-width: 0;
+
+      .record-header {
+        display: flex;
+        align-items: center;
+        gap: 16rpx;
+        margin-bottom: 20rpx;
+
+        .record-icon-wrap {
+          width: 64rpx;
+          height: 64rpx;
+          border-radius: 16rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          &.record-icon-counseling {
+            background-color: @icon-bg-counseling;
+            color: @icon-color-counseling;
+          }
+
+          &.record-icon-vr {
+            background-color: @icon-bg-vr;
+            color: @icon-color-vr;
+          }
+
+          &.record-icon-group {
+            background-color: @icon-bg-group;
+            color: @icon-color-group;
+          }
+        }
+
+        .record-title-wrap {
+          flex: 1;
+          min-width: 0;
+
+          .record-service-name {
+            font-size: 28rpx;
+            font-weight: 600;
+            color: @gy1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .record-location {
+            font-size: 22rpx;
+            color: @gy3;
+            margin-top: 4rpx;
+          }
+        }
+
+        // 状态标签
+        .record-status-tag {
+          padding: 6rpx 16rpx;
+          border-radius: 8rpx;
+          font-size: 22rpx;
+          font-weight: 500;
+          white-space: nowrap;
+          flex-shrink: 0;
+
+          &.tag-pending {
+            color: @color-pending;
+            background-color: @color-pending-bg;
+          }
+
+          &.tag-confirmed {
+            color: @color-confirmed;
+            background-color: @color-confirmed-bg;
+          }
+
+          &.tag-completed {
+            color: @color-completed;
+            background-color: @color-completed-bg;
+          }
+
+          &.tag-cancelled {
+            color: @color-cancelled;
+            background-color: @color-cancelled-bg;
+          }
+        }
+      }
+
+      // 时间信息
+      .record-datetime {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20rpx;
+        margin-bottom: 16rpx;
+
+        .datetime-item {
+          display: flex;
+          align-items: center;
+          gap: 6rpx;
+          font-size: 24rpx;
+          color: @gy2;
+        }
+      }
+
+      // 预约事由
+      .record-reason {
+        font-size: 24rpx;
+        color: @gy2;
+        padding: 16rpx;
+        background: @bg-color;
+        border-radius: 10rpx;
+        margin-bottom: 16rpx;
+        line-height: 1.6;
+
+        .reason-label {
+          color: @gy3;
+        }
+      }
+
+      // 操作
+      .record-actions {
+        display: flex;
+        justify-content: flex-end;
+
+        .btn-cancel {
+          padding: 10rpx 28rpx;
+          font-size: 24rpx;
+          color: @color-maintenance;
+          background: @color-maintenance-bg;
+          border-radius: 8rpx;
+
+          &:active {
+            opacity: 0.7;
+          }
         }
       }
     }
   }
 
-  // 空状态
+  // ===== 空状态 =====
   .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 200rpx 0;
-
-    .empty-icon {
-      font-size: 96rpx;
-      margin-bottom: 24rpx;
-    }
+    padding: 160rpx 0 80rpx;
+    gap: 16rpx;
 
     .empty-text {
       font-size: 28rpx;
-      color: #999;
+      color: @gy3;
+    }
+
+    .empty-action {
+      margin-top: 8rpx;
+      height: 64rpx;
+      padding: 0 40rpx;
+      background: @purple-light;
+      color: @purple-primary;
+      border-radius: 32rpx;
+      display: flex;
+      align-items: center;
+      font-size: 26rpx;
+      font-weight: 500;
     }
   }
 
-  // 表单弹窗
+  // ===== 预约表单弹窗 =====
   .form-mask {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.45);
     z-index: 100;
   }
 
@@ -217,87 +674,173 @@
     right: 0;
     bottom: 0;
     background-color: #fff;
-    border-radius: 24rpx 24rpx 0 0;
+    border-radius: 32rpx 32rpx 0 0;
     z-index: 101;
-    max-height: 80vh;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    &.form-popup-show {
+      transform: translateY(0);
+    }
+
+    .form-handle-bar {
+      width: 64rpx;
+      height: 8rpx;
+      background: @gray3;
+      border-radius: 4rpx;
+      margin: 16rpx auto 0;
+      flex-shrink: 0;
+    }
 
     .form-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 32rpx;
-      border-bottom: 1rpx solid #eee;
+      padding: 24rpx 32rpx 20rpx;
+      border-bottom: 1rpx solid @gray3;
+      flex-shrink: 0;
 
       .form-title {
         font-size: 32rpx;
         font-weight: 600;
-        color: #333;
+        color: @gy1;
       }
 
-      .form-close {
-        font-size: 32rpx;
-        color: #999;
+      .form-close-btn {
+        width: 56rpx;
+        height: 56rpx;
+        border-radius: 50%;
+        background: @bg-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: @gy2;
       }
     }
 
     .form-body {
       flex: 1;
-      padding: 32rpx;
+      padding: 24rpx 32rpx;
       overflow-y: auto;
 
-      .form-item {
+      .form-section {
         margin-bottom: 32rpx;
 
         .form-label {
-          display: block;
-          font-size: 28rpx;
-          color: #333;
-          margin-bottom: 12rpx;
+          display: flex;
+          align-items: center;
+          gap: 8rpx;
+          font-size: 26rpx;
+          font-weight: 600;
+          color: @gy1;
+          margin-bottom: 16rpx;
         }
 
         .form-picker {
-          height: 80rpx;
-          background-color: #f5f5f5;
-          border-radius: 8rpx;
+          height: 88rpx;
+          background: @bg-color;
+          border-radius: 12rpx;
           padding: 0 24rpx;
           display: flex;
           align-items: center;
+          justify-content: space-between;
           font-size: 28rpx;
-          color: #333;
+          color: @gy1;
+          border: 1rpx solid transparent;
 
           &.placeholder {
-            color: #999;
+            color: @gy3;
+          }
+        }
+
+        // 时间格子
+        .time-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16rpx;
+
+          .time-chip {
+            width: calc(25% - 12rpx);
+            height: 64rpx;
+            background: @bg-color;
+            border-radius: 12rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26rpx;
+            color: @gy2;
+            border: 2rpx solid transparent;
+            box-sizing: border-box;
+            transition: all 0.15s;
+
+            &.time-chip-active {
+              background: @purple-light;
+              border-color: @purple-primary;
+              color: @purple-primary;
+              font-weight: 600;
+            }
+
+            &:active {
+              transform: scale(0.95);
+            }
           }
         }
 
         .form-textarea {
           width: 100%;
-          height: 160rpx;
-          background-color: #f5f5f5;
-          border-radius: 8rpx;
-          padding: 20rpx;
+          min-height: 160rpx;
+          background: @bg-color;
+          border-radius: 12rpx;
+          padding: 20rpx 24rpx;
           font-size: 28rpx;
+          color: @gy1;
           box-sizing: border-box;
+          line-height: 1.6;
+        }
+
+        .textarea-placeholder {
+          color: @gy3;
+        }
+
+        .textarea-count {
+          text-align: right;
+          font-size: 22rpx;
+          color: @gy3;
+          margin-top: 8rpx;
         }
       }
     }
 
     .form-footer {
-      padding: 24rpx 32rpx;
-      padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-      border-top: 1rpx solid #eee;
+      padding: 20rpx 32rpx;
+      padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+      border-top: 1rpx solid @gray3;
+      flex-shrink: 0;
 
-      .form-submit {
+      .btn-submit {
         height: 88rpx;
-        background-color: @primary-color;
+        background: linear-gradient(135deg, @purple-primary, #9f67fa);
         color: #fff;
         font-size: 32rpx;
+        font-weight: 600;
         border-radius: 44rpx;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4rpx 20rpx rgba(124, 58, 237, 0.35);
+
+        &:active {
+          opacity: 0.85;
+        }
+
+        &.btn-submit-disabled {
+          background: @gray3;
+          box-shadow: none;
+          color: @gy3;
+        }
       }
     }
   }

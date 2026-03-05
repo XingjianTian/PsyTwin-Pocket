@@ -1,116 +1,305 @@
-<view class="appointment-page">
-  <!-- Tab 栏 -->
-  <view class="appointment-tabs">
-    <view 
-      class="tab-item {{currentTab === 'services' ? 'active' : ''}}" 
-      bindtap="onTabChange" 
+<view class="appt-page">
+
+  <!-- 顶部统计概览 -->
+  <view class="appt-header">
+    <view class="header-title">心理健康预约</view>
+    <view class="header-stats">
+      <view class="stat-item">
+        <view class="stat-num available-color">{{stats.available}}</view>
+        <view class="stat-label">可预约</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num busy-color">{{stats.busy}}</view>
+        <view class="stat-label">使用中</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.total}}</view>
+        <view class="stat-label">总资源</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="appt-tabs">
+    <view
+      class="tab-item {{currentTab === 'services' ? 'tab-active' : ''}}"
+      bindtap="onTabChange"
       data-value="services"
     >
-      可预约服务
+      <text>可预约资源</text>
     </view>
-    <view 
-      class="tab-item {{currentTab === 'records' ? 'active' : ''}}" 
-      bindtap="onTabChange" 
+    <view
+      class="tab-item {{currentTab === 'records' ? 'tab-active' : ''}}"
+      bindtap="onTabChange"
       data-value="records"
     >
-      预约记录
+      <text>我的预约</text>
+      <view class="tab-badge" wx:if="{{pendingCount > 0}}">{{pendingCount}}</view>
     </view>
   </view>
 
-  <!-- 可预约服务 -->
-  <scroll-view class="services-list" scroll-y wx:if="{{currentTab === 'services'}}">
-    <view 
-      class="service-item" 
-      wx:for="{{services}}" 
-      wx:key="id"
-      bindtap="onServiceTap" 
-      data-id="{{item.id}}"
-      data-name="{{item.name}}"
-    >
-      <view class="service-icon">{{item.icon}}</view>
-      <view class="service-info">
-        <view class="service-name">{{item.name}}</view>
-        <view class="service-desc">{{item.description}}</view>
-        <view class="service-meta">
-          <text class="meta-item">⏱ {{item.duration}}分钟</text>
-          <text class="meta-item">📍 {{item.location}}</text>
-        </view>
-      </view>
-      <view class="service-arrow">→</view>
-    </view>
-  </scroll-view>
+  <!-- ===== 可预约资源 ===== -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{currentTab === 'services'}}">
 
-  <!-- 预约记录 -->
-  <scroll-view class="records-list" scroll-y wx:if="{{currentTab === 'records'}}">
-    <block wx:if="{{records.length > 0}}">
-      <view 
-        class="record-item {{item.status}}" 
-        wx:for="{{records}}" 
-        wx:key="id"
+    <!-- 筛选器 -->
+    <view class="filter-bar">
+      <view
+        wx:for="{{typeFilters}}"
+        wx:key="value"
+        class="filter-chip {{activeFilter === item.value ? 'filter-chip-active' : ''}}"
+        bindtap="onFilterChange"
+        data-value="{{item.value}}"
       >
-        <view class="record-header">
-          <text class="record-service">{{item.serviceName}}</text>
-          <text class="record-status">
-            {{item.status === 'pending' ? '待就诊' : item.status === 'completed' ? '已完成' : '已取消'}}
-          </text>
+        {{item.label}}
+      </view>
+    </view>
+
+    <!-- 房间卡片列表 -->
+    <view class="room-list">
+      <view
+        wx:for="{{filteredServices}}"
+        wx:key="id"
+        class="room-card"
+      >
+        <!-- 卡片头部：名称 + 状态 -->
+        <view class="room-card-header">
+          <view class="room-icon-wrap room-icon-{{item.type}}">
+            <t-icon name="{{item.type === 'vr' ? 'tv' : item.type === 'group' ? 'user-group' : 'user-talk'}}" size="40rpx" />
+          </view>
+          <view class="room-info">
+            <view class="room-name">{{item.name}}</view>
+            <view class="room-location">
+              <t-icon name="location" size="24rpx" />
+              <text>{{item.location}}</text>
+            </view>
+          </view>
+          <view class="status-badge status-{{item.status}}">
+            <view class="status-dot"></view>
+            <text>{{item.status === 'available' ? '可用' : item.status === 'busy' ? '使用中' : '维护中'}}</text>
+          </view>
         </view>
-        <view class="record-time">
-          <text>📅 {{item.date}}</text>
-          <text>🕐 {{item.time}}</text>
+
+        <!-- 设备列表 -->
+        <view class="device-list" wx:if="{{item.devices.length > 0}}">
+          <view
+            wx:for="{{item.devices}}"
+            wx:for-item="device"
+            wx:key="name"
+            class="device-tag"
+          >
+            <view class="device-dot {{device.online ? 'device-dot-online' : 'device-dot-offline'}}"></view>
+            <text>{{device.name}}</text>
+          </view>
         </view>
-        <view class="record-actions" wx:if="{{item.status === 'pending'}}">
-          <view class="action-btn cancel" bindtap="onCancelAppointment" data-id="{{item.id}}">取消预约</view>
+
+        <!-- 使用中：进行中会话信息 -->
+        <view class="session-info" wx:if="{{item.status === 'busy' && item.currentUser}}">
+          <view class="session-user">
+            <t-icon name="user" size="28rpx" />
+            <text>{{item.currentUser.name}}（{{item.currentUser.studentId}}）</text>
+          </view>
+          <view class="session-plan">
+            <text class="plan-label">干预方案：</text>
+            <text>{{item.currentUser.plan}}</text>
+          </view>
+          <view class="session-progress">
+            <view class="progress-info">
+              <text>已使用 {{item.currentUser.usedMinutes}} 分钟</text>
+              <text>共 {{item.currentUser.totalMinutes}} 分钟</text>
+            </view>
+            <view class="progress-bar-wrap">
+              <view
+                class="progress-bar-fill"
+                style="width: {{item.currentUser.usedMinutes / item.currentUser.totalMinutes * 100}}%"
+              ></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 描述 -->
+        <view class="room-desc">{{item.description}} · {{item.duration}}分钟/次</view>
+
+        <!-- 操作按钮 -->
+        <view class="room-actions">
+          <view
+            wx:if="{{item.status === 'available'}}"
+            class="btn-primary"
+            bindtap="onServiceTap"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+            data-times="{{item.availableTimes}}"
+          >
+            <t-icon name="add" size="28rpx" />
+            <text>立即预约</text>
+          </view>
+          <view wx:elif="{{item.status === 'busy'}}" class="btn-secondary">
+            <text>预约下一时段</text>
+          </view>
+          <view wx:else class="btn-disabled">
+            <text>暂不可用</text>
+          </view>
         </view>
       </view>
-    </block>
-    <block wx:else>
-      <view class="empty-state">
-        <text class="empty-icon">📋</text>
-        <text class="empty-text">暂无预约记录</text>
-      </view>
-    </block>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{filteredServices.length === 0}}">
+      <t-icon name="calendar" size="96rpx" color="#c2c2c2" />
+      <text class="empty-text">暂无符合条件的资源</text>
+    </view>
+
   </scroll-view>
 
-  <!-- 预约表单弹窗 -->
-  <view class="form-mask" wx:if="{{showForm}}" bindtap="onFormClose"></view>
-  <view class="form-popup" wx:if="{{showForm}}">
-    <view class="form-header">
-      <text class="form-title">预约 {{formData.serviceName}}</text>
-      <text class="form-close" bindtap="onFormClose">✕</text>
+  <!-- ===== 我的预约 ===== -->
+  <scroll-view class="tab-content" scroll-y wx:if="{{currentTab === 'records'}}">
+
+    <!-- 状态筛选 -->
+    <view class="filter-bar">
+      <view
+        wx:for="{{statusFilters}}"
+        wx:key="value"
+        class="filter-chip {{activeStatusFilter === item.value ? 'filter-chip-active' : ''}}"
+        bindtap="onStatusFilterChange"
+        data-value="{{item.value}}"
+      >
+        {{item.label}}
+      </view>
     </view>
-    
-    <view class="form-body">
-      <view class="form-item">
-        <text class="form-label">选择日期</text>
-        <picker mode="date" bindchange="onDateChange">
-          <view class="form-picker">
-            {{formData.date || '请选择日期'}}
+
+    <!-- 预约记录 -->
+    <view class="record-list" wx:if="{{filteredRecords.length > 0}}">
+      <view
+        wx:for="{{filteredRecords}}"
+        wx:key="id"
+        class="record-card"
+      >
+        <!-- 左侧状态条 -->
+        <view class="record-strip record-strip-{{item.status}}"></view>
+
+        <view class="record-body">
+          <!-- 头部：服务名 + 状态标签 -->
+          <view class="record-header">
+            <view class="record-icon-wrap record-icon-{{item.serviceType}}">
+              <t-icon name="{{item.serviceType === 'vr' ? 'tv' : item.serviceType === 'group' ? 'user-group' : 'user-talk'}}" size="36rpx" />
+            </view>
+            <view class="record-title-wrap">
+              <view class="record-service-name">{{item.serviceName}}</view>
+              <view class="record-location">{{item.location}}</view>
+            </view>
+            <view class="record-status-tag tag-{{item.status}}">
+              {{item.status === 'pending' ? '待就诊' : item.status === 'confirmed' ? '已确认' : item.status === 'completed' ? '已完成' : '已取消'}}
+            </view>
+          </view>
+
+          <!-- 时间信息 -->
+          <view class="record-datetime">
+            <view class="datetime-item">
+              <t-icon name="calendar" size="26rpx" />
+              <text>{{item.date}}</text>
+            </view>
+            <view class="datetime-item">
+              <t-icon name="time" size="26rpx" />
+              <text>{{item.time}}</text>
+            </view>
+            <view class="datetime-item" wx:if="{{item.counselor}}">
+              <t-icon name="user" size="26rpx" />
+              <text>{{item.counselor}}</text>
+            </view>
+          </view>
+
+          <!-- 预约事由 -->
+          <view class="record-reason" wx:if="{{item.reason}}">
+            <text class="reason-label">事由：</text>
+            <text>{{item.reason}}</text>
+          </view>
+
+          <!-- 操作区 -->
+          <view class="record-actions" wx:if="{{item.cancelable}}">
+            <view class="btn-cancel" bindtap="onCancelAppointment" data-id="{{item.id}}">取消预约</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{filteredRecords.length === 0}}">
+      <t-icon name="calendar" size="96rpx" color="#c2c2c2" />
+      <text class="empty-text">暂无预约记录</text>
+      <view class="empty-action" bindtap="onTabChange" data-value="services">去预约</view>
+    </view>
+
+  </scroll-view>
+
+  <!-- ===== 预约表单弹窗 ===== -->
+  <view class="form-mask" wx:if="{{showForm}}" bindtap="onFormClose" catchtap="onFormClose"></view>
+  <view class="form-popup {{showForm ? 'form-popup-show' : ''}}">
+    <view class="form-handle-bar"></view>
+    <view class="form-header">
+      <view class="form-title">预约 {{formData.serviceName}}</view>
+      <view class="form-close-btn" bindtap="onFormClose">
+        <t-icon name="close" size="36rpx" />
+      </view>
+    </view>
+
+    <scroll-view class="form-body" scroll-y>
+      <!-- 选择日期 -->
+      <view class="form-section">
+        <view class="form-label">
+          <t-icon name="calendar" size="28rpx" />
+          <text>选择日期</text>
+        </view>
+        <picker mode="date" bindchange="onDateChange" value="{{formData.date}}">
+          <view class="form-picker {{formData.date ? '' : 'placeholder'}}">
+            <text>{{formData.date || '请选择预约日期'}}</text>
+            <t-icon name="chevron-right" size="28rpx" color="#c2c2c2" />
           </view>
         </picker>
       </view>
 
-      <view class="form-item">
-        <text class="form-label">选择时间</text>
-        <picker mode="selector" range="{{availableTimes}}" bindchange="onTimeChange">
-          <view class="form-picker">
-            {{formData.time || '请选择时间'}}
+      <!-- 选择时间 -->
+      <view class="form-section">
+        <view class="form-label">
+          <t-icon name="time" size="28rpx" />
+          <text>选择时间</text>
+        </view>
+        <view class="time-grid">
+          <view
+            wx:for="{{currentAvailableTimes}}"
+            wx:key="*this"
+            class="time-chip {{formData.time === item ? 'time-chip-active' : ''}}"
+            bindtap="onTimeSelect"
+            data-time="{{item}}"
+          >
+            {{item}}
           </view>
-        </picker>
+        </view>
       </view>
 
-      <view class="form-item">
-        <text class="form-label">预约事由（选填）</text>
-        <textarea 
-          class="form-textarea" 
-          placeholder="简单描述您的问题..." 
+      <!-- 预约事由 -->
+      <view class="form-section">
+        <view class="form-label">
+          <t-icon name="edit" size="28rpx" />
+          <text>预约事由（选填）</text>
+        </view>
+        <textarea
+          class="form-textarea"
+          placeholder="简单描述您的困扰或需求..."
+          placeholder-class="textarea-placeholder"
           bindinput="onReasonInput"
           value="{{formData.reason}}"
+          maxlength="200"
         />
+        <view class="textarea-count">{{formData.reason.length}}/200</view>
       </view>
-    </view>
+    </scroll-view>
 
     <view class="form-footer">
-      <view class="form-submit" bindtap="onSubmit">确认预约</view>
+      <view class="btn-submit {{formData.date && formData.time ? '' : 'btn-submit-disabled'}}" bindtap="onSubmit">
+        确认预约
+      </view>
     </view>
   </view>
+
 </view>

@@ -1,74 +1,196 @@
-<view class="my-page">
-  <!-- 顶部背景 -->
+<scroll-view class="my-page" scroll-y>
+
+  <!-- ===== 顶部 Header ===== -->
   <view class="my-header">
-    <view class="header-bg"></view>
-    
-    <!-- 用户信息 -->
-    <view class="user-info" wx:if="{{isLoad}}">
-      <view class="user-avatar" bindtap="onEditProfile">
-        <image 
-          src="{{userInfo.avatar || '/static/img_td.png'}}" 
-          mode="aspectFill" 
-        />
-        <view class="edit-icon">✏️</view>
-      </view>
-      <view class="user-detail">
-        <view class="user-name">
-          {{userInfo.nickname || '用户'}}
-          <text class="role-badge" wx:if="{{role === 'teacher'}}">教师</text>
-        </view>
-        <view class="user-meta" wx:if="{{userInfo.studentId}}">
-          学号：{{userInfo.studentId}}
+
+    <!-- 设置入口 -->
+    <view class="header-setting" bindtap="onGoSetting">
+      <t-icon name="setting" size="44rpx" color="#fff" />
+    </view>
+
+    <!-- 用户信息区 -->
+    <view class="user-block" wx:if="{{isLoad}}" bindtap="onEditProfile">
+      <view class="user-avatar-wrap">
+        <image class="user-avatar" src="{{userInfo.avatar || '/static/img_td.png'}}" mode="aspectFill" />
+        <view class="avatar-edit-badge">
+          <t-icon name="edit" size="22rpx" color="#fff" />
         </view>
       </view>
+      <view class="user-info">
+        <view class="user-name-row">
+          <text class="user-name">{{userInfo.nickname || '用户'}}</text>
+          <view class="role-badge" wx:if="{{role === 'teacher'}}">教师</view>
+          <view class="role-badge student-badge" wx:else>学生</view>
+        </view>
+        <view class="user-meta">
+          <text>{{userInfo.department}}</text>
+          <text class="meta-dot">·</text>
+          <text>{{userInfo.studentId}}</text>
+        </view>
+        <view class="user-class">{{userInfo.className}}</view>
+      </view>
+      <t-icon name="chevron-right" size="36rpx" color="rgba(255,255,255,0.6)" />
     </view>
 
     <!-- 未登录 -->
-    <view class="user-info" wx:else bindtap="goLogin">
-      <view class="user-avatar">
-        <image src="/static/img_td.png" mode="aspectFill" />
+    <view class="user-block" wx:else bindtap="goLogin">
+      <view class="user-avatar-wrap">
+        <image class="user-avatar" src="/static/img_td.png" mode="aspectFill" />
       </view>
-      <view class="user-detail">
+      <view class="user-info">
         <view class="user-name">点击登录</view>
+        <view class="user-meta">登录后查看您的心理健康数据</view>
       </view>
+      <t-icon name="chevron-right" size="36rpx" color="rgba(255,255,255,0.6)" />
+    </view>
+
+    <!-- 活动统计栏 -->
+    <view class="stats-bar" wx:if="{{isLoad}}">
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.stats.counselingCount}}</view>
+        <view class="stat-label">咨询次数</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.stats.vrSessionCount}}</view>
+        <view class="stat-label">VR 体验</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.stats.totalMinutes}}</view>
+        <view class="stat-label">总时长(分)</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.stats.assessmentCount}}</view>
+        <view class="stat-label">测评次数</view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- ===== 心理健康概览卡 ===== -->
+  <view class="section-card health-card" wx:if="{{isLoad}}">
+    <view class="card-title-row">
+      <view class="card-title">
+        <t-icon name="heart" size="32rpx" color="#7c3aed" />
+        <text>心理健康概览</text>
+      </view>
+      <view class="card-action" bindtap="onGoAssessment">
+        <text>去测评</text>
+        <t-icon name="chevron-right" size="26rpx" color="#7c3aed" />
+      </view>
+    </view>
+
+    <!-- 风险等级 + 趋势 -->
+    <view class="health-status-row">
+      <view class="risk-badge risk-{{userInfo.healthOverview.riskLevel}}">
+        <view class="risk-dot"></view>
+        <text>{{riskLevelText}}</text>
+      </view>
+      <view class="trend-badge trend-{{userInfo.healthOverview.trend}}">
+        <t-icon name="{{trendIcon}}" size="24rpx" />
+        <text>{{trendText}}</text>
+      </view>
+      <view class="last-assessment">上次测评：{{userInfo.lastAssessment.date}}</view>
+    </view>
+
+    <!-- 四维度得分 -->
+    <view class="dimension-list">
+      <view class="dimension-item" wx:for="{{userInfo.healthOverview.dimensions}}" wx:key="name">
+        <view class="dimension-label">{{item.name}}</view>
+        <view class="dimension-bar-wrap">
+          <view class="dimension-bar-fill score-{{item.score >= 80 ? 'good' : item.score >= 60 ? 'ok' : 'low'}}" style="width:{{item.score}}%"></view>
+        </view>
+        <view class="dimension-score score-text-{{item.score >= 80 ? 'good' : item.score >= 60 ? 'ok' : 'low'}}">{{item.score}}</view>
+      </view>
+    </view>
+
+    <!-- 最近测评结论 -->
+    <view class="assessment-conclusion">
+      <t-icon name="info-circle" size="26rpx" color="#9ca3af" />
+      <text>{{userInfo.lastAssessment.conclusion}}</text>
     </view>
   </view>
 
-  <!-- 功能宫格 -->
-  <view class="grid-section">
+  <!-- ===== 快捷功能宫格 ===== -->
+  <view class="section-card">
+    <view class="card-title-row">
+      <view class="card-title">
+        <t-icon name="app" size="32rpx" color="#7c3aed" />
+        <text>快捷功能</text>
+      </view>
+    </view>
     <view class="grid-list">
-      <view 
-        class="grid-item" 
-        wx:for="{{gridList}}" 
+      <view
+        class="grid-item"
+        wx:for="{{gridList}}"
         wx:key="name"
-        bindtap="onGridTap" 
+        bindtap="onGridTap"
         data-url="{{item.url}}"
       >
-        <text class="grid-icon">{{item.icon}}</text>
+        <view class="grid-icon-wrap grid-icon-{{item.color}}">
+          <t-icon name="{{item.icon}}" size="40rpx" />
+        </view>
         <text class="grid-name">{{item.name}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 菜单列表 -->
-  <view class="menu-section">
-    <view 
-      class="menu-item" 
-      wx:for="{{menuList}}" 
-      wx:key="name"
-      bindtap="onMenuTap" 
-      data-url="{{item.url}}"
-    >
-      <view class="menu-left">
-        <text class="menu-icon">{{item.icon}}</text>
-        <text class="menu-name">{{item.name}}</text>
+  <!-- ===== 成就徽章 ===== -->
+  <view class="section-card" wx:if="{{isLoad}}">
+    <view class="card-title-row">
+      <view class="card-title">
+        <t-icon name="star" size="32rpx" color="#7c3aed" />
+        <text>我的成就</text>
       </view>
-      <view class="menu-arrow">→</view>
+      <view class="badge-count">{{earnedBadgeCount}}/{{userInfo.badges.length}}</view>
+    </view>
+    <view class="badge-list">
+      <view
+        class="badge-item {{item.earned ? '' : 'badge-locked'}}"
+        wx:for="{{userInfo.badges}}"
+        wx:key="id"
+      >
+        <view class="badge-icon-wrap">
+          <t-icon name="{{item.icon}}" size="36rpx" />
+          <view class="badge-lock-overlay" wx:if="{{!item.earned}}">
+            <t-icon name="lock-on" size="24rpx" color="#9ca3af" />
+          </view>
+        </view>
+        <text class="badge-name">{{item.name}}</text>
+      </view>
     </view>
   </view>
 
-  <!-- 退出登录 -->
+  <!-- ===== 菜单列表 ===== -->
+  <view class="section-card menu-card">
+    <view
+      class="menu-item"
+      wx:for="{{menuList}}"
+      wx:key="name"
+      bindtap="onMenuTap"
+      data-url="{{item.url}}"
+    >
+      <view class="menu-left">
+        <view class="menu-icon-wrap menu-icon-{{item.color}}">
+          <t-icon name="{{item.icon}}" size="36rpx" />
+        </view>
+        <text class="menu-name">{{item.name}}</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
+        <t-icon name="chevron-right" size="28rpx" color="#d1d5db" />
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 退出登录 ===== -->
   <view class="logout-section" wx:if="{{isLoad}}">
     <view class="logout-btn" bindtap="onLogout">退出登录</view>
   </view>
-</view>
+
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+
+</scroll-view>
