@@ -48,43 +48,44 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255, 255, 255, 0.15);
       border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+
+      &:active {
+        opacity: 0.7;
+      }
     }
 
-    // 用户信息块
     .user-block {
       display: flex;
       align-items: center;
       gap: 24rpx;
-      padding-bottom: 40rpx;
+      margin-bottom: 40rpx;
 
       .user-avatar-wrap {
         position: relative;
         flex-shrink: 0;
-        width: 128rpx;
-        height: 128rpx;
 
         .user-avatar {
-          width: 128rpx;
-          height: 128rpx;
+          width: 120rpx;
+          height: 120rpx;
           border-radius: 50%;
-          border: 4rpx solid rgba(255, 255, 255, 0.6);
-          display: block;
+          border: 4rpx solid rgba(255, 255, 255, 0.3);
+          background: #fff;
         }
 
         .avatar-edit-badge {
           position: absolute;
           bottom: 0;
           right: 0;
-          width: 40rpx;
-          height: 40rpx;
+          width: 36rpx;
+          height: 36rpx;
           background: @purple-primary;
-          border: 2rpx solid #fff;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
+          border: 2rpx solid #fff;
         }
       }
 
@@ -134,6 +135,16 @@
         .user-class {
           font-size: 22rpx;
           color: rgba(255, 255, 255, 0.6);
+        }
+
+        .user-title {
+          font-size: 22rpx;
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.15);
+          padding: 4rpx 12rpx;
+          border-radius: 8rpx;
+          display: inline-block;
+          margin-top: 8rpx;
         }
       }
     }
@@ -236,10 +247,10 @@
         display: flex;
         align-items: center;
         gap: 8rpx;
-        padding: 8rpx 20rpx;
+        padding: 8rpx 16rpx;
         border-radius: 20rpx;
-        font-size: 24rpx;
-        font-weight: 600;
+        font-size: 22rpx;
+        font-weight: 500;
 
         .risk-dot {
           width: 14rpx;
@@ -389,6 +400,26 @@
     }
   }
 
+  // ===== 资质认证卡片（教师） =====
+  .qualification-card {
+    .qualification-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16rpx;
+
+      .qualification-item {
+        display: flex;
+        align-items: center;
+        gap: 16rpx;
+        padding: 20rpx;
+        background: @bg-color;
+        border-radius: 12rpx;
+        font-size: 28rpx;
+        color: @gy1;
+      }
+    }
+  }
+
   // ===== 快捷功能宫格 =====
   .grid-list {
     display: flex;
@@ -431,19 +462,24 @@
         }
 
         &.grid-icon-orange {
-          background: #fef3c7;
-          color: #f59e0b;
+          background: #ffedd5;
+          color: #f97316;
         }
 
-        &.grid-icon-pink {
-          background: #fce7f3;
-          color: #ec4899;
+        &.grid-icon-red {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+
+        &.grid-icon-gray {
+          background: #f3f4f6;
+          color: #6b7280;
         }
       }
 
       .grid-name {
-        font-size: 22rpx;
-        color: @gy2;
+        font-size: 24rpx;
+        color: @gy1;
         text-align: center;
       }
     }
@@ -452,33 +488,40 @@
   // ===== 成就徽章 =====
   .badge-list {
     display: flex;
-    gap: 0;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 24rpx;
+    padding-top: 8rpx;
 
     .badge-item {
-      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10rpx;
-      position: relative;
-
+      gap: 8rpx;
+      flex: 0 0 auto;
+      width: calc((100% - 72rpx) / 4); // 4个徽章平均分配，减去3个gap
       .badge-icon-wrap {
-        width: 80rpx;
-        height: 80rpx;
+        width: 88rpx;
+        height: 88rpx;
         border-radius: 50%;
-        background: linear-gradient(135deg, @purple-primary, @purple-mid);
+        background: linear-gradient(135deg, @purple-light 0%, #f3e8ff 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
+        color: @purple-primary;
         position: relative;
-        box-shadow: 0 4rpx 12rpx rgba(124, 58, 237, 0.3);
+
+        // 证书类资质使用灰色背景
+        &.badge-icon-lock {
+          background: #f3f4f6;
+          color: #9ca3af;
+        }
 
         .badge-lock-overlay {
           position: absolute;
           inset: 0;
+          background: rgba(255, 255, 255, 0.7);
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.75);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -486,16 +529,15 @@
       }
 
       .badge-name {
-        font-size: 20rpx;
+        font-size: 22rpx;
         color: @gy2;
         text-align: center;
       }
 
       &.badge-locked {
         .badge-icon-wrap {
-          background: @bg-color;
-          box-shadow: none;
-          color: @gy3;
+          background: #f3f4f6;
+          color: #d1d5db;
         }
 
         .badge-name {
@@ -507,21 +549,17 @@
 
   // ===== 菜单列表 =====
   .menu-card {
-    padding: 0;
+    padding: 12rpx 28rpx;
 
     .menu-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 28rpx 28rpx;
+      padding: 24rpx 0;
       border-bottom: 1rpx solid #f3f4f6;
 
       &:last-child {
         border-bottom: none;
-      }
-
-      &:active {
-        background: #fafafa;
       }
 
       .menu-left {
@@ -530,9 +568,9 @@
         gap: 20rpx;
 
         .menu-icon-wrap {
-          width: 64rpx;
-          height: 64rpx;
-          border-radius: 16rpx;
+          width: 72rpx;
+          height: 72rpx;
+          border-radius: 20rpx;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -540,6 +578,11 @@
           &.menu-icon-purple {
             background: @purple-light;
             color: @purple-primary;
+          }
+
+          &.menu-icon-orange {
+            background: #ffedd5;
+            color: #f97316;
           }
 
           &.menu-icon-blue {
@@ -552,25 +595,16 @@
             color: #10b981;
           }
 
-          &.menu-icon-orange {
-            background: #fef3c7;
-            color: #f59e0b;
-          }
-
-          &.menu-icon-red {
-            background: #fee2e2;
-            color: #ef4444;
-          }
-
           &.menu-icon-gray {
-            background: @bg-color;
-            color: @gy2;
+            background: #f3f4f6;
+            color: #6b7280;
           }
         }
 
         .menu-name {
           font-size: 28rpx;
           color: @gy1;
+          font-weight: 500;
         }
       }
 

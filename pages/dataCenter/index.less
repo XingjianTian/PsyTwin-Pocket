@@ -1,3 +1,504 @@
+.workbench {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+/* ===== 预警统计卡片 ===== */
+.warning-stats-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.warning-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.warning-stats-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.warning-stats-filter {
+  display: flex;
+  gap: 16rpx;
+}
+
+.filter-item {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  transition: all 0.3s;
+}
+
+.filter-item.active {
+  color: #0052d9;
+  background: rgba(0, 82, 217, 0.1);
+}
+
+/* 预警统计数字 */
+.warning-stats-numbers {
+  display: flex;
+  justify-content: space-around;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 24rpx;
+}
+
+.stats-number-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stats-number-item.high .stats-number {
+  color: #f5222d;
+}
+
+.stats-number-item.medium .stats-number {
+  color: #fa8c16;
+}
+
+.stats-number-item.low .stats-number {
+  color: #52c41a;
+}
+
+.stats-number {
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 64rpx;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* 预警列表横向滚动 */
+.warning-list-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.warning-list {
+  display: flex;
+  gap: 16rpx;
+  padding-bottom: 8rpx;
+}
+
+.warning-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  background: #f8f8f8;
+  border-radius: 12rpx;
+  min-width: 480rpx;
+  flex-shrink: 0;
+}
+
+.warning-item.high {
+  background: rgba(245, 34, 45, 0.06);
+  border: 1rpx solid rgba(245, 34, 45, 0.1);
+}
+
+.warning-item.medium {
+  background: rgba(250, 140, 22, 0.06);
+  border: 1rpx solid rgba(250, 140, 22, 0.1);
+}
+
+.warning-item.low {
+  background: rgba(82, 196, 26, 0.06);
+  border: 1rpx solid rgba(82, 196, 26, 0.1);
+}
+
+.warning-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.warning-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  overflow: hidden;
+}
+
+.warning-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.warning-reason {
+  font-size: 22rpx;
+  color: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.warning-badge {
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.warning-badge.high {
+  background: #f5222d;
+  color: #fff;
+}
+
+.warning-badge.medium {
+  background: #fa8c16;
+  color: #fff;
+}
+
+.warning-badge.low {
+  background: #52c41a;
+  color: #fff;
+}
+
+/* 查看更多 */
+.view-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+  color: #0052d9;
+  font-size: 26rpx;
+}
+
+/* ===== 今日日程卡片 ===== */
+.schedule-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.schedule-title-section {
+  flex: 1;
+}
+
+.schedule-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.schedule-stats {
+  display: flex;
+  gap: 16rpx;
+}
+
+.schedule-stat {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.schedule-stat.completed {
+  color: #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.schedule-stat.upcoming {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.schedule-stat.ongoing {
+  color: #722ed1;
+  background: rgba(114, 46, 209, 0.1);
+}
+
+/* 日程列表 */
+.schedule-list {
+  margin-top: 24rpx;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 20rpx 0;
+}
+
+.schedule-item.completed {
+  opacity: 0.6;
+}
+
+.schedule-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.time-start {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.time-end {
+  font-size: 22rpx;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.schedule-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32rpx;
+  flex-shrink: 0;
+}
+
+.schedule-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 0 0 2rpx currentColor;
+}
+
+.schedule-dot.completed {
+  background: #52c41a;
+  color: #52c41a;
+}
+
+.schedule-dot.upcoming {
+  background: #1890ff;
+  color: #1890ff;
+}
+
+.schedule-dot.ongoing {
+  background: #722ed1;
+  color: #722ed1;
+  box-shadow:
+    0 0 0 2rpx #722ed1,
+    0 0 0 6rpx rgba(114, 46, 209, 0.2);
+}
+
+.schedule-line {
+  width: 2rpx;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  flex: 1;
+  margin: 8rpx 0;
+}
+
+.schedule-content {
+  flex: 1;
+  background: #f8f8f8;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.schedule-type-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.schedule-type {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.schedule-status {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.schedule-detail {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.schedule-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+}
+
+.schedule-student {
+  font-size: 26rpx;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.schedule-location {
+  font-size: 22rpx;
+  color: rgba(0, 0, 0, 0.5);
+  display: block;
+}
+
+.schedule-notes {
+  font-size: 22rpx;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 8rpx;
+  display: block;
+}
+
+/* 折叠提示 */
+.schedule-collapsed-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 24rpx;
+}
+
+/* ===== 快捷入口 ===== */
+.quick-entry-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.quick-entry-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.quick-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24rpx;
+}
+
+.quick-entry-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.quick-entry-icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-entry-name {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* ===== 工作统计 ===== */
+.work-stats-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.work-stats-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.work-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+}
+
+.work-stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32rpx 24rpx;
+  background: #f8f8f8;
+  border-radius: 12rpx;
+  gap: 8rpx;
+}
+
+.work-stats-number {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  line-height: 64rpx;
+}
+
+.work-stats-label {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.work-stats-trend {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.work-stats-trend.up {
+  color: #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.work-stats-trend.down {
+  color: #f5222d;
+  background: rgba(245, 34, 45, 0.1);
+}
+
+/* 底部间距 */
+.bottom-padding {
+  height: 48rpx;
+}
+
+/* ===== 原有样式兼容 ===== */
 .card {
   display: inline-flex;
   flex-direction: column;

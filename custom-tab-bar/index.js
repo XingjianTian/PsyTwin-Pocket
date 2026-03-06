@@ -55,29 +55,7 @@ Component({
             label: '我的',
           },
         ];
-        // 教师端 Tab：心友圈 + 工作台 + 消息 + 我的
-        tabList = [
-          {
-            icon: 'home',
-            value: 'home',
-            label: '心墙',
-          },
-          {
-            icon: 'dashboard',
-            value: 'dataCenter',
-            label: '工作台',
-          },
-          {
-            icon: 'chat',
-            value: 'message',
-            label: '消息',
-          },
-          {
-            icon: 'user',
-            value: 'my',
-            label: '我的',
-          },
-        ];
+
       } else {
         // 学生端 Tab：心友圈 + AI + 预约 + 我的
         tabList = [

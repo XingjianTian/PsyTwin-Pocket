@@ -6,12 +6,12 @@ import searchMock from './search/index';
 import dataCenter from './dataCenter/index';
 import my from './my/index';
 import studentMock from './student/index';
+import teacherMock from './teacher/index';
 
 export default () => {
   console.log('[Mock] Initializing mock data...');
   // 在这里添加新的mock数据
-  const mockData = [...loginMock, ...homeMock, ...searchMock, ...dataCenter, ...my, ...studentMock];
-  console.log('[Mock] Total mock endpoints:', mockData.length);
+  const mockData = [...loginMock, ...homeMock, ...searchMock, ...dataCenter, ...my, ...studentMock, ...teacherMock];
 
   mockData.forEach((item, index) => {
     console.log(`[Mock] Registering [${index}]:`, item.path, item.handler ? '(handler)' : '(data)');

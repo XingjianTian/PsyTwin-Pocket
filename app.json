@@ -62,11 +62,15 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "首页"
+        "text": "心墙"
       },
       {
         "pagePath": "pages/message/index",
-        "text": "消息"
+        "text": "AI"
+      },
+      {
+        "pagePath": "pages/dataCenter/index",
+        "text": "工作台"
       },
       {
         "pagePath": "pages/appointment/index",

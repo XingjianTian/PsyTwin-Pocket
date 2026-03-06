@@ -1,0 +1,140 @@
+.appointment-manage-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.date-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  background: #fff;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.selected-date {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.tabs-wrapper {
+  background: #fff;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.appointment-list {
+  padding: 16rpx 24rpx;
+}
+
+.appointment-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.appointment-item.pending {
+  border: 2rpx solid #1890ff;
+}
+
+.appointment-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.student-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+
+.appointment-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.student-id {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.4);
+  margin-top: 4rpx;
+}
+
+.appointment-time {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 16rpx;
+  background: #f8f8f8;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.time-row,
+.location-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.time-text,
+.location-text {
+  font-size: 26rpx;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.appointment-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.reason-label {
+  font-size: 24rpx;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.reason-content {
+  font-size: 26rpx;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.cancel-reason {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.06);
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.appointment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 48rpx;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 26rpx;
+}

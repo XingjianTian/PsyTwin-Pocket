@@ -48,6 +48,9 @@ Page({
     const role = wx.getStorageSync('user_role') || 'student';
     const token = wx.getStorageSync('access_token');
 
+    // 先设置角色，确保后续请求使用正确的角色
+    this.setData({ role });
+
     if (token) {
       const userInfo = await this.getUserInfo();
       const earnedBadgeCount = (userInfo.badges || []).filter((b) => b.earned).length;
@@ -55,7 +58,6 @@ Page({
       const trend = userInfo.healthOverview?.trend || 'stable';
 
       this.setData({
-        role,
         isLoad: true,
         userInfo,
         earnedBadgeCount,
@@ -67,7 +69,6 @@ Page({
       });
     } else {
       this.setData({
-        role,
         gridList: this.getGridList(role),
         menuList: this.getMenuList(role),
       });
@@ -75,14 +76,45 @@ Page({
   },
 
   async getUserInfo() {
+    const role = this.data.role;
+    console.log('[MyPage] getUserInfo, role:', role);
+    
+    // 教师角色：直接返回 Mock 数据（避免请求失败）
+    if (role === 'teacher') {
+      return {
+        nickname: '王老师',
+        avatar: 'https://picsum.photos/80/80?random=99',
+        role: 'teacher',
+        teacherId: 'T2021001',
+        department: '心理健康中心',
+        title: '国家二级心理咨询师',
+        qualifications: ['国家二级心理咨询师', '注册心理师', '沙盘游戏治疗师'],
+        workStats: {
+          totalCounseling: 186,
+          totalHours: 248,
+          thisMonthCounseling: 23,
+          satisfactionRate: 4.8,
+        },
+        badges: [
+          { name: '优秀咨询师', earned: true, icon: 'lock-on' },
+          { name: '金牌导师', earned: true, icon: 'user' },
+          { name: '心理达人', earned: true, icon: 'heart' },
+          { name: '十佳教师', earned: false, icon: 'lock-on' },
+        ],
+      };
+    }
+    
+    // 学生角色：请求 API
     try {
       const res = await request('/mock/student/my/info');
+      console.log('[MyPage] Student response:', res);
       return res.data || {};
     } catch (err) {
+      console.error('[MyPage] getUserInfo error:', err);
       return {
         nickname: '用户',
         avatar: '',
-        role: this.data.role,
+        role: 'student',
         stats: { counselingCount: 0, vrSessionCount: 0, totalMinutes: 0, assessmentCount: 0 },
         healthOverview: { riskLevel: 'low', trend: 'stable', dimensions: [] },
         lastAssessment: { date: '暂无', conclusion: '尚未进行测评' },
@@ -103,9 +135,9 @@ Page({
       ];
     }
     return [
-      { name: '我的排班', icon: 'calendar', color: 'purple', url: '' },
-      { name: '学生管理', icon: 'user-group', color: 'blue', url: '' },
-      { name: '预警列表', icon: 'error-circle', color: 'orange', url: '' },
+      { name: '我的排班', icon: 'calendar', color: 'purple', url: '/pages/teacher/schedule/index' },
+      { name: '学生管理', icon: 'usergroup', color: 'blue', url: '/pages/teacher/student-list/index' },
+      { name: '预警列表', icon: 'error', color: 'orange', url: '/pages/teacher/warning-list/index' },
       { name: '数据中心', icon: 'chart', color: 'green', url: '/pages/dataCenter/index' },
     ];
   },
@@ -116,16 +148,16 @@ Page({
     if (role === 'student') {
       return [
         { name: '我的收藏', icon: 'star', color: 'orange', url: '', badge: '' },
-        { name: '浏览历史', icon: 'history', color: 'blue', url: '', badge: '' },
+        { name: '浏览历史', icon: 'time', color: 'blue', url: '', badge: '' },
         { name: '消息通知', icon: 'notification', color: 'purple', url: '', badge: '3' },
-        { name: '隐私设置', icon: 'lock-on', color: 'green', url: '', badge: '' },
+        { name: '隐私设置', icon: 'lock', color: 'green', url: '', badge: '' },
         { name: '联系客服', icon: 'service', color: 'gray', url: '', badge: '' },
         { name: '设置', icon: 'setting', color: 'gray', url: '/pages/setting/index', badge: '' },
       ];
     }
     return [
       { name: '工作时间', icon: 'time', color: 'purple', url: '', badge: '' },
-      { name: '预警设置', icon: 'error-circle', color: 'orange', url: '', badge: '' },
+      { name: '预警设置', icon: 'error', color: 'orange', url: '', badge: '' },
       { name: '消息通知', icon: 'notification', color: 'blue', url: '', badge: '' },
       { name: '联系客服', icon: 'service', color: 'gray', url: '', badge: '' },
       { name: '设置', icon: 'setting', color: 'gray', url: '/pages/setting/index', badge: '' },

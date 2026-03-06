@@ -65,8 +65,8 @@ Page({
 
         wx.hideLoading();
 
-        // 根据角色跳转到对应首页
-        this.navigateByRole(selectedRole);
+        // 登录后统一跳转到首页
+        this.navigateToHome();
       } else {
         wx.hideLoading();
         wx.showToast({
@@ -84,18 +84,10 @@ Page({
     }
   },
 
-  // 根据角色跳转到对应首页
-  navigateByRole(role) {
-    if (role === 'teacher') {
-      // 教师端：跳转到工作台（Tab 页面）
-      wx.switchTab({
-        url: '/pages/dataCenter/index',
-      });
-    } else {
-      // 学生端：跳转到首页
-      wx.switchTab({
-        url: '/pages/home/index',
-      });
-    }
+  // 登录后统一跳转到首页
+  navigateToHome() {
+    wx.switchTab({
+      url: '/pages/home/index',
+    });
   },
 });

@@ -22,12 +22,20 @@
           <view class="role-badge" wx:if="{{role === 'teacher'}}">教师</view>
           <view class="role-badge student-badge" wx:else>学生</view>
         </view>
-        <view class="user-meta">
+        <!-- 学生显示院系班级 -->
+        <view class="user-meta" wx:if="{{role === 'student'}}">
           <text>{{userInfo.department}}</text>
           <text class="meta-dot">·</text>
           <text>{{userInfo.studentId}}</text>
         </view>
-        <view class="user-class">{{userInfo.className}}</view>
+        <view class="user-class" wx:if="{{role === 'student'}}">{{userInfo.className}}</view>
+        <!-- 教师显示部门和职称 -->
+        <view class="user-meta" wx:if="{{role === 'teacher'}}">
+          <text>{{userInfo.department}}</text>
+          <text class="meta-dot">·</text>
+          <text>{{userInfo.teacherId}}</text>
+        </view>
+        <view class="user-title" wx:if="{{role === 'teacher' && userInfo.title}}">{{userInfo.title}}</view>
       </view>
       <t-icon name="chevron-right" size="36rpx" color="rgba(255,255,255,0.6)" />
     </view>
@@ -39,38 +47,61 @@
       </view>
       <view class="user-info">
         <view class="user-name">点击登录</view>
-        <view class="user-meta">登录后查看您的心理健康数据</view>
+        <view class="user-meta">{{role === 'teacher' ? '登录后查看您的工作数据' : '登录后查看您的心理健康数据'}}</view>
       </view>
       <t-icon name="chevron-right" size="36rpx" color="rgba(255,255,255,0.6)" />
     </view>
 
-    <!-- 活动统计栏 -->
-    <view class="stats-bar" wx:if="{{isLoad}}">
+    <!-- 学生活动统计栏 -->
+    <view class="stats-bar" wx:if="{{isLoad && role === 'student'}}">
       <view class="stat-item">
-        <view class="stat-num">{{userInfo.stats.counselingCount}}</view>
+        <view class="stat-num">{{userInfo.stats.counselingCount || 0}}</view>
         <view class="stat-label">咨询次数</view>
       </view>
       <view class="stat-divider"></view>
       <view class="stat-item">
-        <view class="stat-num">{{userInfo.stats.vrSessionCount}}</view>
+        <view class="stat-num">{{userInfo.stats.vrSessionCount || 0}}</view>
         <view class="stat-label">VR 体验</view>
       </view>
       <view class="stat-divider"></view>
       <view class="stat-item">
-        <view class="stat-num">{{userInfo.stats.totalMinutes}}</view>
+        <view class="stat-num">{{userInfo.stats.totalMinutes || 0}}</view>
         <view class="stat-label">总时长(分)</view>
       </view>
       <view class="stat-divider"></view>
       <view class="stat-item">
-        <view class="stat-num">{{userInfo.stats.assessmentCount}}</view>
+        <view class="stat-num">{{userInfo.stats.assessmentCount || 0}}</view>
         <view class="stat-label">测评次数</view>
+      </view>
+    </view>
+
+    <!-- 教师工作统计栏 -->
+    <view class="stats-bar teacher-stats" wx:if="{{isLoad && role === 'teacher'}}">
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.workStats.thisMonthCounseling || 0}}</view>
+        <view class="stat-label">本月咨询</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.workStats.totalCounseling || 0}}</view>
+        <view class="stat-label">累计咨询</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.workStats.totalHours || 0}}</view>
+        <view class="stat-label">总时长(h)</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <view class="stat-num">{{userInfo.workStats.satisfactionRate || 5.0}}</view>
+        <view class="stat-label">满意度</view>
       </view>
     </view>
 
   </view>
 
-  <!-- ===== 心理健康概览卡 ===== -->
-  <view class="section-card health-card" wx:if="{{isLoad}}">
+  <!-- ===== 心理健康概览卡（仅学生） ===== -->
+  <view class="section-card health-card" wx:if="{{isLoad && role === 'student'}}">
     <view class="card-title-row">
       <view class="card-title">
         <t-icon name="heart" size="32rpx" color="#7c3aed" />
@@ -83,7 +114,7 @@
     </view>
 
     <!-- 风险等级 + 趋势 -->
-    <view class="health-status-row">
+    <view class="health-status-row" wx:if="{{userInfo.healthOverview}}">
       <view class="risk-badge risk-{{userInfo.healthOverview.riskLevel}}">
         <view class="risk-dot"></view>
         <text>{{riskLevelText}}</text>
@@ -96,7 +127,7 @@
     </view>
 
     <!-- 四维度得分 -->
-    <view class="dimension-list">
+    <view class="dimension-list" wx:if="{{userInfo.healthOverview.dimensions}}">
       <view class="dimension-item" wx:for="{{userInfo.healthOverview.dimensions}}" wx:key="name">
         <view class="dimension-label">{{item.name}}</view>
         <view class="dimension-bar-wrap">
@@ -107,9 +138,25 @@
     </view>
 
     <!-- 最近测评结论 -->
-    <view class="assessment-conclusion">
-      <t-icon name="info-circle" size="26rpx" color="#9ca3af" />
+    <view class="assessment-conclusion" wx:if="{{userInfo.lastAssessment}}">
+      <t-icon name="info" size="26rpx" color="#9ca3af" />
       <text>{{userInfo.lastAssessment.conclusion}}</text>
+    </view>
+  </view>
+
+  <!-- ===== 教师资质认证（仅教师） ===== -->
+  <view class="section-card qualification-card" wx:if="{{isLoad && role === 'teacher' && userInfo.qualifications}}">
+    <view class="card-title-row">
+      <view class="card-title">
+        <t-icon name="certificate" size="32rpx" color="#7c3aed" />
+        <text>资质认证</text>
+      </view>
+    </view>
+    <view class="qualification-list">
+      <view class="qualification-item" wx:for="{{userInfo.qualifications}}" wx:key="*this">
+        <t-icon name="check" size="28rpx" color="#52c41a" />
+        <text>{{item}}</text>
+      </view>
     </view>
   </view>
 
@@ -117,7 +164,7 @@
   <view class="section-card">
     <view class="card-title-row">
       <view class="card-title">
-        <t-icon name="app" size="32rpx" color="#7c3aed" />
+        <t-icon name="apps" size="32rpx" color="#7c3aed" />
         <text>快捷功能</text>
       </view>
     </view>
@@ -138,11 +185,11 @@
   </view>
 
   <!-- ===== 成就徽章 ===== -->
-  <view class="section-card" wx:if="{{isLoad}}">
+  <view class="section-card" wx:if="{{isLoad && userInfo.badges && userInfo.badges.length > 0}}">
     <view class="card-title-row">
       <view class="card-title">
         <t-icon name="star" size="32rpx" color="#7c3aed" />
-        <text>我的成就</text>
+        <text>{{role === 'teacher' ? '荣誉资质' : '我的成就'}}</text>
       </view>
       <view class="badge-count">{{earnedBadgeCount}}/{{userInfo.badges.length}}</view>
     </view>
@@ -152,8 +199,8 @@
         wx:for="{{userInfo.badges}}"
         wx:key="id"
       >
-        <view class="badge-icon-wrap">
-          <t-icon name="{{item.icon}}" size="36rpx" />
+        <view class="badge-icon-wrap {{item.icon === 'lock-on' ? 'badge-icon-lock' : ''}}">
+          <t-icon name="{{item.icon || 'medal'}}" size="36rpx" />
           <view class="badge-lock-overlay" wx:if="{{!item.earned}}">
             <t-icon name="lock-on" size="24rpx" color="#9ca3af" />
           </view>

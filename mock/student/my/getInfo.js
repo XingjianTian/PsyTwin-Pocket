@@ -44,7 +44,7 @@ const getStudentInfo = (req) => {
       // 成就徽章
       badges: [
         { id: 1, name: '初次咨询', icon: 'chat', earned: true, desc: '完成首次心理咨询' },
-        { id: 2, name: 'VR 探索者', icon: 'tv', earned: true, desc: '体验 VR 心理训练 5 次' },
+        { id: 2, name: 'VR 探索者', icon: 'desktop', earned: true, desc: '体验 VR 心理训练 5 次' },
         { id: 3, name: '坚持打卡', icon: 'calendar', earned: true, desc: '连续记录心情 7 天' },
         { id: 4, name: '心理达人', icon: 'star', earned: false, desc: '完成 5 次心理咨询' },
       ],
