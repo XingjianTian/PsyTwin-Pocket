@@ -171,22 +171,38 @@ npm run lint:fix
 |------|------|
 | commit + push | 工作完成后询问用户是否提交并推送 |
 | branch | 如需创建分支，先询问用户 |
+| changelog | **每次 push 后自动生成** - 使用 auto-changelog |
+
+### 提交信息规范（Conventional Commits）
+
+每次 commit 必须遵循以下标签规范，用于自动生成 CHANGELOG：
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `feat:` | 新功能 | `feat: 添加心墙点赞功能` |
+| `fix:` | 修复 bug | `fix: 修复评论列表加载失败` |
+| `docs:` | 文档更新 | `docs: 更新 API 接口文档` |
+| `style:` | 代码格式 | `style: 格式化首页代码` |
+| `refactor:` | 重构 | `refactor: 优化瀑布流算法` |
+| `test:` | 测试 | `test: 添加登录单元测试` |
+| `chore:` | 构建/工具 | `chore: 更新依赖版本` |
 
 ### 正确流程
 ```
 1. 完成代码修改
 2. 询问用户："是否提交并推送？"（提供提交信息摘要）
 3. 用户确认后执行 commit + push
+4. **自动生成 CHANGELOG**：npx auto-changelog -p
+5. 提交 CHANGELOG 更新（如有变更）
 ```
 
 ### 错误流程（禁止）
 - ❌ 自动 commit
 - ❌ 自动 push
 - ❌ 在完成任务后自动执行 git push
-- 无测试配置 (建议添加 Vitest)
-- 无CI/CD流水线
-- next.config.mjs 忽略TS错误需修复
-
+- ❌ 无测试配置 (建议添加 Vitest)
+- ❌ 无CI/CD流水线
+- ❌ next.config.mjs 忽略TS错误需修复
 ## OPENSPECS 文档状态机同步规范 (Docs as a State Machine)
 
 ### 【总则】
