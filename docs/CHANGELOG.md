@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-06
+
+### Added
+- 心墙动态详情页（pages/post-detail）
+- 点赞功能：详情页支持点赞/取消点赞，状态实时更新
+- 评论功能：详情页支持查看评论列表和发表评论
+- Mock 接口：动态详情、点赞、评论相关接口
+- 卡片点击跳转：点击卡片可进入详情页
+- 状态同步：详情页返回后首页点赞状态同步
+
+### Changed
+- 首页完成度从 70% 提升至 85%
+
 ## [1.0.0] - 2026-02-27
 
 ### Added

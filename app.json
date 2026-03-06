@@ -44,6 +44,11 @@
       "root": "pages/release",
       "name": "release",
       "pages": ["index"]
+    },
+    {
+      "root": "pages/post-detail",
+      "name": "postDetail",
+      "pages": ["index"]
     }
   ],
   "window": {

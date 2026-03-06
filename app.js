@@ -4,8 +4,15 @@ import Mock from './mock/index';
 import createBus from './utils/eventBus';
 import { connectSocket, fetchUnreadNum } from './mock/chat';
 
+console.log('[App] Mock config:', config);
+console.log('[App] isMock value:', config.isMock);
+
 if (config.isMock) {
+  console.log('[App] Initializing Mock...');
   Mock();
+  console.log('[App] Mock initialized');
+} else {
+  console.log('[App] Mock disabled');
 }
 
 App({
@@ -19,7 +26,6 @@ App({
       return;
     }
 
-    // 初始化角色
     // 初始化角色
     const role = wx.getStorageSync('user_role');
     if (role) {
@@ -47,6 +53,7 @@ App({
     this.getUnreadNum();
     this.connect();
   },
+
   globalData: {
     userInfo: null,
     unreadNum: 0, // 未读消息数量
@@ -62,7 +69,9 @@ App({
     const socket = connectSocket();
     socket.onMessage((data) => {
       data = JSON.parse(data);
-      if (data.type === 'message' && !data.data.message.read) this.setUnreadNum(this.globalData.unreadNum + 1);
+      if (data.type === 'message' && !data.data.message.read) {
+        this.setUnreadNum(this.globalData.unreadNum + 1);
+      }
     });
     this.globalData.socket = socket;
   },

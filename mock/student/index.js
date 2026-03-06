@@ -1,4 +1,8 @@
 import { getFeed } from './home/getFeed';
+import { getPostDetail } from './home/getPostDetail';
+import { getComments } from './home/getComments';
+import { postLike } from './home/postLike';
+import { postComment } from './home/postComment';
 import { getSessions } from './message/getSessions';
 import { getServices, getRecords } from './appointment/getAppointment';
 import { getStudentInfo, getStudentProfile } from './my/getInfo';
@@ -9,7 +13,23 @@ const mockReq = { data: {} };
 export default [
   {
     path: '/mock/student/home/feed',
-    data: getFeed(mockReq).data,
+    handler: getFeed,
+  },
+  {
+    path: '/mock/student/home/post-detail',
+    handler: getPostDetail,
+  },
+  {
+    path: '/mock/student/home/comments',
+    handler: getComments,
+  },
+  {
+    path: '/mock/student/home/post-like',
+    handler: postLike,
+  },
+  {
+    path: '/mock/student/home/post-comment',
+    handler: postComment,
   },
   {
     path: '/mock/student/message/sessions',

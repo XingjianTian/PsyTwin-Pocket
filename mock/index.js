@@ -8,10 +8,14 @@ import my from './my/index';
 import studentMock from './student/index';
 
 export default () => {
+  console.log('[Mock] Initializing mock data...');
   // 在这里添加新的mock数据
   const mockData = [...loginMock, ...homeMock, ...searchMock, ...dataCenter, ...my, ...studentMock];
+  console.log('[Mock] Total mock endpoints:', mockData.length);
 
-  mockData.forEach((item) => {
-    Mock.mock(item.path, { code: 200, success: true, data: item.data });
+  mockData.forEach((item, index) => {
+    console.log(`[Mock] Registering [${index}]:`, item.path, item.handler ? '(handler)' : '(data)');
+    Mock.mock(item.path, item.handler || item.data);
   });
+  console.log('[Mock] All endpoints registered');
 };

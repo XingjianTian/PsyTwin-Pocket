@@ -66,14 +66,22 @@
 
   <!-- ===== 底部输入栏（固定） ===== -->
   <view class="input-bar">
-    <view class="input-wrap" bindtap="onEnterChat" data-prompt="">
-      <t-icon name="chat" size="36rpx" color="#9ca3af" />
-      <text class="input-placeholder">和心图 AI 聊聊吧…</text>
-      <view class="input-send-btn">
+    <view class="input-wrap">
+      <t-icon name="add" size="36rpx" color="#9ca3af" />
+      <input 
+        class="input-field" 
+        type="text" 
+        placeholder="和心图 AI 聊聊吧…" 
+        placeholder-class="input-placeholder"
+        value="{{inputValue}}"
+        bindinput="onInput"
+        confirm-type="send"
+        bindconfirm="onSend"
+      />
+      <view class="input-send-btn" bindtap="onSend">
         <t-icon name="arrow-up" size="32rpx" color="#fff" />
       </view>
     </view>
     <view class="input-tips">心图 AI 不会存储你的对话，请放心倾诉</view>
   </view>
-
 </view>

@@ -35,17 +35,25 @@ Page({
       return;
     }
 
+    console.log('[Login] Starting login...');
+    console.log('[Login] phoneNumber:', phoneNumber);
+    console.log('[Login] selectedRole:', selectedRole);
     wx.showLoading({ title: '登录中...' });
 
     try {
+      console.log('[Login] Sending request to /login/postPasswordLogin');
       const res = await request('/login/postPasswordLogin', 'post', {
         data: {
           account: phoneNumber,
           password: 'mock_password', // mock 密码
         },
       });
+      console.log('[Login] Response received:', res);
 
       if (res.success) {
+        console.log('[Login] Login successful');
+        console.log('[Login] Token:', res.data.token);
+
         // 保存 token
         await wx.setStorageSync('access_token', res.data.token);
         // 保存角色
@@ -67,9 +75,10 @@ Page({
         });
       }
     } catch (err) {
+      console.error('[Login] Login error:', err);
       wx.hideLoading();
       wx.showToast({
-        title: '登录失败',
+        title: '登录失败: ' + (err.message || '未知错误'),
         icon: 'none',
       });
     }

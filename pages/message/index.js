@@ -45,22 +45,6 @@ const CHIPS = [
     desc: '和朋友、室友、家人的矛盾',
     prompt: '我在人际关系上遇到了一些困扰，想聊聊',
   },
-  {
-    id: 5,
-    icon: 'edit-1',
-    color: 'orange',
-    title: '学业/考试压力',
-    desc: '论文、考试、绩点、毕业的焦虑',
-    prompt: '我因为学业压力感到很焦虑，请帮我疏导一下',
-  },
-  {
-    id: 6,
-    icon: 'star',
-    color: 'pink',
-    title: '做个心理小测试',
-    desc: '快速了解自己当下的心理状态',
-    prompt: '帮我做一个简单的心理状态自测',
-  },
 ];
 
 Page({
@@ -70,6 +54,7 @@ Page({
     chips: CHIPS,
     hasHistory: false,
     lastMessage: '',
+    inputValue: '',
   },
 
   onLoad() {
@@ -134,5 +119,18 @@ Page({
     wx.navigateTo({
       url: `/pages/chat/index?id=ai-assistant&type=ai&name=${encodeURIComponent('心图 AI')}&prompt=${encodedPrompt}`,
     });
+  },
+
+  // 输入框输入处理
+  onInput(e) {
+    this.setData({ inputValue: e.detail.value });
+  },
+
+  // 发送消息
+  onSend() {
+    const { inputValue } = this.data;
+    if (!inputValue.trim()) return;
+    this.enterChat(inputValue);
+    this.setData({ inputValue: '' });
   },
 });

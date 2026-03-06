@@ -1,5 +1,8 @@
 Component({
   properties: {
+    postId: String,
+    isLiked: Boolean,
+    commentCount: Number,
     url: String,
     desc: String,
     tags: Array,
@@ -12,5 +15,9 @@ Component({
     createdAt: String,
   },
   data: {},
-  methods: {},
+  methods: {
+    onCardTap() {
+      this.triggerEvent('tap', { id: this.data.postId });
+    },
+  },
 });

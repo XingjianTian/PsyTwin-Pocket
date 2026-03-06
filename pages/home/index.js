@@ -29,7 +29,7 @@ Page({
 
   formatCards(data) {
     return data.map((item, index) => ({
-      id: item.id,
+      postId: item.id,
       url: item.content?.images?.[0] || '',
       desc: item.content?.text || '',
       tags: this.generateTags(item),
@@ -40,6 +40,8 @@ Page({
       isAnonymous: item.content?.isAnonymous || false,
       likeCount: item.stats?.likeCount || 0,
       createdAt: item.createdAt || '',
+      isLiked: item.isLiked || false,
+      commentCount: item.stats?.commentCount || 0,
     }));
   },
 
@@ -117,4 +119,27 @@ Page({
   goRelease() {
     wx.navigateTo({ url: '/pages/release/index' });
   },
+  onCardTap(e) {
+    const { id } = e.detail;
+    wx.navigateTo({
+      url: `/pages/post-detail/index?id=${id}`,
+    });
+  },
+
+  refreshPostStatus(postId, newStatus) {
+    const updateList = (list) => {
+      return list.map((item) => {
+        if (item.postId === postId) {
+          return { ...item, ...newStatus };
+        }
+        return item;
+      });
+    };
+
+    this.setData({
+      leftList: updateList(this.data.leftList),
+      rightList: updateList(this.data.rightList),
+    });
+  },
+
 });

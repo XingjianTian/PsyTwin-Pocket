@@ -1,4 +1,4 @@
-<view class="home-card">
+<view class="home-card" bindtap="onCardTap">
   <!-- 头图（有图片时显示） -->
   <view class="home-card__image-wrap" wx:if="{{url}}">
     <t-image t-class="home-card__image" src="{{url}}" mode="aspectFill" />
