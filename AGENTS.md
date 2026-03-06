@@ -215,3 +215,11 @@ npm run lint:fix
 
 #### 5. 适用范围
 - 本规范对本仓库全部智能体生效，默认纳入任务完成定义（Definition of Done）。
+
+**【跨端协作与 API 消费规范 (API Consumer)】**
+本项目作为 PsyTwin 生态的移动端特种部队，如果涉及真实数据，非用户要求的MOCK数据，需逐步完善至来源于 Sentinel 后台。为了确保跨端联调的绝对安全，所有智能体必须严格遵守以下契约纪律：
+1. **边界隔离**：绝对禁止在此项目中编写任何 Node.js 服务端逻辑、Prisma 数据库连接或 Next.js 代码。本项目的网络请求仅限使用 `wx.request`。
+2. **绝对服从契约 (Contract Obedience)**：
+   - 在编写任何网络请求代码或配置 Mock 数据时，**必须且只能**读取docs目录下的 `api_contract.md` 软链接文件。
+   - 严禁 AI 凭借经验“脑补”或“猜测”后端接口的字段名。
+   - 如果发现现有的前端 TDesign UI 组件需要的字段在 `api_contract.md` 中不存在，不允许自行伪造数据，必须在控制台向人类开发者报告：“当前契约缺少 XXX 字段，请通知 Sentinel 后端补充”。
