@@ -4,8 +4,9 @@ const postComment = (req) => {
   console.log('mock postComment postId:', postId, 'content:', content);
 
   return {
-    code: 200,
-    success: true,
+    code: 0,
+    message: '发表成功',
+
     message: '发表成功',
     data: {
       id: 'c' + Date.now(),

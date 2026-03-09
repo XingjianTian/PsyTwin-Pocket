@@ -19,6 +19,20 @@
       </t-input>
     </view>
 
+    <!-- 密码输入 -->
+    <view class="login__input">
+      <t-input
+        value="{{password}}"
+        placeholder="请输入密码"
+        type="text"
+        bindchange="onPasswordInput"
+      >
+        <view slot="label" class="input-label">
+          <text>密码</text>
+        </view>
+      </t-input>
+    </view>
+
     <!-- 身份选择按钮 -->
     <view class="login__role-buttons">
       <view class="login__role-label">请选择身份</view>
@@ -50,7 +64,7 @@
         theme="primary"
         size="large"
         block
-        disabled="{{!phoneNumber || !selectedRole}}"
+        disabled="{{!phoneNumber || !password || !selectedRole}}"
         bindtap="login"
       >
         登录

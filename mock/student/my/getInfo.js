@@ -1,7 +1,7 @@
 // 学生用户信息
 const getStudentInfo = (req) => {
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: {
       id: 'stu001',
@@ -55,7 +55,7 @@ const getStudentInfo = (req) => {
 // 学生心理档案（详细）
 const getStudentProfile = (req) => {
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: {
       basicInfo: {

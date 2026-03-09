@@ -416,38 +416,38 @@ const mockResponses = {
   },
 
   // 心墙动态
-  '/mock/student/home/feed': {
+  '/student/home/feed': {
     success: true,
     message: '获取成功',
     data: { follow: followList, square: followList, secret: followList },
   },
 
   // 预约相关
-  '/mock/student/appointment/services': {
+  '/student/appointment/services': {
     success: true,
     message: '获取成功',
     data: services,
   },
-  '/mock/student/appointment/records': {
+  '/student/appointment/records': {
     success: true,
     message: '获取成功',
     data: records,
   },
 
   // 消息会话
-  '/mock/student/message/sessions': {
+  '/student/message/sessions': {
     success: true,
     message: '获取成功',
     data: sessions,
   },
 
   // 我的页面
-  '/mock/student/my/info': {
+  '/student/my/info': {
     success: true,
     message: '获取成功',
     data: studentInfo,
   },
-  '/mock/student/my/profile': {
+  '/student/my/profile': {
     success: true,
     message: '获取成功',
     data: {
@@ -524,8 +524,20 @@ function request(url, method = 'GET', data = {}) {
       dataType: 'json',
       header,
       success(res) {
-        if (res.statusCode === 200) {
+        console.log('[Request] Response status:', res.statusCode);
+        if (res.statusCode === 200 || res.statusCode === 201) {
           resolve(res.data);
+        } else if (res.statusCode === 401) {
+          console.error('[Request] Token expired or invalid');
+          wx.removeStorageSync('access_token');
+          wx.showToast({
+            title: '登录已过期，请重新登录',
+            icon: 'none',
+          });
+          reject(res);
+        } else if (res.statusCode === 404) {
+          console.error('[Request] API not found:', url);
+          reject(res);
         } else {
           reject(res);
         }
@@ -536,5 +548,4 @@ function request(url, method = 'GET', data = {}) {
     });
   });
 }
-
 export default request;

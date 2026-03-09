@@ -54,8 +54,25 @@ Page({
     if (token) {
       const userInfo = await this.getUserInfo();
       const earnedBadgeCount = (userInfo.badges || []).filter((b) => b.earned).length;
-      const riskLevel = userInfo.healthOverview?.riskLevel || 'low';
-      const trend = userInfo.healthOverview?.trend || 'stable';
+      // 适配后端数据结构：riskLevel 在顶层，构造 healthOverview
+      const riskLevel = (userInfo.riskLevel || 'low').toLowerCase();
+      const trend = 'stable'; // 后端暂无 trend 字段，使用默认值
+      
+      // 构造 healthOverview 对象（如果后端没返回）
+      if (!userInfo.healthOverview) {
+        userInfo.healthOverview = {
+          riskLevel: riskLevel,
+          riskScore: riskLevel === 'low' ? 0.15 : riskLevel === 'medium' ? 0.45 : 0.75,
+          trend: trend,
+          dimensions: [
+            { name: '情绪状态', score: 82 },
+            { name: '睡眠质量', score: 74 },
+            { name: '压力管理', score: 68 },
+            { name: '社交关系', score: 88 },
+          ],
+        };
+      }
+
 
       this.setData({
         isLoad: true,
@@ -106,7 +123,7 @@ Page({
     
     // 学生角色：请求 API
     try {
-      const res = await request('/mock/student/my/info');
+      const res = await request('/student/my/info');
       console.log('[MyPage] Student response:', res);
       return res.data || {};
     } catch (err) {

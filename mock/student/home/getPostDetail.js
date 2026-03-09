@@ -50,8 +50,8 @@ const getPostDetail = (req) => {
   const post = posts.find((p) => p.id === id) || posts[0];
 
   return {
-    code: 200,
-    success: true,
+    code: 0,
+
     message: '获取成功',
     data: post,
   };

@@ -1,7 +1,7 @@
 // 预约服务（咨询室/体验室）列表
 const getServices = (req) => {
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: [
       {
@@ -94,7 +94,7 @@ const getServices = (req) => {
 // 预约记录
 const getRecords = (req) => {
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: [
       {

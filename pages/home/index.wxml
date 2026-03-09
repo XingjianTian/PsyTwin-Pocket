@@ -12,8 +12,8 @@
             <view class="waterfall-left">
               <card
                 wx:for="{{leftList}}"
-                wx:key="id"
-                post-id="{{item.id}}"
+                wx:key="postId"
+                post-id="{{item.postId}}"
                 url="{{item.url}}"
                 desc="{{item.desc}}"
                 tags="{{item.tags}}"
@@ -30,8 +30,8 @@
             <view class="waterfall-right">
               <card
                 wx:for="{{rightList}}"
-                wx:key="id"
-                post-id="{{item.id}}"
+                wx:key="postId"
+                post-id="{{item.postId}}"
                 url="{{item.url}}"
                 desc="{{item.desc}}"
                 tags="{{item.tags}}"
@@ -53,8 +53,8 @@
           <view class="waterfall-left">
             <card
               wx:for="{{focusCardInfo}}"
-              wx:key="index"
-              post-id="{{item.id}}"
+              wx:key="postId"
+              post-id="{{item.postId}}"
               url="{{item.url}}"
               desc="{{item.desc}}"
               tags="{{item.tags}}"

@@ -1,7 +1,7 @@
 // AI 会话列表
 const getSessions = (req) => {
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: [
       {

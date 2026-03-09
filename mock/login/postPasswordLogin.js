@@ -2,7 +2,7 @@ export default {
   path: '/login/postPasswordLogin',
   data: {
     message: '登录成功',
-    success: true,
+    code: 0,
     data: {
       token: '@guid()',
       // role 由后端根据手机号返回 student 或 teacher

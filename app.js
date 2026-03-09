@@ -1,18 +1,30 @@
 // app.js
 import config from './config';
-import Mock from './mock/index';
 import createBus from './utils/eventBus';
-import { connectSocket, fetchUnreadNum } from './mock/chat';
 
 console.log('[App] Mock config:', config);
 console.log('[App] isMock value:', config.isMock);
 
+// 动态导入 Mock，避免在 isMock=false 时覆盖 wx.request
+let Mock = null;
+let connectSocket = null;
+let fetchUnreadNum = null;
+
 if (config.isMock) {
   console.log('[App] Initializing Mock...');
+  // 动态导入
+  const mockModule = require('./mock/index');
+  Mock = mockModule.default || mockModule;
   Mock();
+
+  // 动态导入 chat
+  const chatModule = require('./mock/chat');
+  connectSocket = chatModule.connectSocket;
+  fetchUnreadNum = chatModule.fetchUnreadNum;
+
   console.log('[App] Mock initialized');
 } else {
-  console.log('[App] Mock disabled');
+  console.log('[App] Mock disabled - using real API');
 }
 
 App({
@@ -50,8 +62,11 @@ App({
       });
     });
 
-    this.getUnreadNum();
-    this.connect();
+    // 只在 Mock 模式下初始化
+    if (config.isMock) {
+      this.getUnreadNum();
+      this.connect();
+    }
   },
 
   globalData: {
@@ -66,6 +81,7 @@ App({
 
   /** 初始化WebSocket */
   connect() {
+    if (!connectSocket) return;
     const socket = connectSocket();
     socket.onMessage((data) => {
       data = JSON.parse(data);
@@ -78,6 +94,7 @@ App({
 
   /** 获取未读消息数量 */
   getUnreadNum() {
+    if (!fetchUnreadNum) return;
     fetchUnreadNum().then(({ data }) => {
       this.globalData.unreadNum = data;
       this.eventBus.emit('unread-num-change', data);

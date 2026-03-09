@@ -100,7 +100,7 @@ const getFeed = (req) => {
   ];
 
   return {
-    success: true,
+    code: 0,
     message: '获取成功',
     data: {
       follow: followList,

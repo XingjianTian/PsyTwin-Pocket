@@ -12,43 +12,43 @@ const mockReq = { data: {} };
 
 export default [
   {
-    path: '/mock/student/home/feed',
+    path: '/student/home/feed',
     handler: getFeed,
   },
   {
-    path: '/mock/student/home/post-detail',
+    path: '/student/home/posts/:id',
     handler: getPostDetail,
   },
   {
-    path: '/mock/student/home/comments',
+    path: '/student/home/posts/:id/comments',
     handler: getComments,
   },
   {
-    path: '/mock/student/home/post-like',
+    path: '/student/home/posts/:id/like',
     handler: postLike,
   },
   {
-    path: '/mock/student/home/post-comment',
+    path: '/student/home/posts/:id/comments',
     handler: postComment,
   },
   {
-    path: '/mock/student/message/sessions',
+    path: '/student/message/sessions',
     data: getSessions(mockReq).data,
   },
   {
-    path: '/mock/student/appointment/services',
+    path: '/student/appointment/services',
     data: getServices(mockReq).data,
   },
   {
-    path: '/mock/student/appointment/records',
+    path: '/student/appointment/records',
     data: getRecords(mockReq).data,
   },
   {
-    path: '/mock/student/my/info',
+    path: '/student/my/info',
     data: getStudentInfo(mockReq).data,
   },
   {
-    path: '/mock/student/my/profile',
+    path: '/student/my/profile',
     data: getStudentProfile(mockReq).data,
   },
 ];

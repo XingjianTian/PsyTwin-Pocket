@@ -10,7 +10,7 @@ Page({
   },
 
   async onReady() {
-    const cardRes = await request('/mock/student/home/feed')
+    const cardRes = await request('/student/home/feed')
       .then((res) => res.data)
       .catch(() => ({}));
 
@@ -29,7 +29,7 @@ Page({
 
   formatCards(data) {
     return data.map((item, index) => ({
-      postId: item.id,
+      postId: item.id || '',
       url: item.content?.images?.[0] || '',
       desc: item.content?.text || '',
       tags: this.generateTags(item),
@@ -82,7 +82,7 @@ Page({
   async refresh() {
     this.setData({ enable: true });
 
-    const cardRes = await request('/mock/student/home/feed')
+    const cardRes = await request('/student/home/feed')
       .then((res) => res.data)
       .catch(() => ({}));
 
@@ -98,11 +98,11 @@ Page({
 
   generateTags(item) {
     const tags = [];
-    if (item.author?.role === 'teacher') {
-      tags.push({ text: '教师', theme: 'primary' });
-    }
     if (item.content?.location) {
-      tags.push({ text: item.content.location, theme: 'warning' });
+      tags.push({ text: item.content.location, theme: 'primary' });
+    }
+    if (item.isAnonymous) {
+      tags.push({ text: '匿名', theme: 'default' });
     }
     return tags;
   },
@@ -110,36 +110,19 @@ Page({
   showOperMsg(content) {
     Message.success({
       context: this,
-      offset: [120, 32],
-      duration: 4000,
+      offset: [20, 32],
       content,
     });
   },
 
-  goRelease() {
-    wx.navigateTo({ url: '/pages/release/index' });
-  },
-  onCardTap(e) {
-    const { id } = e.detail;
+  onFocusClick(e) {
+    const { item } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/post-detail/index?id=${id}`,
+      url: `/pages/post-detail/index?id=${item.postId}`,
     });
   },
 
-  refreshPostStatus(postId, newStatus) {
-    const updateList = (list) => {
-      return list.map((item) => {
-        if (item.postId === postId) {
-          return { ...item, ...newStatus };
-        }
-        return item;
-      });
-    };
-
-    this.setData({
-      leftList: updateList(this.data.leftList),
-      rightList: updateList(this.data.rightList),
-    });
+  onReachBottom() {
+    console.log('reach bottom - load more');
   },
-
 });

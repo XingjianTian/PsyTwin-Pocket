@@ -1,0 +1,271 @@
+- generic [ref=e16]:
+  - generic [ref=e18]:
+    - banner [ref=e19]:
+      - img [ref=e20]
+      - textbox "Search models" [ref=e24]
+    - generic [ref=e25]:
+      - generic [ref=e26]: All Models
+      - list [ref=e27]:
+        - listitem [ref=e28]:
+          - generic [ref=e29]: AIDocument
+          - generic [ref=e31]: "5"
+        - listitem [ref=e32]:
+          - generic [ref=e33]: AIPromptPreset
+          - generic [ref=e35]: "4"
+        - listitem [ref=e36]:
+          - generic [ref=e37]: Alert
+          - generic [ref=e39]: "10"
+        - listitem [ref=e40]:
+          - generic [ref=e41]: Appointment
+          - generic [ref=e43]: "5"
+        - listitem [ref=e44] [cursor=pointer]:
+          - generic [ref=e45]: ChatMessage
+          - generic [ref=e47]: "5"
+        - listitem [ref=e48]:
+          - generic [ref=e49]: ChatSession
+          - generic [ref=e51]: "2"
+        - listitem [ref=e52]:
+          - generic [ref=e53]: Comment
+          - generic [ref=e55]: "0"
+        - listitem [ref=e56]:
+          - generic [ref=e57]: ConsultationRoom
+          - generic [ref=e59]: "4"
+        - listitem [ref=e60]:
+          - generic [ref=e61]: Device
+          - generic [ref=e63]: "6"
+        - listitem [ref=e64]:
+          - generic [ref=e65]: ExpressionData
+          - generic [ref=e67]: "60"
+        - listitem [ref=e68]:
+          - generic [ref=e69]: Faculty
+          - generic [ref=e71]: "6"
+        - listitem [ref=e72]:
+          - generic [ref=e73]: InterventionRecord
+          - generic [ref=e75]: "5"
+        - listitem [ref=e76]:
+          - generic [ref=e77]: Post
+          - generic [ref=e79]: "4"
+        - listitem [ref=e80]:
+          - generic [ref=e81]: PsychProfile
+          - generic [ref=e83]: "10"
+        - listitem [ref=e84]:
+          - generic [ref=e85]: RoomDevice
+          - generic [ref=e87]: "6"
+        - listitem [ref=e88]:
+          - generic [ref=e89]: Schedule
+          - generic [ref=e91]: "13"
+        - listitem [ref=e92]:
+          - generic [ref=e93]: Student
+          - generic [ref=e95]: "10"
+        - listitem [ref=e96]:
+          - generic [ref=e97]: Teacher
+          - generic [ref=e99]: "3"
+        - listitem [ref=e100]:
+          - generic [ref=e101]: TimelineEvent
+          - generic [ref=e103]: "70"
+        - listitem [ref=e104]:
+          - generic [ref=e105]: VRScene
+          - generic [ref=e107]: "4"
+        - listitem [ref=e108]:
+          - generic [ref=e109]: VRSession
+          - generic [ref=e111]: "10"
+        - listitem [ref=e112]:
+          - generic [ref=e113]: VitalSign
+          - generic [ref=e115]: "60"
+        - listitem [ref=e116]:
+          - generic [ref=e117]: VoiceAnalysis
+          - generic [ref=e119]: "60"
+        - listitem [ref=e120]:
+          - generic [ref=e121]: Warning
+          - generic [ref=e123]: "4"
+        - listitem [ref=e124]:
+          - generic [ref=e125]: WorkOrder
+          - generic [ref=e127]: "14"
+  - generic [ref=e130]:
+    - generic [ref=e131]:
+      - button [ref=e132] [cursor=pointer]:
+        - img [ref=e133]
+      - generic [ref=e135]:
+        - generic [ref=e705] [cursor=pointer]:
+          - generic [ref=e706]: ChatMessage
+          - button [ref=e707]:
+            - img [ref=e708]
+        - generic [ref=e668] [cursor=pointer]:
+          - generic [ref=e669]: Comment
+          - button [ref=e670]:
+            - img [ref=e671]
+        - generic [ref=e551] [cursor=pointer]:
+          - generic [ref=e552]: Post
+          - button [ref=e553]:
+            - img [ref=e554]
+        - generic [ref=e312] [cursor=pointer]:
+          - generic [ref=e313]: Student
+          - button [ref=e314]:
+            - img [ref=e315]
+        - generic [ref=e142] [cursor=pointer]:
+          - generic [ref=e143]: AIDocument
+          - button [ref=e144]:
+            - img [ref=e145]
+        - generic [ref=e317] [cursor=pointer]: Close all
+      - button [ref=e136] [cursor=pointer]:
+        - img [ref=e137]
+    - generic [ref=e147]:
+      - generic [ref=e148]:
+        - button [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+        - generic [ref=e153] [cursor=pointer]:
+          - generic [ref=e154]: Filters
+          - generic [ref=e155]: None
+        - generic [ref=e157] [cursor=pointer]:
+          - generic [ref=e158]: Fields
+          - generic [ref=e159]: All
+        - generic [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: Showing
+          - generic [ref=e163]: 5 of 5
+        - button "Add record" [ref=e165] [cursor=pointer]
+      - generic [ref=e169]:
+        - grid [ref=e171]:
+          - row "" [ref=e172]:
+            - columnheader "" [ref=e173]:
+              - checkbox [ref=e174] [cursor=pointer]
+              - text: 
+              - text: 
+            - columnheader [ref=e175]:
+              - text: 
+              - text: 
+          - rowgroup [ref=e176]:
+            - row "id sessionId senderId type content emotionTag ?" [ref=e710]:
+              - columnheader "id" [ref=e711] [cursor=pointer]:
+                - text: 
+                - generic "id (String)" [ref=e712]:
+                  - generic [ref=e713]: id
+                  - img [ref=e714]
+              - columnheader "sessionId" [ref=e716] [cursor=pointer]:
+                - text: 
+                - generic "sessionId (String)" [ref=e717]:
+                  - generic [ref=e718]: sessionId
+                  - img [ref=e719]
+              - columnheader "senderId" [ref=e721] [cursor=pointer]:
+                - text: 
+                - generic "senderId (String)" [ref=e722]:
+                  - generic [ref=e723]: senderId
+                  - img [ref=e724]
+              - columnheader "type" [ref=e726] [cursor=pointer]:
+                - text: 
+                - generic "type (MessageType)" [ref=e727]:
+                  - generic [ref=e728]: type
+                  - img [ref=e729]
+              - columnheader "content" [ref=e733] [cursor=pointer]:
+                - text: 
+                - generic "content (String)" [ref=e734]:
+                  - generic [ref=e735]: content
+                  - img [ref=e736]
+              - columnheader "emotionTag ?" [ref=e738] [cursor=pointer]:
+                - text: 
+                - generic "emotionTag (String)" [ref=e739]:
+                  - generic [ref=e740]: emotionTag
+                  - img [ref=e741]
+                  - generic [ref=e743]: "?"
+          - rowgroup [ref=e210]:
+            - row "Press SPACE to select this row." [ref=e744]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e745]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e746] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e747]:
+                - button [ref=e748] [cursor=pointer]:
+                  - img [ref=e749]
+            - row "Press SPACE to select this row." [ref=e751]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e752]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e753] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e754]:
+                - button [ref=e755] [cursor=pointer]:
+                  - img [ref=e756]
+            - row "Press SPACE to select this row." [ref=e758]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e759]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e760] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e761]:
+                - button [ref=e762] [cursor=pointer]:
+                  - img [ref=e763]
+            - row "Press SPACE to select this row." [ref=e765]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e766]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e767] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e768]:
+                - button [ref=e769] [cursor=pointer]:
+                  - img [ref=e770]
+            - row "Press SPACE to select this row." [ref=e772]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e773]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e774] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e775]:
+                - button [ref=e776] [cursor=pointer]:
+                  - img [ref=e777]
+          - rowgroup [ref=e246]:
+            - row "Press SPACE to select this row." [ref=e779]:
+              - gridcell "msg-001" [ref=e780]:
+                - generic [ref=e781]: msg-001
+              - gridcell "session-001" [ref=e782]:
+                - generic [ref=e783]: session-001
+              - gridcell "user" [ref=e784]:
+                - generic [ref=e785]: user
+              - gridcell "TEXT" [ref=e786]:
+                - generic [ref=e787]: TEXT
+              - gridcell "最近总是睡不着，脑子里想很多事情" [ref=e788]:
+                - generic [ref=e789]: 最近总是睡不着，脑子里想很多事情
+              - gridcell "😰焦虑" [ref=e790]:
+                - generic [ref=e791]: 😰焦虑
+            - row "Press SPACE to select this row." [ref=e792]:
+              - gridcell "msg-002" [ref=e793]:
+                - generic [ref=e794]: msg-002
+              - gridcell "session-001" [ref=e795]:
+                - generic [ref=e796]: session-001
+              - gridcell "ai" [ref=e797]:
+                - generic [ref=e798]: ai
+              - gridcell "TEXT" [ref=e799]:
+                - generic [ref=e800]: TEXT
+              - gridcell "听起来你最近压力很大呢。失眠确实会让人更焦虑。你愿意分享一下具体在担心什么吗？" [ref=e801]:
+                - generic [ref=e802]: 听起来你最近压力很大呢。失眠确实会让人更焦虑。你愿意分享一下具体在担心什么吗？
+              - gridcell "null" [ref=e803]:
+                - generic [ref=e804]: "null"
+            - row "Press SPACE to select this row." [ref=e805]:
+              - gridcell "msg-003" [ref=e806]:
+                - generic [ref=e807]: msg-003
+              - gridcell "session-001" [ref=e808]:
+                - generic [ref=e809]: session-001
+              - gridcell "ai" [ref=e810]:
+                - generic [ref=e811]: ai
+              - gridcell "CBT_CARD" [ref=e812]:
+                - generic [ref=e813]: CBT_CARD
+              - gridcell "试试这个呼吸练习，可以帮助放松" [ref=e814]:
+                - generic [ref=e815]: 试试这个呼吸练习，可以帮助放松
+              - gridcell "null" [ref=e816]:
+                - generic [ref=e817]: "null"
+            - row "Press SPACE to select this row." [ref=e818]:
+              - gridcell "msg-004" [ref=e819]:
+                - generic [ref=e820]: msg-004
+              - gridcell "session-002" [ref=e821]:
+                - generic [ref=e822]: session-002
+              - gridcell "user" [ref=e823]:
+                - generic [ref=e824]: user
+              - gridcell "TEXT" [ref=e825]:
+                - generic [ref=e826]: TEXT
+              - gridcell "王老师，我想预约下次咨询" [ref=e827]:
+                - generic [ref=e828]: 王老师，我想预约下次咨询
+              - gridcell "null" [ref=e829]:
+                - generic [ref=e830]: "null"
+            - row "Press SPACE to select this row." [ref=e831]:
+              - gridcell "msg-005" [ref=e832]:
+                - generic [ref=e833]: msg-005
+              - gridcell "session-002" [ref=e834]:
+                - generic [ref=e835]: session-002
+              - gridcell "teacher-wang" [ref=e836]:
+                - generic [ref=e837]: teacher-wang
+              - gridcell "TEXT" [ref=e838]:
+                - generic [ref=e839]: TEXT
+              - gridcell "好的，下周三下午2点可以吗？" [ref=e840]:
+                - generic [ref=e841]: 好的，下周三下午2点可以吗？
+              - gridcell "null" [ref=e842]:
+                - generic [ref=e843]: "null"
+        - text:    

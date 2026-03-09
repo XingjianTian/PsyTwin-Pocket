@@ -1,0 +1,241 @@
+- generic [ref=e16]:
+  - generic [ref=e18]:
+    - banner [ref=e19]:
+      - img [ref=e20]
+      - textbox "Search models" [ref=e24]
+    - generic [ref=e25]:
+      - generic [ref=e26]: All Models
+      - list [ref=e27]:
+        - listitem [ref=e28]:
+          - generic [ref=e29]: AIDocument
+          - generic [ref=e31]: "5"
+        - listitem [ref=e32]:
+          - generic [ref=e33]: AIPromptPreset
+          - generic [ref=e35]: "4"
+        - listitem [ref=e36]:
+          - generic [ref=e37]: Alert
+          - generic [ref=e39]: "10"
+        - listitem [ref=e40]:
+          - generic [ref=e41]: Appointment
+          - generic [ref=e43]: "5"
+        - listitem [ref=e44]:
+          - generic [ref=e45]: ChatMessage
+          - generic [ref=e47]: "5"
+        - listitem [ref=e48]:
+          - generic [ref=e49]: ChatSession
+          - generic [ref=e51]: "2"
+        - listitem [ref=e52]:
+          - generic [ref=e53]: Comment
+          - generic [ref=e55]: "0"
+        - listitem [ref=e56]:
+          - generic [ref=e57]: ConsultationRoom
+          - generic [ref=e59]: "4"
+        - listitem [ref=e60]:
+          - generic [ref=e61]: Device
+          - generic [ref=e63]: "6"
+        - listitem [ref=e64]:
+          - generic [ref=e65]: ExpressionData
+          - generic [ref=e67]: "60"
+        - listitem [ref=e68]:
+          - generic [ref=e69]: Faculty
+          - generic [ref=e71]: "6"
+        - listitem [ref=e72]:
+          - generic [ref=e73]: InterventionRecord
+          - generic [ref=e75]: "5"
+        - listitem [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: Post
+          - generic [ref=e79]: "4"
+        - listitem [ref=e80]:
+          - generic [ref=e81]: PsychProfile
+          - generic [ref=e83]: "10"
+        - listitem [ref=e84]:
+          - generic [ref=e85]: RoomDevice
+          - generic [ref=e87]: "6"
+        - listitem [ref=e88]:
+          - generic [ref=e89]: Schedule
+          - generic [ref=e91]: "13"
+        - listitem [ref=e92]:
+          - generic [ref=e93]: Student
+          - generic [ref=e95]: "10"
+        - listitem [ref=e96]:
+          - generic [ref=e97]: Teacher
+          - generic [ref=e99]: "3"
+        - listitem [ref=e100]:
+          - generic [ref=e101]: TimelineEvent
+          - generic [ref=e103]: "70"
+        - listitem [ref=e104]:
+          - generic [ref=e105]: VRScene
+          - generic [ref=e107]: "4"
+        - listitem [ref=e108]:
+          - generic [ref=e109]: VRSession
+          - generic [ref=e111]: "10"
+        - listitem [ref=e112]:
+          - generic [ref=e113]: VitalSign
+          - generic [ref=e115]: "60"
+        - listitem [ref=e116]:
+          - generic [ref=e117]: VoiceAnalysis
+          - generic [ref=e119]: "60"
+        - listitem [ref=e120]:
+          - generic [ref=e121]: Warning
+          - generic [ref=e123]: "4"
+        - listitem [ref=e124]:
+          - generic [ref=e125]: WorkOrder
+          - generic [ref=e127]: "14"
+  - generic [ref=e130]:
+    - generic [ref=e131]:
+      - button [ref=e132] [cursor=pointer]:
+        - img [ref=e133]
+      - generic [ref=e135]:
+        - generic [ref=e551] [cursor=pointer]:
+          - generic [ref=e552]: Post
+          - button [ref=e553]:
+            - img [ref=e554]
+        - generic [ref=e312] [cursor=pointer]:
+          - generic [ref=e313]: Student
+          - button [ref=e314]:
+            - img [ref=e315]
+        - generic [ref=e142] [cursor=pointer]:
+          - generic [ref=e143]: AIDocument
+          - button [ref=e144]:
+            - img [ref=e145]
+        - generic [ref=e317] [cursor=pointer]: Close all
+      - button [ref=e136] [cursor=pointer]:
+        - img [ref=e137]
+    - generic [ref=e147]:
+      - generic [ref=e148]:
+        - button [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+        - generic [ref=e153] [cursor=pointer]:
+          - generic [ref=e154]: Filters
+          - generic [ref=e155]: None
+        - generic [ref=e157] [cursor=pointer]:
+          - generic [ref=e158]: Fields
+          - generic [ref=e159]: All
+        - generic [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: Showing
+          - generic [ref=e163]: 4 of 4
+        - button "Add record" [ref=e165] [cursor=pointer]
+      - generic [ref=e169]:
+        - grid [ref=e171]:
+          - row "" [ref=e172]:
+            - columnheader "" [ref=e173]:
+              - checkbox [ref=e174] [cursor=pointer]
+              - text: 
+              - text: 
+            - columnheader [ref=e175]:
+              - text: 
+              - text: 
+          - rowgroup [ref=e176]:
+            - row "id authorId content images location ? isAnonymous" [ref=e556]:
+              - columnheader "id" [ref=e557] [cursor=pointer]:
+                - text: 
+                - generic "id (String)" [ref=e558]:
+                  - generic [ref=e559]: id
+                  - img [ref=e560]
+              - columnheader "authorId" [ref=e562] [cursor=pointer]:
+                - text: 
+                - generic "authorId (String)" [ref=e563]:
+                  - generic [ref=e564]: authorId
+                  - img [ref=e565]
+              - columnheader "content" [ref=e567] [cursor=pointer]:
+                - text: 
+                - generic "content (String)" [ref=e568]:
+                  - generic [ref=e569]: content
+                  - img [ref=e570]
+              - columnheader "images" [ref=e572] [cursor=pointer]:
+                - text: 
+                - generic "images (String)" [ref=e573]:
+                  - generic [ref=e574]: images
+                  - img [ref=e575]
+              - columnheader "location ?" [ref=e577] [cursor=pointer]:
+                - text: 
+                - generic "location (String)" [ref=e578]:
+                  - generic [ref=e579]: location
+                  - img [ref=e580]
+                  - generic [ref=e582]: "?"
+              - columnheader "isAnonymous" [ref=e583] [cursor=pointer]:
+                - text: 
+                - generic "isAnonymous (Boolean)" [ref=e584]:
+                  - generic [ref=e585]: isAnonymous
+                  - img [ref=e586]
+          - rowgroup [ref=e210]:
+            - row "Press SPACE to select this row." [ref=e588]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e589]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e590] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e591]:
+                - button [ref=e592] [cursor=pointer]:
+                  - img [ref=e593]
+            - row "Press SPACE to select this row." [ref=e595]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e596]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e597] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e598]:
+                - button [ref=e599] [cursor=pointer]:
+                  - img [ref=e600]
+            - row "Press SPACE to select this row." [ref=e602]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e603]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e604] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e605]:
+                - button [ref=e606] [cursor=pointer]:
+                  - img [ref=e607]
+            - row "Press SPACE to select this row." [ref=e609]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e610]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e611] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e612]:
+                - button [ref=e613] [cursor=pointer]:
+                  - img [ref=e614]
+          - rowgroup [ref=e246]:
+            - row "Press SPACE to select this row." [ref=e616]:
+              - gridcell "post-001" [ref=e617]:
+                - generic [ref=e618]: post-001
+              - gridcell "stu-zhangyu" [ref=e619]:
+                - generic [ref=e620]: stu-zhangyu
+              - gridcell "期末复习第三天，看书看得眼睛都花了。出来操场转了一圈，改变环境后发现脑子好像清醒了一些！小伙伴们期末加油！" [ref=e621]:
+                - generic [ref=e622]: 期末复习第三天，看书看得眼睛都花了。出来操场转了一圈，改变环境后发现脑子好像清醒了一些！小伙伴们期末加油！
+              - gridcell "[\"https://picsum.photos/400/300?random=11\"]" [ref=e623]:
+                - generic [ref=e624]: "[\"https://picsum.photos/400/300?random=11\"]"
+              - gridcell "校园操场" [ref=e625]:
+                - generic [ref=e626]: 校园操场
+              - gridcell "false" [ref=e627]:
+                - generic [ref=e628]: "false"
+            - row "Press SPACE to select this row." [ref=e629]:
+              - gridcell "post-002" [ref=e630]:
+                - generic [ref=e631]: post-002
+              - gridcell "stu-liusiyuan" [ref=e632]:
+                - generic [ref=e633]: stu-liusiyuan
+              - gridcell "【小贴士】当你感到压力山大的时候，试试 4-7-8 呼吸法：吸气 4 秒 → 憋气 7 秒 → 呼气 8 秒。反复 4 次，就能快速平息焦虑感。希望这个小方法能帮到大家✨" [ref=e634]:
+                - generic [ref=e635]: 【小贴士】当你感到压力山大的时候，试试 4-7-8 呼吸法：吸气 4 秒 → 憋气 7 秒 → 呼气 8 秒。反复 4 次，就能快速平息焦虑感。希望这个小方法能帮到大家✨
+              - gridcell "[]" [ref=e636]:
+                - generic [ref=e637]: "[]"
+              - gridcell [ref=e638]
+              - gridcell "false" [ref=e640]:
+                - generic [ref=e641]: "false"
+            - row "Press SPACE to select this row." [ref=e642]:
+              - gridcell "post-003" [ref=e643]:
+                - generic [ref=e644]: post-003
+              - gridcell "stu-chenyuqing" [ref=e645]:
+                - generic [ref=e646]: stu-chenyuqing
+              - gridcell "不知道为什么就是心里沉甸甸的，什么都不想做，但又不知道能跟谁说。发出来只是想让自己轻松一点。" [ref=e647]:
+                - generic [ref=e648]: 不知道为什么就是心里沉甸甸的，什么都不想做，但又不知道能跟谁说。发出来只是想让自己轻松一点。
+              - gridcell "[]" [ref=e649]:
+                - generic [ref=e650]: "[]"
+              - gridcell [ref=e651]
+              - gridcell "true" [ref=e653]:
+                - generic [ref=e654]: "true"
+            - row "Press SPACE to select this row." [ref=e655]:
+              - gridcell "post-004" [ref=e656]:
+                - generic [ref=e657]: post-004
+              - gridcell "stu-zhangyu" [ref=e658]:
+                - generic [ref=e659]: stu-zhangyu
+              - gridcell "今天去做了VR放松训练，感觉真的很神奇！戴上头盔就进入了海边场景，听着海浪声，焦虑感慢慢消失了。推荐大家也试试～" [ref=e660]:
+                - generic [ref=e661]: 今天去做了VR放松训练，感觉真的很神奇！戴上头盔就进入了海边场景，听着海浪声，焦虑感慢慢消失了。推荐大家也试试～
+              - gridcell "[\"https://picsum.photos/400/300?random=12\",\"https://picsum.photos/400/300?random=13\"]" [ref=e662]:
+                - generic [ref=e663]: "[\"https://picsum.photos/400/300?random=12\",\"https://picsum.photos/400/300?random=13\"]"
+              - gridcell "VR体验中心" [ref=e664]:
+                - generic [ref=e665]: VR体验中心
+              - gridcell "false" [ref=e666]:
+                - generic [ref=e667]: "false"
+        - text:    

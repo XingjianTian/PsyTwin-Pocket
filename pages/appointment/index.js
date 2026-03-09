@@ -2,28 +2,18 @@ import request from '~/api/request';
 
 Page({
   data: {
-    currentTab: 'services', // services | records
+    currentTab: 'services',
     services: [],
     records: [],
-
-    // 统计数据
-    stats: {
-      available: 0,
-      busy: 0,
-      total: 0,
-    },
-
-    // 服务类型筛选
+    stats: { available: 0, busy: 0, total: 0 },
     typeFilters: [
       { label: '全部', value: 'all' },
-      { label: '心理咨询', value: 'counseling' },
+      { label: '线下咨询', value: 'counseling' },
+      { label: '减压舱', value: 'decompression' },
       { label: 'VR 体验', value: 'vr' },
-      { label: '团体活动', value: 'group' },
     ],
     activeFilter: 'all',
     filteredServices: [],
-
-    // 记录状态筛选
     statusFilters: [
       { label: '全部', value: 'all' },
       { label: '待就诊', value: 'pending' },
@@ -34,16 +24,8 @@ Page({
     activeStatusFilter: 'all',
     filteredRecords: [],
     pendingCount: 0,
-
-    // 预约表单
     showForm: false,
-    formData: {
-      serviceId: null,
-      serviceName: '',
-      date: '',
-      time: '',
-      reason: '',
-    },
+    formData: { serviceId: null, serviceName: '', date: '', time: '', reason: '' },
     currentAvailableTimes: [],
   },
 
@@ -53,185 +35,188 @@ Page({
   },
 
   onShow() {
-    // 每次显示时刷新数据
     this.loadRecords();
   },
 
-  // ===== 数据加载 =====
-
   async loadServices() {
     try {
-      const res = await request('/mock/student/appointment/services');
-      const services = res.data || [];
-      this.setData({ services });
-      this.updateStats(services);
-      this.applyServiceFilter(services, this.data.activeFilter);
+      const res = await request('/student/appointment/services');
+      const rooms = res.data?.rooms || [];
+
+      const services = rooms.map((room) => {
+        const isVR = room.name && room.name.includes('VR');
+        const isDecompression = room.name && room.name.includes('减压舱');
+        const type = isVR ? 'vr' : isDecompression ? 'decompression' : 'counseling';
+        const duration = isVR ? 30 : isDecompression ? 50 : 50;
+
+        const roomStatus = (room.status || 'AVAILABLE').toLowerCase();
+        const isBusy = roomStatus === 'in_use';
+        const status = isBusy ? 'busy' : roomStatus === 'maintenance' ? 'maintenance' : 'available';
+
+        return {
+          id: room.id,
+          name: room.name,
+          type: type,
+          status: status,
+          location: room.location,
+          capacity: room.capacity,
+          duration: duration,
+          devices: isVR
+            ? [
+                { name: 'Pico 4 Enterprise', online: true },
+                { name: '小米手环 9', online: true },
+              ]
+            : isDecompression
+              ? [
+                  { name: '生物反馈仪', online: true },
+                  { name: '小米手环 9', online: true },
+                ]
+              : [{ name: '小米手环 9', online: true }],
+          description: isVR
+            ? 'VR 放松训练、冥想引导、场景暴露疗法'
+            : isDecompression
+              ? '减压放松训练、生物反馈调节、压力释放'
+              : '专业心理咨询师一对一深度咨询',
+          availableTimes: ['09:00', '09:30', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30'],
+          currentUser: isBusy
+            ? {
+                name: '张同学',
+                studentId: room.currentStudentId || '2024001',
+                plan: '社交焦虑脱敏',
+                usedMinutes: 25,
+                totalMinutes: duration,
+              }
+            : null,
+        };
+      });
+
+      // 排序：心理咨询室 > 减压舱 > VR体验区
+      const sortedServices = this.sortServices(services);
+
+      this.setData({ services: sortedServices });
+      this.updateStats(sortedServices);
+      this.applyServiceFilter(sortedServices, this.data.activeFilter);
     } catch (err) {
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      console.error('加载失败:', err);
     }
+  },
+
+  // 排序服务列表
+  sortServices(services) {
+    const typePriority = { counseling: 1, decompression: 2, vr: 3 };
+
+    return services.sort((a, b) => {
+      const priorityDiff = typePriority[a.type] - typePriority[b.type];
+      if (priorityDiff !== 0) return priorityDiff;
+
+      const numA = this.extractNumber(a.name);
+      const numB = this.extractNumber(b.name);
+      return numA - numB;
+    });
+  },
+
+  extractNumber(name) {
+    if (!name) return 0;
+    const match = name.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   },
 
   async loadRecords() {
     try {
-      const res = await request('/mock/student/appointment/records');
-      const records = res.data || [];
+      const res = await request('/student/appointment/records');
+      const records = (res.data?.records || []).map((r) => ({
+        ...r,
+        status: (r.status || 'pending').toLowerCase(),
+      }));
       const pendingCount = records.filter((r) => r.status === 'pending' || r.status === 'confirmed').length;
-      this.setData({ records, pendingCount });
+      this.setData({ records: records, pendingCount: pendingCount });
       this.applyStatusFilter(records, this.data.activeStatusFilter);
     } catch (err) {
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      console.error('加载记录失败:', err);
     }
   },
 
-  // 更新统计数据
   updateStats(services) {
     const available = services.filter((s) => s.status === 'available').length;
     const busy = services.filter((s) => s.status === 'busy').length;
-    this.setData({
-      stats: {
-        available,
-        busy,
-        total: services.length,
-      },
-    });
+    this.setData({ stats: { available: available, busy: busy, total: services.length } });
   },
-
-  // ===== Tab 切换 =====
 
   onTabChange(e) {
-    const { value } = e.currentTarget.dataset;
-    this.setData({ currentTab: value });
+    this.setData({ currentTab: e.currentTarget.dataset.value });
   },
 
-  // ===== 服务类型筛选 =====
-
   onFilterChange(e) {
-    const { value } = e.currentTarget.dataset;
+    const value = e.currentTarget.dataset.value;
     this.setData({ activeFilter: value });
     this.applyServiceFilter(this.data.services, value);
   },
 
   applyServiceFilter(services, filter) {
-    const filteredServices = filter === 'all' ? services : services.filter((s) => s.type === filter);
-    this.setData({ filteredServices });
+    const filtered = filter === 'all' ? services : services.filter((s) => s.type === filter);
+    this.setData({ filteredServices: filtered });
   },
 
-  // ===== 记录状态筛选 =====
-
   onStatusFilterChange(e) {
-    const { value } = e.currentTarget.dataset;
+    const value = e.currentTarget.dataset.value;
     this.setData({ activeStatusFilter: value });
     this.applyStatusFilter(this.data.records, value);
   },
 
   applyStatusFilter(records, filter) {
-    const filteredRecords = filter === 'all' ? records : records.filter((r) => r.status === filter);
-    this.setData({ filteredRecords });
+    const filtered = filter === 'all' ? records : records.filter((r) => r.status === filter);
+    this.setData({ filteredRecords: filtered });
   },
 
-  // ===== 预约表单 =====
-
-  // 点击服务卡片 - 打开预约表单
   onServiceTap(e) {
     const { id, name, times } = e.currentTarget.dataset;
-    // 解析 availableTimes（从 dataset 传入可能是 JSON 字符串）
-    let availableTimes = [];
-    if (Array.isArray(times)) {
-      availableTimes = times;
-    } else {
-      // 从 services 中直接查找
-      const service = this.data.services.find((s) => s.id === id);
-      availableTimes = service?.availableTimes || [];
-    }
-
     this.setData({
       showForm: true,
-      currentAvailableTimes: availableTimes,
-      formData: {
-        serviceId: id,
-        serviceName: name,
-        date: '',
-        time: '',
-        reason: '',
-      },
+      formData: { serviceId: id, serviceName: name, date: '', time: '', reason: '' },
+      currentAvailableTimes: times ? times.split(',') : [],
     });
   },
 
-  // 关闭表单
   onFormClose() {
     this.setData({ showForm: false });
   },
 
-  // 选择日期
   onDateChange(e) {
     this.setData({ 'formData.date': e.detail.value });
   },
 
-  // 选择时间（格子点击）
-  onTimeSelect(e) {
-    const { time } = e.currentTarget.dataset;
-    this.setData({ 'formData.time': time });
+  onTimeChange(e) {
+    this.setData({ 'formData.time': e.detail.value });
   },
 
-  // 输入事由
   onReasonInput(e) {
     this.setData({ 'formData.reason': e.detail.value });
   },
 
-  // 提交预约
-  async onSubmit() {
+  onSubmit() {
     const { formData } = this.data;
-
     if (!formData.date || !formData.time) {
       wx.showToast({ title: '请选择日期和时间', icon: 'none' });
       return;
     }
-
-    wx.showLoading({ title: '提交中...' });
-
-    try {
-      // 实际项目中替换为真实接口
-      // await request('/api/student/appointment/book', 'POST', { data: formData });
-
-      // 模拟延迟
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
-      wx.hideLoading();
-      this.setData({ showForm: false });
-
-      wx.showToast({ title: '预约成功', icon: 'success' });
-
-      // 刷新数据
-      this.loadRecords();
-    } catch (err) {
-      wx.hideLoading();
-      wx.showToast({ title: '预约失败，请重试', icon: 'none' });
-    }
+    wx.showToast({ title: '预约成功', icon: 'success' });
+    this.setData({ showForm: false });
+    this.loadRecords();
   },
 
-  // ===== 取消预约 =====
-
-  onCancelAppointment(e) {
+  onCancel(e) {
     const { id } = e.currentTarget.dataset;
-
     wx.showModal({
       title: '确认取消',
-      content: '取消后该时段将释放，确定要取消吗？',
-      confirmColor: '#ef4444',
+      content: '确定要取消这个预约吗？',
       success: (res) => {
         if (res.confirm) {
-          const newRecords = this.data.records.map((item) => {
-            if (item.id === id) {
-              return { ...item, status: 'cancelled', cancelable: false };
-            }
-            return item;
-          });
-
+          const newRecords = this.data.records.map((item) =>
+            item.id === id ? { ...item, status: 'cancelled', cancelable: false } : item,
+          );
           const pendingCount = newRecords.filter((r) => r.status === 'pending' || r.status === 'confirmed').length;
-
-          this.setData({ records: newRecords, pendingCount });
+          this.setData({ records: newRecords, pendingCount: pendingCount });
           this.applyStatusFilter(newRecords, this.data.activeStatusFilter);
-
           wx.showToast({ title: '已取消', icon: 'success' });
         }
       },

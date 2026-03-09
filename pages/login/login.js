@@ -5,6 +5,7 @@ const app = getApp();
 Page({
   data: {
     phoneNumber: '',
+    password: '',
     selectedRole: '', // 'student' 或 'teacher'
   },
 
@@ -12,6 +13,13 @@ Page({
   onPhoneInput(e) {
     this.setData({
       phoneNumber: e.detail.value,
+    });
+  },
+
+  // 密码输入
+  onPasswordInput(e) {
+    this.setData({
+      password: e.detail.value,
     });
   },
 
@@ -25,11 +33,11 @@ Page({
 
   // 登录
   async login() {
-    const { phoneNumber, selectedRole } = this.data;
+    const { phoneNumber, password, selectedRole } = this.data;
 
-    if (!phoneNumber || !selectedRole) {
+    if (!phoneNumber || !password || !selectedRole) {
       wx.showToast({
-        title: '请填写手机号并选择身份',
+        title: '请填写手机号、密码并选择身份',
         icon: 'none',
       });
       return;
@@ -37,20 +45,19 @@ Page({
 
     console.log('[Login] Starting login...');
     console.log('[Login] phoneNumber:', phoneNumber);
+    console.log('[Login] password:', password);
     console.log('[Login] selectedRole:', selectedRole);
     wx.showLoading({ title: '登录中...' });
 
     try {
-      console.log('[Login] Sending request to /login/postPasswordLogin');
-      const res = await request('/login/postPasswordLogin', 'post', {
-        data: {
-          account: phoneNumber,
-          password: 'mock_password', // mock 密码
-        },
+      console.log('[Login] Sending request to /auth/login/password');
+      const res = await request('/auth/login/password', 'post', {
+        phone: phoneNumber,
+        password: password,
       });
       console.log('[Login] Response received:', res);
 
-      if (res.success) {
+      if (res.code === 0) {
         console.log('[Login] Login successful');
         console.log('[Login] Token:', res.data.token);
 

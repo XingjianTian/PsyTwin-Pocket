@@ -33,8 +33,9 @@ const getComments = (req) => {
   ];
 
   return {
-    code: 200,
-    success: true,
+    code: 0,
+    message: '获取成功',
+
     message: '获取成功',
     data: comments,
   };

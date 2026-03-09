@@ -1,0 +1,354 @@
+- generic [ref=e16]:
+  - generic [ref=e18]:
+    - banner [ref=e19]:
+      - img [ref=e20]
+      - textbox "Search models" [ref=e24]
+    - generic [ref=e25]:
+      - generic [ref=e26]: All Models
+      - list [ref=e27]:
+        - listitem [ref=e28]:
+          - generic [ref=e29]: AIDocument
+          - generic [ref=e31]: "5"
+        - listitem [ref=e32]:
+          - generic [ref=e33]: AIPromptPreset
+          - generic [ref=e35]: "4"
+        - listitem [ref=e36]:
+          - generic [ref=e37]: Alert
+          - generic [ref=e39]: "10"
+        - listitem [ref=e40]:
+          - generic [ref=e41]: Appointment
+          - generic [ref=e43]: "0"
+        - listitem [ref=e44]:
+          - generic [ref=e45]: ChatMessage
+          - generic [ref=e47]: "0"
+        - listitem [ref=e48]:
+          - generic [ref=e49]: ChatSession
+          - generic [ref=e51]: "0"
+        - listitem [ref=e52]:
+          - generic [ref=e53]: Comment
+          - generic [ref=e55]: "0"
+        - listitem [ref=e56]:
+          - generic [ref=e57]: ConsultationRoom
+          - generic [ref=e59]: "4"
+        - listitem [ref=e60]:
+          - generic [ref=e61]: Device
+          - generic [ref=e63]: "6"
+        - listitem [ref=e64]:
+          - generic [ref=e65]: ExpressionData
+          - generic [ref=e67]: "60"
+        - listitem [ref=e68]:
+          - generic [ref=e69]: Faculty
+          - generic [ref=e71]: "6"
+        - listitem [ref=e72]:
+          - generic [ref=e73]: InterventionRecord
+          - generic [ref=e75]: "5"
+        - listitem [ref=e76]:
+          - generic [ref=e77]: Post
+          - generic [ref=e79]: "0"
+        - listitem [ref=e80]:
+          - generic [ref=e81]: PsychProfile
+          - generic [ref=e83]: "10"
+        - listitem [ref=e84]:
+          - generic [ref=e85]: RoomDevice
+          - generic [ref=e87]: "6"
+        - listitem [ref=e88]:
+          - generic [ref=e89]: Schedule
+          - generic [ref=e91]: "0"
+        - listitem [ref=e92] [cursor=pointer]:
+          - generic [ref=e93]: Student
+          - generic [ref=e95]: "10"
+        - listitem [ref=e96]:
+          - generic [ref=e97]: Teacher
+          - generic [ref=e99]: "0"
+        - listitem [ref=e100]:
+          - generic [ref=e101]: TimelineEvent
+          - generic [ref=e103]: "70"
+        - listitem [ref=e104]:
+          - generic [ref=e105]: VRScene
+          - generic [ref=e107]: "4"
+        - listitem [ref=e108]:
+          - generic [ref=e109]: VRSession
+          - generic [ref=e111]: "10"
+        - listitem [ref=e112]:
+          - generic [ref=e113]: VitalSign
+          - generic [ref=e115]: "60"
+        - listitem [ref=e116]:
+          - generic [ref=e117]: VoiceAnalysis
+          - generic [ref=e119]: "60"
+        - listitem [ref=e120]:
+          - generic [ref=e121]: Warning
+          - generic [ref=e123]: "0"
+        - listitem [ref=e124]:
+          - generic [ref=e125]: WorkOrder
+          - generic [ref=e127]: "14"
+  - generic [ref=e130]:
+    - generic [ref=e131]:
+      - button [ref=e132] [cursor=pointer]:
+        - img [ref=e133]
+      - generic [ref=e142] [cursor=pointer]:
+        - generic [ref=e143]: Student
+        - button [ref=e144]:
+          - img [ref=e145]
+      - button [ref=e136] [cursor=pointer]:
+        - img [ref=e137]
+    - generic [ref=e147]:
+      - generic [ref=e148]:
+        - button [ref=e149] [cursor=pointer]:
+          - img [ref=e150]
+        - generic [ref=e153] [cursor=pointer]:
+          - generic [ref=e154]: Filters
+          - generic [ref=e155]: None
+        - generic [ref=e157] [cursor=pointer]:
+          - generic [ref=e158]: Fields
+          - generic [ref=e159]: All
+        - generic [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: Showing
+          - generic [ref=e163]: 10 of 10
+        - button "Add record" [ref=e165] [cursor=pointer]
+      - generic [ref=e169]:
+        - grid [ref=e171]:
+          - row "" [ref=e172]:
+            - columnheader "" [ref=e173]:
+              - checkbox [ref=e174] [cursor=pointer]
+              - text: 
+              - text: 
+            - columnheader [ref=e175]:
+              - text: 
+              - text: 
+          - rowgroup [ref=e176]:
+            - row "id name studentNo className facultyId ? gender ?" [ref=e177]:
+              - columnheader "id" [ref=e178] [cursor=pointer]:
+                - text: 
+                - generic "id (String)" [ref=e179]:
+                  - generic [ref=e180]: id
+                  - img [ref=e181]
+              - columnheader "name" [ref=e183] [cursor=pointer]:
+                - text: 
+                - generic "name (String)" [ref=e184]:
+                  - generic [ref=e185]: name
+                  - img [ref=e186]
+              - columnheader "studentNo" [ref=e188] [cursor=pointer]:
+                - text: 
+                - generic "studentNo (String)" [ref=e189]:
+                  - generic [ref=e190]: studentNo
+                  - img [ref=e191]
+              - columnheader "className" [ref=e193] [cursor=pointer]:
+                - text: 
+                - generic "className (String)" [ref=e194]:
+                  - generic [ref=e195]: className
+                  - img [ref=e196]
+              - columnheader "facultyId ?" [ref=e198] [cursor=pointer]:
+                - text: 
+                - generic "facultyId (String)" [ref=e199]:
+                  - generic [ref=e200]: facultyId
+                  - img [ref=e201]
+                  - generic [ref=e203]: "?"
+              - columnheader "gender ?" [ref=e204] [cursor=pointer]:
+                - text: 
+                - generic "gender (String)" [ref=e205]:
+                  - generic [ref=e206]: gender
+                  - img [ref=e207]
+                  - generic [ref=e209]: "?"
+          - rowgroup [ref=e210]:
+            - row "Press SPACE to select this row." [ref=e211]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e212]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e213] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e214]:
+                - button [ref=e215] [cursor=pointer]:
+                  - img [ref=e216]
+            - row "Press SPACE to select this row." [ref=e218]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e219]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e220] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e221]:
+                - button [ref=e222] [cursor=pointer]:
+                  - img [ref=e223]
+            - row "Press SPACE to select this row." [ref=e225]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e226]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e227] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e228]:
+                - button [ref=e229] [cursor=pointer]:
+                  - img [ref=e230]
+            - row "Press SPACE to select this row." [ref=e232]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e233]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e234] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e235]:
+                - button [ref=e236] [cursor=pointer]:
+                  - img [ref=e237]
+            - row "Press SPACE to select this row." [ref=e239]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e240]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e241] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e242]:
+                - button [ref=e243] [cursor=pointer]:
+                  - img [ref=e244]
+            - row "Press SPACE to select this row." [ref=e246]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e247]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e248] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e249]:
+                - button [ref=e250] [cursor=pointer]:
+                  - img [ref=e251]
+            - row "Press SPACE to select this row." [ref=e253]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e254]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e255] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e256]:
+                - button [ref=e257] [cursor=pointer]:
+                  - img [ref=e258]
+            - row "Press SPACE to select this row." [ref=e260]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e261]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e262] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e263]:
+                - button [ref=e264] [cursor=pointer]:
+                  - img [ref=e265]
+            - row "Press SPACE to select this row." [ref=e267]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e268]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e269] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e270]:
+                - button [ref=e271] [cursor=pointer]:
+                  - img [ref=e272]
+            - row "Press SPACE to select this row." [ref=e274]:
+              - gridcell "Press Space to toggle row selection (unchecked) " [ref=e275]:
+                - checkbox "Press Space to toggle row selection (unchecked)" [ref=e276] [cursor=pointer]
+                - text: 
+              - gridcell [ref=e277]:
+                - button [ref=e278] [cursor=pointer]:
+                  - img [ref=e279]
+          - rowgroup [ref=e281]:
+            - row "Press SPACE to select this row." [ref=e282]:
+              - gridcell "stu-chenyuqing" [ref=e283]:
+                - generic [ref=e284]: stu-chenyuqing
+              - gridcell "陈雨晴" [ref=e285]:
+                - generic [ref=e286]: 陈雨晴
+              - gridcell "2024006" [ref=e287]:
+                - generic [ref=e288]: "2024006"
+              - gridcell "软件2402" [ref=e289]:
+                - generic [ref=e290]: 软件2402
+              - gridcell "fac-soft" [ref=e291]:
+                - generic [ref=e292]: fac-soft
+              - gridcell "男" [ref=e293]:
+                - generic [ref=e294]: 男
+            - row "Press SPACE to select this row." [ref=e295]:
+              - gridcell "stu-huangsimeng" [ref=e296]:
+                - generic [ref=e297]: stu-huangsimeng
+              - gridcell "黄思萌" [ref=e298]:
+                - generic [ref=e299]: 黄思萌
+              - gridcell "2024013" [ref=e300]:
+                - generic [ref=e301]: "2024013"
+              - gridcell "软件2402" [ref=e302]:
+                - generic [ref=e303]: 软件2402
+              - gridcell "fac-soft" [ref=e304]:
+                - generic [ref=e305]: fac-soft
+              - gridcell "男" [ref=e306]:
+                - generic [ref=e307]: 男
+            - row "Press SPACE to select this row." [ref=e308]:
+              - gridcell "stu-linzhihao" [ref=e309]:
+                - generic [ref=e310]: stu-linzhihao
+              - gridcell "林志豪" [ref=e311]:
+                - generic [ref=e312]: 林志豪
+              - gridcell "2024014" [ref=e313]:
+                - generic [ref=e314]: "2024014"
+              - gridcell "大数据2502" [ref=e315]:
+                - generic [ref=e316]: 大数据2502
+              - gridcell "fac-data" [ref=e317]:
+                - generic [ref=e318]: fac-data
+              - gridcell "男" [ref=e319]:
+                - generic [ref=e320]: 男
+            - row "Press SPACE to select this row." [ref=e321]:
+              - gridcell "stu-liusiyuan" [ref=e322]:
+                - generic [ref=e323]: stu-liusiyuan
+              - gridcell "刘思远" [ref=e324]:
+                - generic [ref=e325]: 刘思远
+              - gridcell "2024005" [ref=e326]:
+                - generic [ref=e327]: "2024005"
+              - gridcell "数媒2401" [ref=e328]:
+                - generic [ref=e329]: 数媒2401
+              - gridcell "fac-dm" [ref=e330]:
+                - generic [ref=e331]: fac-dm
+              - gridcell "男" [ref=e332]:
+                - generic [ref=e333]: 男
+            - row "Press SPACE to select this row." [ref=e334]:
+              - gridcell "stu-wangyuyan" [ref=e335]:
+                - generic [ref=e336]: stu-wangyuyan
+              - gridcell "王语嫣" [ref=e337]:
+                - generic [ref=e338]: 王语嫣
+              - gridcell "2024016" [ref=e339]:
+                - generic [ref=e340]: "2024016"
+              - gridcell "网络2401" [ref=e341]:
+                - generic [ref=e342]: 网络2401
+              - gridcell "fac-cyber" [ref=e343]:
+                - generic [ref=e344]: fac-cyber
+              - gridcell "男" [ref=e345]:
+                - generic [ref=e346]: 男
+            - row "Press SPACE to select this row." [ref=e347]:
+              - gridcell "stu-wuzhiyuan" [ref=e348]:
+                - generic [ref=e349]: stu-wuzhiyuan
+              - gridcell "吴志远" [ref=e350]:
+                - generic [ref=e351]: 吴志远
+              - gridcell "2024011" [ref=e352]:
+                - generic [ref=e353]: "2024011"
+              - gridcell "大数据2502" [ref=e354]:
+                - generic [ref=e355]: 大数据2502
+              - gridcell "fac-data" [ref=e356]:
+                - generic [ref=e357]: fac-data
+              - gridcell "男" [ref=e358]:
+                - generic [ref=e359]: 男
+            - row "Press SPACE to select this row." [ref=e360]:
+              - gridcell "stu-zhangmingyuan" [ref=e361]:
+                - generic [ref=e362]: stu-zhangmingyuan
+              - gridcell "张明远" [ref=e363]:
+                - generic [ref=e364]: 张明远
+              - gridcell "2024001" [ref=e365]:
+                - generic [ref=e366]: "2024001"
+              - gridcell "网络2401" [ref=e367]:
+                - generic [ref=e368]: 网络2401
+              - gridcell "fac-cyber" [ref=e369]:
+                - generic [ref=e370]: fac-cyber
+              - gridcell "男" [ref=e371]:
+                - generic [ref=e372]: 男
+            - row "Press SPACE to select this row." [ref=e373]:
+              - gridcell "stu-zhangyu" [ref=e374]:
+                - generic [ref=e375]: stu-zhangyu
+              - gridcell "张宇" [ref=e376]:
+                - generic [ref=e377]: 张宇
+              - gridcell "2025030218" [ref=e378]:
+                - generic [ref=e379]: "2025030218"
+              - gridcell "大数据2502" [ref=e380]:
+                - generic [ref=e381]: 大数据2502
+              - gridcell "fac-data" [ref=e382]:
+                - generic [ref=e383]: fac-data
+              - gridcell "男" [ref=e384]:
+                - generic [ref=e385]: 男
+            - row "Press SPACE to select this row." [ref=e386]:
+              - gridcell "stu-zhaotianyu" [ref=e387]:
+                - generic [ref=e388]: stu-zhaotianyu
+              - gridcell "赵天宇" [ref=e389]:
+                - generic [ref=e390]: 赵天宇
+              - gridcell "2024004" [ref=e391]:
+                - generic [ref=e392]: "2024004"
+              - gridcell "信安2401" [ref=e393]:
+                - generic [ref=e394]: 信安2401
+              - gridcell "fac-cyber" [ref=e395]:
+                - generic [ref=e396]: fac-cyber
+              - gridcell "男" [ref=e397]:
+                - generic [ref=e398]: 男
+            - row "Press SPACE to select this row." [ref=e399]:
+              - gridcell "stu-zhouhangyu" [ref=e400]:
+                - generic [ref=e401]: stu-zhouhangyu
+              - gridcell "周航宇" [ref=e402]:
+                - generic [ref=e403]: 周航宇
+              - gridcell "2024012" [ref=e404]:
+                - generic [ref=e405]: "2024012"
+              - gridcell "虚拟2503" [ref=e406]:
+                - generic [ref=e407]: 虚拟2503
+              - gridcell "fac-vr" [ref=e408]:
+                - generic [ref=e409]: fac-vr
+              - gridcell "男" [ref=e410]:
+                - generic [ref=e411]: 男
+        - text:    

@@ -4,8 +4,9 @@ const postLike = (req) => {
   console.log('mock postLike id:', id, 'type:', type);
 
   return {
-    code: 200,
-    success: true,
+    code: 0,
+    message: '操作成功',
+
     message: '操作成功',
     data: {
       isLiked: true,

@@ -75,7 +75,7 @@ Page({
   // 加载用户信息（取昵称）
   async loadUserInfo() {
     try {
-      const res = await request('/mock/student/my/info');
+      const res = await request('/student/my/info');
       const nickname = res.data?.nickname || '同学';
       // 只取名字前两个字避免过长
       const shortName = nickname.length > 3 ? nickname.slice(0, 2) : nickname;
@@ -88,7 +88,7 @@ Page({
   // 加载最近一条 AI 会话记录
   async loadLastSession() {
     try {
-      const res = await request('/mock/student/message/sessions');
+      const res = await request('/student/message/sessions');
       const sessions = res.data || [];
       const aiSession = sessions.find((s) => s.type === 'ai');
       if (aiSession && aiSession.lastMessage) {
