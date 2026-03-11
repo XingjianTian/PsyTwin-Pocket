@@ -6,6 +6,7 @@ Page({
   data: {
     phoneNumber: '',
     password: '',
+    showPassword: false,
     selectedRole: '', // 'student' 或 'teacher'
   },
 
@@ -20,6 +21,13 @@ Page({
   onPasswordInput(e) {
     this.setData({
       password: e.detail.value,
+    });
+  },
+
+  // 切换密码显示
+  togglePassword() {
+    this.setData({
+      showPassword: !this.data.showPassword,
     });
   },
 
@@ -95,6 +103,19 @@ Page({
   navigateToHome() {
     wx.switchTab({
       url: '/pages/home/index',
+    });
+  },
+
+  // 跳转到验证码登录
+  goToCodeLogin() {
+    wx.navigateTo({ url: '/pages/loginCode/loginCode' });
+  },
+
+  // 跳转到注册
+  goToRegister() {
+    wx.showToast({
+      title: '注册功能开发中',
+      icon: 'none',
     });
   },
 });

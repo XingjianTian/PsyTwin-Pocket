@@ -1,74 +1,129 @@
-<t-navbar left-arrow />
-<view class="page login">
-  <view class="login__title"> 欢迎登录 </view>
-  <view class="login__subtitle">PsyTwin 校园心理健康平台</view>
-
-  <view class="login__content">
-    <!-- 手机号输入 -->
-    <view class="login__input">
-      <t-input
-        value="{{phoneNumber}}"
-        placeholder="请输入手机号"
-        type="number"
-        bindchange="onPhoneInput"
-      >
-        <view slot="label" class="input-label">
-          <text>+86</text>
-          <t-icon name="caret-down-small" size="40rpx" class="input-iconl"></t-icon>
+<!-- 登录页面 - 现代设计版 -->
+<view class="login-container">
+  <!-- 顶部渐变背景区域 -->
+  <view class="login-header">
+    <view class="gradient-bg">
+      <view class="gradient-circle circle-1"></view>
+      <view class="gradient-circle circle-2"></view>
+      <view class="gradient-circle circle-3"></view>
+    </view>
+    
+    <!-- Logo 区域 -->
+    <view class="brand-section">
+      <view class="logo-wrapper">
+        <view class="logo-icon">
+          <t-icon name="heart-filled" size="48rpx" color="#fff" />
         </view>
-      </t-input>
+      </view>
+      <view class="brand-name">PsyTwin</view>
+      <view class="brand-tagline">Pocket</view>
+      <view class="brand-slogan">守护心灵 · 温暖同行</view>
+    </view>
+  </view>
+
+  <!-- 登录表单卡片 -->
+  <view class="login-card">
+    <view class="card-title">欢迎回来</view>
+    <view class="card-subtitle">请登录您的账号</view>
+
+    <!-- 手机号输入 -->
+    <view class="input-group">
+      <view class="input-label">
+        <t-icon name="mobile" size="32rpx" color="#6B7280" />
+        <text>手机号</text>
+      </view>
+      <view class="input-wrapper">
+        <text class="input-prefix">+86</text>
+        <input
+          class="custom-input"
+          value="{{phoneNumber}}"
+          placeholder="请输入手机号"
+          type="number"
+          maxlength="11"
+          bindinput="onPhoneInput"
+        />
+      </view>
     </view>
 
     <!-- 密码输入 -->
-    <view class="login__input">
-      <t-input
-        value="{{password}}"
-        placeholder="请输入密码"
-        type="text"
-        bindchange="onPasswordInput"
-      >
-        <view slot="label" class="input-label">
-          <text>密码</text>
+    <view class="input-group">
+      <view class="input-label">
+        <t-icon name="lock-on" size="32rpx" color="#6B7280" />
+        <text>密码</text>
+      </view>
+      <view class="input-wrapper">
+        <input
+          class="custom-input"
+          value="{{password}}"
+          placeholder="请输入密码"
+          password="{{!showPassword}}"
+          bindinput="onPasswordInput"
+        />
+        <view class="password-toggle" bindtap="togglePassword">
+          <t-icon name="{{showPassword ? 'browse' : 'browse-off'}}" size="36rpx" color="#9CA3AF" />
         </view>
-      </t-input>
+      </view>
     </view>
 
-    <!-- 身份选择按钮 -->
-    <view class="login__role-buttons">
-      <view class="login__role-label">请选择身份</view>
-      <view class="login__role-row">
-        <t-button
-          class="role-btn {{selectedRole === 'student' ? 'active' : ''}}"
-          variant="{{selectedRole === 'student' ? 'primary' : 'outline'}}"
-          block
+    <!-- 角色选择 -->
+    <view class="role-section">
+      <view class="section-title">选择身份</view>
+      <view class="role-grid">
+        <view 
+          class="role-card {{selectedRole === 'student' ? 'active' : ''}}"
           bindtap="onSelectRole"
           data-role="student"
         >
-          学生
-        </t-button>
-        <t-button
-          class="role-btn {{selectedRole === 'teacher' ? 'active' : ''}}"
-          variant="{{selectedRole === 'teacher' ? 'primary' : 'outline'}}"
-          block
+          <view class="role-icon-wrapper student-bg">
+            <t-icon name="user-avatar" size="44rpx" color="#fff" />
+          </view>
+          <view class="role-name">学生</view>
+          <view class="role-desc">Student</view>
+          <view class="check-icon" wx:if="{{selectedRole === 'student'}}">
+            <t-icon name="check-circle-filled" size="36rpx" color="#10B981" />
+          </view>
+        </view>
+
+        <view 
+          class="role-card {{selectedRole === 'teacher' ? 'active' : ''}}"
           bindtap="onSelectRole"
           data-role="teacher"
         >
-          教职工
-        </t-button>
+          <view class="role-icon-wrapper teacher-bg">
+            <t-icon name="user-list" size="44rpx" color="#fff" />
+          </view>
+          <view class="role-name">教职工</view>
+          <view class="role-desc">Teacher</view>
+          <view class="check-icon" wx:if="{{selectedRole === 'teacher'}}">
+            <t-icon name="check-circle-filled" size="36rpx" color="#10B981" />
+          </view>
+        </view>
       </view>
     </view>
 
     <!-- 登录按钮 -->
-    <view class="login__button">
-      <t-button
-        theme="primary"
-        size="large"
-        block
+    <view class="login-button-wrapper">
+      <button 
+        class="login-btn {{!phoneNumber || !password || !selectedRole ? 'disabled' : ''}}"
         disabled="{{!phoneNumber || !password || !selectedRole}}"
         bindtap="login"
       >
-        登录
-      </t-button>
+        <text class="btn-text">登 录</text>
+        <t-icon name="arrow-right" size="36rpx" color="#fff" class="btn-icon" />
+      </button>
     </view>
+
+    <!-- 其他选项 -->
+    <view class="login-options">
+      <view class="option-link" bindtap="goToCodeLogin">验证码登录</view>
+      <view class="divider"></view>
+      <view class="option-link" bindtap="goToRegister">注册账号</view>
+    </view>
+  </view>
+
+  <!-- 底部版权 -->
+  <view class="login-footer">
+    <text class="footer-text">PsyTwin Pocket 心理健康服务平台</text>
+    <text class="footer-version">v1.0.0</text>
   </view>
 </view>
