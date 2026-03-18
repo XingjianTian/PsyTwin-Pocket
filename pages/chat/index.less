@@ -6,15 +6,31 @@
   height: 100vh;
   font-size: 32rpx;
   background-color: #fff;
+  padding-top: env(safe-area-inset-top);
 }
 
 .nav-bar {
   border-bottom: 1rpx solid #e7e7e7;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .content {
   height: 0;
   flex-grow: 1;
+  margin-top: 120rpx;
+}
+
+.ai-thinking {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx;
+  color: #00000066;
+  font-size: 24rpx;
 }
 
 .messages {

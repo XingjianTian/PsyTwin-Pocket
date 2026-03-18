@@ -49,6 +49,21 @@
       "root": "pages/post-detail",
       "name": "postDetail",
       "pages": ["index"]
+    },
+    {
+      "root": "pages/assessment",
+      "name": "assessment",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/vr-record",
+      "name": "vrRecord",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/notification",
+      "name": "notification",
+      "pages": ["index"]
     }
   ],
   "window": {

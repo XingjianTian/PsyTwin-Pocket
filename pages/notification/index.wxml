@@ -1,0 +1,38 @@
+<t-navbar class="nav-bar" title="消息通知" left-arrow />
+
+<view class="notification-page">
+  <view class="notification-header" wx:if="{{unreadCount > 0}}">
+    <text class="unread-text">有 {{unreadCount}} 条未读消息</text>
+    <text class="mark-read" bindtap="onMarkAllRead">全部已读</text>
+  </view>
+
+  <view class="notification-list">
+    <view
+      class="notification-item {{item.isRead ? 'read' : 'unread'}}"
+      wx:for="{{notifications}}"
+      wx:key="id"
+      bindtap="onNotificationTap"
+      data-id="{{item.id}}"
+      data-url="{{item.actionUrl}}"
+    >
+      <view class="notification-icon notification-icon-{{item.type}}">
+        <t-icon name="{{item.type === 'warning' ? 'warning' : item.type === 'appointment' ? 'calendar' : 'notification'}}" size="36rpx" />
+      </view>
+      <view class="notification-content">
+        <view class="notification-title-row">
+          <text class="notification-title">{{item.title}}</text>
+          <view class="notification-dot" wx:if="{{!item.isRead}}"></view>
+        </view>
+        <text class="notification-content-text">{{item.content}}</text>
+        <text class="notification-time">{{item.createdAt}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{notifications.length === 0 && !loading}}">
+    <t-icon name="notification" size="80rpx" color="#d1d5db" />
+    <text class="empty-text">暂无通知</text>
+  </view>
+
+  <t-loading wx:if="{{loading}}" size="48rpx" content="加载中..." />
+</view>

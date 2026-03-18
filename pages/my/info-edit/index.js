@@ -48,16 +48,21 @@ Page({
   },
 
   getPersonalInfo() {
-    request('/api/genPersonalInfo').then((res) => {
+    request('/genPersonalInfo').then((res) => {
+      const info = res.data && res.data.data ? res.data.data : res.data || {};
       this.setData(
         {
-          personInfo: res.data.data,
+          personInfo: info,
         },
         () => {
           const { personInfo } = this.data;
-          this.setData({
-            addressText: `${areaList.provinces[personInfo.address[0]]} ${areaList.cities[personInfo.address[1]]}`,
-          });
+          if (personInfo && personInfo.address) {
+            const province = areaList.provinces[personInfo.address[0]] || '';
+            const city = areaList.cities[personInfo.address[1]] || '';
+            this.setData({
+              addressText: `${province} ${city}`,
+            });
+          }
         },
       );
     });

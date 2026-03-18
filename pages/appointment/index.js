@@ -170,11 +170,21 @@ Page({
 
   onServiceTap(e) {
     const { id, name, times } = e.currentTarget.dataset;
+    let timeArray = [];
+    if (Array.isArray(times)) {
+      timeArray = times;
+    } else if (typeof times === 'string') {
+      timeArray = times ? times.split(',') : [];
+    }
     this.setData({
       showForm: true,
       formData: { serviceId: id, serviceName: name, date: '', time: '', reason: '' },
-      currentAvailableTimes: times ? times.split(',') : [],
+      currentAvailableTimes: timeArray,
     });
+  },
+
+  preventTouchMove() {
+    return false;
   },
 
   onFormClose() {
@@ -185,8 +195,9 @@ Page({
     this.setData({ 'formData.date': e.detail.value });
   },
 
-  onTimeChange(e) {
-    this.setData({ 'formData.time': e.detail.value });
+  onTimeSelect(e) {
+    const { time } = e.currentTarget.dataset;
+    this.setData({ 'formData.time': time });
   },
 
   onReasonInput(e) {

@@ -1,0 +1,43 @@
+<view class="vr-page">
+  <view class="stats-card">
+    <view class="stat-item">
+      <view class="stat-num">{{totalSessions}}</view>
+      <view class="stat-label">VR 体验次数</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <view class="stat-num">{{totalMinutes}}</view>
+      <view class="stat-label">总时长(分钟)</view>
+    </view>
+  </view>
+
+  <view class="section-title">体验记录</view>
+
+  <view class="vr-list">
+    <view class="vr-item" wx:for="{{vrRecords}}" wx:key="id">
+      <view class="vr-icon">
+        <t-icon name="video" size="40rpx" color="#7c3aed" />
+      </view>
+      <view class="vr-content">
+        <view class="vr-name">{{item.name}}</view>
+        <view class="vr-meta">
+          <text class="vr-date">{{item.date}}</text>
+          <text class="vr-dot">·</text>
+          <text class="vr-duration">{{item.duration}} 分钟</text>
+        </view>
+      </view>
+      <view class="vr-mood">
+        <t-icon name="{{item.moodIcon}}" size="28rpx" color="#22c55e" />
+        <text class="mood-text">{{item.mood}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-tips" wx:if="{{vrRecords.length === 0}}">
+    <t-icon name="video" size="80rpx" color="#d1d5db" />
+    <text class="empty-text">暂无 VR 体验记录</text>
+    <view class="start-btn">
+      <t-button theme="primary" size="medium">预约 VR 体验</t-button>
+    </view>
+  </view>
+</view>

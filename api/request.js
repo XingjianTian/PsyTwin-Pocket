@@ -484,6 +484,81 @@ const mockResponses = {
     message: '请求成功',
     data: homeCards,
   },
+
+  // OpenClaw AI 对话
+  '/openclaw/agent-chat': {
+    id: `mock_resp_${Date.now()}`,
+    object: 'chat.completion',
+    created_at: Date.now(),
+    status: 'completed',
+    model: 'openclaw:Therapist',
+    output: [
+      {
+        type: 'message',
+        id: 'mock_msg_001',
+        role: 'assistant',
+        content: [
+          {
+            type: 'output_text',
+            text: '你好！我听到了你的分享。听起来你最近经历了一些压力。有什么具体的事情让你感到困扰吗？我在这里倾听你。',
+          },
+        ],
+        status: 'completed',
+      },
+    ],
+  },
+
+  // 个人信息详情（Mock - 待 Sentinel 实现）
+  '/genPersonalInfo': {
+    code: 0,
+    message: '获取成功',
+    data: {
+      name: '小明同学',
+      gender: 0,
+      birth: '2000-01-01',
+      address: ['110000', '110100'],
+      introduction: '我是一个乐观开朗的学生，喜欢打篮球和听音乐。',
+      photos: ['https://picsum.photos/200/200?random=1', 'https://picsum.photos/200/200?random=2'],
+    },
+  },
+
+  // 消息通知
+  '/student/my/notifications': {
+    code: 0,
+    message: '获取成功',
+    data: {
+      list: [
+        {
+          id: 'notif_001',
+          type: 'warning',
+          title: '风险预警',
+          content: '您最近的情绪波动较大，建议进行心理咨询或测评',
+          isRead: false,
+          createdAt: '2026-03-18T10:30:00Z',
+          actionUrl: '',
+        },
+        {
+          id: 'notif_002',
+          type: 'appointment',
+          title: '预约成功',
+          content: '您预约的 3月20日 心理咨询室 A01 已确认',
+          isRead: false,
+          createdAt: '2026-03-17T15:00:00Z',
+          actionUrl: '/pages/appointment/index',
+        },
+        {
+          id: 'notif_003',
+          type: 'system',
+          title: '系统通知',
+          content: '欢迎使用心图PsyTwin，您的心理健康档案已创建',
+          isRead: true,
+          createdAt: '2026-03-15T09:00:00Z',
+          actionUrl: '',
+        },
+      ],
+      unreadCount: 2,
+    },
+  },
 };
 
 function request(url, method = 'GET', data = {}) {

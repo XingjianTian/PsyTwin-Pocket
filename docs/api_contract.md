@@ -1,8 +1,8 @@
 # PsyTwin Pocket API 契约文档
 
-> **文档版本**: v1.0.0  
-> **最后更新**: 2026-03-07  
-> **适用范围**: Sentinel 后端 - app/pocket/ 目录  
+> **文档版本**: v1.1.0  
+> **最后更新**: 2026-03-18  
+> **适用范围**: Sentinel 后端 - app/ 目录  
 > **状态**: 开发中
 
 ---
@@ -453,6 +453,54 @@ GET /student/chat/emotion-tags
 }
 ```
 
+#### 2.5 发送消息给 AI 心理治疗师 (OpenClaw Therapist)
+```http
+POST /openclaw/agent-chat
+```
+
+**说明**: 通过 Sentinel 代理转发到 OpenClaw Gateway，与 Therapist 子代理进行对话
+
+**请求体**:
+```json
+{
+  "agentId": "Therapist",
+  "message": "用户输入的消息",
+  "token": "123456"
+}
+```
+
+**字段说明**:
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| agentId | string | 是 | 固定值 `Therapist` |
+| message | string | 是 | 用户发送的消息内容 |
+| token | string | 否 | 默认 `123456` |
+
+**响应**:
+```json
+{
+  "id": "resp_xxx",
+  "object": "chat.completion",
+  "created_at": 1679123456789,
+  "status": "completed",
+  "model": "openclaw:Therapist",
+  "output": [
+    {
+      "type": "message",
+      "id": "msg_xxx",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "AI 心理治疗师的回复内容"
+        }
+      ],
+      "status": "completed"
+    }
+  ]
+}
+```
+
 ---
 
 ### 3. 预约模块 (Appointment)
@@ -753,7 +801,45 @@ GET /student/my/notifications
 PUT /student/my/notifications/:id/read
 ```
 
-#### 4.7 获取成就徽章
+#### 4.7 发送通知（供 Sentinel 调用）
+```http
+POST /student/my/notifications
+```
+
+**说明**: 此接口供 Sentinel 后端在检测到预警等事件时，主动向学生推送通知
+
+**请求体**:
+```json
+{
+  "userId": "stu-xiaoming",
+  "type": "warning",
+  "title": "风险预警",
+  "content": "您最近的情绪波动较大，建议进行心理咨询或测评",
+  "actionUrl": ""
+}
+```
+
+**字段说明**:
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| userId | string | 是 | 目标用户 ID |
+| type | string | 是 | 通知类型: `system`/`appointment`/`warning` |
+| title | string | 是 | 通知标题 |
+| content | string | 是 | 通知内容 |
+| actionUrl | string | 否 | 点击后跳转的页面路径 |
+
+**响应**:
+```json
+{
+  "code": 0,
+  "message": "发送成功",
+  "data": {
+    "id": "notif_new_xxx"
+  }
+}
+```
+
+#### 4.8 获取成就徽章
 ```http
 GET /student/my/badges
 ```
@@ -1255,6 +1341,70 @@ GET /common/home/swipers
 }
 ```
 
+### 个人信息详情
+
+#### 获取个人详细信息
+```http
+GET /api/pocket/genPersonalInfo
+```
+
+**请求说明**: 需要 JWT 认证，返回当前用户的详细个人信息（姓名、性别、生日、地址、个人简介、照片墙等）
+
+**响应**:
+```json
+{
+  "code": 0,
+  "message": "获取成功",
+  "data": {
+    "name": "小明同学",
+    "gender": 0,
+    "birth": "2000-01-01",
+    "address": ["110000", "110100"],
+    "introduction": "我是一个乐观开朗的学生...",
+    "photos": [
+      "https://cdn.psytwin.com/photos/xxx1.jpg",
+      "https://cdn.psytwin.com/photos/xxx2.jpg"
+    ]
+  }
+}
+```
+
+**字段说明**:
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| name | string | 用户名 |
+| gender | number | 性别: 0=男, 1=女, 2=保密 |
+| birth | string | 生日，格式 YYYY-MM-DD |
+| address | string[] | 地址编码数组 [省份编码, 城市编码] |
+| introduction | string | 个人简介，最多 50 字符 |
+| photos | string[] | 照片墙 URL 列表 |
+
+#### 更新个人详细信息
+```http
+PUT /api/pocket/genPersonalInfo
+```
+
+**请求体**:
+```json
+{
+  "name": "新昵称",
+  "gender": 0,
+  "birth": "2000-06-01",
+  "address": ["110000", "110100"],
+  "introduction": "更新后的个人简介",
+  "photos": ["https://cdn.psytwin.com/photos/new.jpg"]
+}
+```
+
+**响应**:
+```json
+{
+  "code": 0,
+  "message": "更新成功",
+  "data": null
+}
+```
+
 ---
 
 ## 数据模型
@@ -1539,19 +1689,22 @@ wss://api.psytwin.com/ws/chat?token=<access_token>
 |------|------|------|
 | 认证授权 | ✅ | 已定义 |
 | 学生端-心墙 | ✅ | 已定义 |
-| 学生端-AI对话 | ✅ | 已定义 |
+| 学生端-AI对话 | ✅ | 已定义，含 OpenClaw Therapist 集成 |
 | 学生端-预约 | ✅ | 已定义 |
 | 学生端-我的 | ✅ | 已定义 |
+| 学生端-消息通知 | ✅ 前端已实现 | 后端待 Sentinel 实现 |
 | 教师端-工作台 | ✅ | 已定义 |
 | 教师端-学生管理 | ✅ | 已定义 |
 | 教师端-预约管理 | ✅ | 已定义 |
 | 教师端-排班管理 | ✅ | 已定义 |
 | 通用API | ✅ | 已定义 |
+| 通用API-个人信息详情 | ⏳ | 待 Sentinel 实现 |
 | 数据模型 | ✅ | 已定义 |
 | WebSocket | ✅ | 已定义 |
 
 ---
 
 *文档创建时间: 2026-03-07*  
+*最后更新: 2026-03-18*  
 *创建者: Sisyphus (AI Agent)*  
 *基于: PRD_STUDENT.md + PRD_TEACHER.md + 现有 Mock 数据*

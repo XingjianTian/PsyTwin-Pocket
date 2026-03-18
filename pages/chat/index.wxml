@@ -13,13 +13,6 @@
         <view wx:if="{{ item.from === 0 }}" class="message-area">
           <view class="message self">
           <text space="nbsp">{{ item.content }}</text>
-          <t-loading
-            wx:if="{{ item.messageId === null }}"
-            t-class="loading"
-            theme="spinner"
-            size="32rpx"
-            class="wrapper"
-          />
           </view>
           <t-avatar image="{{ myAvatar }}" size="small" />
         </view>
@@ -32,6 +25,10 @@
         </view>
       </block>
       <view id="bottom" />
+    </view>
+    <view wx:if="{{ isAIThinking }}" class="ai-thinking">
+      <text>AI 正在思考...</text>
+      <t-loading theme="spinner" size="32rpx" />
     </view>
   </scroll-view>
 </view>

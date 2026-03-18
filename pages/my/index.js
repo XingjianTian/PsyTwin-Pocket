@@ -57,7 +57,7 @@ Page({
       // 适配后端数据结构：riskLevel 在顶层，构造 healthOverview
       const riskLevel = (userInfo.riskLevel || 'low').toLowerCase();
       const trend = 'stable'; // 后端暂无 trend 字段，使用默认值
-      
+
       // 构造 healthOverview 对象（如果后端没返回）
       if (!userInfo.healthOverview) {
         userInfo.healthOverview = {
@@ -72,7 +72,6 @@ Page({
           ],
         };
       }
-
 
       this.setData({
         isLoad: true,
@@ -95,7 +94,7 @@ Page({
   async getUserInfo() {
     const role = this.data.role;
     console.log('[MyPage] getUserInfo, role:', role);
-    
+
     // 教师角色：直接返回 Mock 数据（避免请求失败）
     if (role === 'teacher') {
       return {
@@ -120,7 +119,7 @@ Page({
         ],
       };
     }
-    
+
     // 学生角色：请求 API
     try {
       const res = await request('/student/my/info');
@@ -147,8 +146,8 @@ Page({
       return [
         { name: '我的档案', icon: 'user', color: 'purple', url: '/pages/my/info-edit/index' },
         { name: '服务预约', icon: 'calendar', color: 'blue', url: '/pages/appointment/index' },
-        { name: '心理测评', icon: 'edit-1', color: 'green', url: '' },
-        { name: 'VR 记录', icon: 'tv', color: 'orange', url: '' },
+        { name: '心理测评', icon: 'edit-1', color: 'green', url: '/pages/assessment/index' },
+        { name: 'VR 记录', icon: 'video', color: 'orange', url: '/pages/vr-record/index' },
       ];
     }
     return [
@@ -166,7 +165,7 @@ Page({
       return [
         { name: '我的收藏', icon: 'star', color: 'orange', url: '', badge: '' },
         { name: '浏览历史', icon: 'time', color: 'blue', url: '', badge: '' },
-        { name: '消息通知', icon: 'notification', color: 'purple', url: '', badge: '3' },
+        { name: '消息通知', icon: 'notification', color: 'purple', url: '/pages/notification/index', badge: '3' },
         { name: '隐私设置', icon: 'lock', color: 'green', url: '', badge: '' },
         { name: '联系客服', icon: 'service', color: 'gray', url: '', badge: '' },
         { name: '设置', icon: 'setting', color: 'gray', url: '/pages/setting/index', badge: '' },
@@ -175,7 +174,7 @@ Page({
     return [
       { name: '工作时间', icon: 'time', color: 'purple', url: '', badge: '' },
       { name: '预警设置', icon: 'error', color: 'orange', url: '', badge: '' },
-      { name: '消息通知', icon: 'notification', color: 'blue', url: '', badge: '' },
+      { name: '消息通知', icon: 'notification', color: 'blue', url: '/pages/notification/index', badge: '' },
       { name: '联系客服', icon: 'service', color: 'gray', url: '', badge: '' },
       { name: '设置', icon: 'setting', color: 'gray', url: '/pages/setting/index', badge: '' },
     ];

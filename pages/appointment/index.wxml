@@ -234,12 +234,15 @@
 
   <!-- ===== 预约表单弹窗 ===== -->
   <view class="form-mask" wx:if="{{showForm}}" bindtap="onFormClose" catchtap="onFormClose"></view>
-  <view class="form-popup {{showForm ? 'form-popup-show' : ''}}">
+  <view class="form-popup {{showForm ? 'form-popup-show' : ''}}" wx:if="{{showForm}}" catchtouchmove="preventTouchMove">
     <view class="form-handle-bar"></view>
     <view class="form-header">
       <view class="form-title">预约 {{formData.serviceName}}</view>
-      <view class="form-close-btn" bindtap="onFormClose">
-        <t-icon name="close" size="36rpx" />
+      <view class="form-header-actions">
+        <view class="btn-confirm" bindtap="onSubmit">确认预约</view>
+        <view class="form-close-btn" bindtap="onFormClose">
+          <t-icon name="close" size="36rpx" />
+        </view>
       </view>
     </view>
 
@@ -294,12 +297,6 @@
         <view class="textarea-count">{{formData.reason.length}}/200</view>
       </view>
     </scroll-view>
-
-    <view class="form-footer">
-      <view class="btn-submit {{formData.date && formData.time ? '' : 'btn-submit-disabled'}}" bindtap="onSubmit">
-        确认预约
-      </view>
-    </view>
   </view>
 
 </view>

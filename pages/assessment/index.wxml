@@ -1,0 +1,41 @@
+<view class="assessment-page">
+  <view class="section-title">测评记录</view>
+
+  <view class="assessment-list">
+    <view class="assessment-item" wx:for="{{assessments}}" wx:key="id">
+      <view class="assessment-header">
+        <view class="assessment-icon">
+          <t-icon name="edit-1" size="36rpx" color="#7c3aed" />
+        </view>
+        <view class="assessment-info">
+          <view class="assessment-name">{{item.name}}</view>
+          <view class="assessment-desc">{{item.description}}</view>
+        </view>
+        <view class="assessment-badge assessment-badge-{{item.levelColor}}">{{item.level}}</view>
+      </view>
+      <view class="assessment-footer">
+        <view class="assessment-date">
+          <t-icon name="time" size="24rpx" color="#9ca3af" />
+          <text>{{item.date}}</text>
+        </view>
+        <view class="assessment-score">
+          <text class="score-num">{{item.score}}</text>
+          <text class="score-label">分</text>
+        </view>
+      </view>
+      <view class="assessment-progress">
+        <view class="progress-bar">
+          <view class="progress-fill score-{{item.levelColor}}" style="width: {{item.score}}%"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-tips" wx:if="{{assessments.length === 0}}">
+    <t-icon name="edit-1" size="80rpx" color="#d1d5db" />
+    <text class="empty-text">暂无测评记录</text>
+    <view class="start-btn">
+      <t-button theme="primary" size="medium">开始测评</t-button>
+    </view>
+  </view>
+</view>
