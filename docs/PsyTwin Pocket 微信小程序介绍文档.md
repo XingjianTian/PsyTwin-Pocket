@@ -1,7 +1,7 @@
 # PsyTwin Pocket 微信小程序系统介绍
 
 > 基于实际开发成果整理
-> 最后更新: 2026-03-09
+> 最后更新: 2026-03-19
 
 
 
@@ -72,9 +72,13 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
   - 包含「PsyTwin 树洞助手」（官方 AI）和可预约的真人咨询师
   - 快捷 Chips 入口：倾诉心情、焦虑/压力大、睡眠、人际关系、学业/考试、心理测试
   - 页面：`pages/message/index`
-- **聊天窗口** ✅ 基础框架已实现
+- **聊天窗口** ✅ 已实现
   - 消息列表展示、发送消息、键盘处理、滚动到底部
   - 页面：`pages/chat/index`
+- **AI 心理治疗师对话** ✅ 已实现
+  - 通过 OpenClaw Gateway 与 Therapist 子代理对话
+  - 接口：`POST /openclaw/agent-chat`
+  - 支持自动发送初始 Prompt，接收 AI 回复
 - **情绪标签**（规划中）❌ 未实现
   - 发送消息时可选择情绪标签
 - **CBT 引导卡片**（规划中）❌ 未实现
@@ -108,13 +112,13 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
   - 头像、昵称、身份标签、院系、班级
   - 活动统计：咨询次数、VR体验、总时长、测评次数（从后端 `stats` 字段获取）
   - 心理健康概览：风险等级、四维度得分（前端适配后端数据结构）
-- **功能菜单** ⚠️ 部分实现
+- **功能菜单** ✅ 已实现
   - ✅ 我的档案：`/pages/my/info-edit`
   - ✅ 服务预约：`/pages/appointment`
-  - ❌ 心理测评：规划中（入口 URL 为空）
-  - ❌ VR 记录：规划中（入口 URL 为空）
+  - ✅ 心理测评：`/pages/assessment/index` - 测评记录展示
+  - ✅ VR 记录：`/pages/vr-record/index` - VR 体验记录展示
   - ❌ 我的收藏：规划中（需后端 `PostCollection` 表）
-  - ❌ 消息通知：规划中（需后端 `StudentNotification` 表）
+  - ✅ 消息通知：`/pages/notification/index` - 通知列表、已读标记（后端已联调）
 - **设置** ⚠️ 部分实现
   - ✅ 退出登录
   - ❌ 消息通知开关、隐私设置、清除缓存
@@ -131,7 +135,7 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 
 与学生端一致的 AI 咨询入口，辅导员可查看对话记录并辅助干预。（注：当前文案偏学生端，待优化）
 
-### 3. 工作台 ⚠️ 统计功能已实现，预警功能待开发
+### 3. 工作台 ✅ 已实现（教师端分包）
 
 辅导员的核心工作区域。
 
@@ -142,10 +146,15 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
   - 地区分布：区域数据图表
   - 页面：`pages/dataCenter/index`
   - Mock 数据：`mock/dataCenter/`
-- **预警列表**（规划中）❌ 未实现
-  - 基于 AI 后台算法自动排列的近期情绪波动较大、需要主动关怀的学生名单
-- **预警级别**（规划中）❌ 未实现
-  - 低风险（绿色）、中风险（橙色）、高风险（红色）
+- **预警列表** ✅ 已实现
+  - 预警管理：查看、处理学生心理风险预警
+  - 页面：`pages/teacher/warning-list/index`
+- **预约管理** ✅ 已实现
+  - 预约确认、日程安排、学生管理
+  - 页面：`pages/teacher/appointment-manage/index`
+- **学生管理** ✅ 已实现
+  - 学生列表、学生档案查看
+  - 页面：`pages/teacher/student-list/index`
 
 ### 4. 我的
 
@@ -161,7 +170,7 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 - **语言**：JavaScript
 - **样式**：LESS
 - **目录结构**：
-  - `pages/`：主页面（home、message、my、dataCenter、appointment、search、chat、login、loginCode、setting、release 等）
+  - `pages/`：主页面和分包（home、message、my、dataCenter、appointment、search、chat、login、loginCode、setting、release、assessment、vr-record、notification、teacher 等）
   - `components/`：可复用 UI 组件（card 卡片组件）
   - `api/`：HTTP 请求层（已切换到真实后端 API）
   - `utils/`：工具函数
@@ -169,10 +178,15 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
   - `behaviors/`：共享逻辑（mixins）
   - `static/`：静态资源
   - `custom-tab-bar/`：动态 TabBar 组件
+  - `docs/`：项目文档（API 契约、PRD、介绍文档等）
 - **后端接口**：已切换至 Sentinel 后端（NestJS + Prisma + PostgreSQL）
   - 基础路径：`/api/pocket`
   - 统一响应格式：`{ code: 0, message: "...", data: ... }`
 - **认证方式**：JWT Token（`Authorization: Bearer <token>`）
+- **分包加载**：已配置 12 个分包，优化主包体积
+  - 主包：TabBar 页面（home、message、my、dataCenter、appointment）
+  - 分包：search、chat、login、setting、release、assessment、vr-record、notification、teacher 等
+- **安全适配**：全页面刘海屏安全区域适配（`env(safe-area-inset-top)`）
 
 ---
 
@@ -188,6 +202,10 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 | `GET /student/appointment/services` | ✅ | 预约服务列表（rooms + teachers）|
 | `GET /student/appointment/records` | ✅ | 预约记录 |
 | `GET /student/my/info` | ✅ | 用户信息（含 stats）|
+| `POST /openclaw/agent-chat` | ✅ | AI 心理治疗师对话 |
+| `GET /student/my/notifications` | ✅ | 获取通知列表 |
+| `PUT /student/my/notifications/:id/read` | ✅ | 标记通知已读 |
+| `POST /student/my/notifications` | ✅ | 发送通知（Sentinel 内部调用）|
 
 ### 后端待补充的表结构
 
@@ -195,7 +213,6 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 |------|--------|------|
 | `PostLike` | P0 | 帖子点赞关联表 |
 | `PostCollection` | P0 | 帖子收藏关联表 |
-| `StudentNotification` | P1 | 学生通知表 |
 
 ---
 
@@ -220,35 +237,41 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 | 模块 | 已实现功能 |
 |------|------------|
 | 心墙 | 瀑布流展示、下拉刷新、发布入口、动态卡片、后端接口接通 |
-| AI 对话 | 会话列表、基础聊天框架、后端接口接通 |
+| AI 对话 | 会话列表、基础聊天框架、**AI 心理治疗师对话（OpenClaw）**、后端接口接通 |
 | 预约 | 服务列表、预约流程、预约记录、状态显示、排序逻辑 |
-| 我的 | 用户信息、活动统计、我的档案、后端数据适配 |
-| 教师端 | 工作台统计图表、动态 TabBar |
+| 我的 | 用户信息、活动统计、我的档案、**心理测评**、**VR 记录**、**消息通知**、后端数据适配 |
+| 教师端 | 工作台统计图表、**预警管理**、**预约管理**、**学生管理**、动态 TabBar |
 
 ### 待实现功能 ❌
 
 | 模块 | 待实现功能 |
 |------|------------|
 | 心墙 | 上拉加载、点赞交互、评论功能、收藏功能（需后端表）|
-| AI 对话 | 情绪标签、AI 响应、CBT 卡片、危机干预 |
+| AI 对话 | 情绪标签、CBT 卡片、危机干预 |
 | 预约 | 预约规则验证、违约限制 |
-| 我的 | 心理测评、VR 记录、我的收藏（需后端表）、消息通知（需后端表）|
-| 教师端 | 预警列表、预警级别、排班管理 |
+| 我的 | 我的收藏（需后端表）|
+| 教师端 | 排班管理 |
 
 ---
 
 ## 九、后续规划
 
-### 已完成（2026-03-09）
+### 已完成（2026-03-19）
 
 - [x] 与 Sentinel 后端完成 API 联调
 - [x] 统一所有接口路径和响应格式
 - [x] 预约系统分类和排序逻辑
 - [x] 用户信息和统计数据适配
+- [x] **AI 心理治疗师对话（OpenClaw Therapist）**
+- [x] **心理测评页面**
+- [x] **VR 记录页面**
+- [x] **消息通知功能（前后端联调完成）**
+- [x] **教师端预警、预约、学生管理功能**
+- [x] **分包加载优化（解决主包 2MB 限制）**
+- [x] **刘海屏安全区域适配**
 
 ### 短期（阶段五：高级功能）
 
-- [ ] 预警系统：实时推送高风险学生通知
 - [ ] 情绪标签系统：消息携带情绪标签
 - [ ] CBT 卡片功能：AI 对话中嵌入认知行为疗法卡片
 - [ ] 心墙互动：完善点赞、评论、收藏功能
@@ -258,12 +281,11 @@ PsyTwin Pocket 采用**学生端 + 教师端**双角色设计，通过统一的�
 
 - [ ] Sentinel 补充 `PostLike` 表
 - [ ] Sentinel 补充 `PostCollection` 表
-- [ ] Sentinel 补充 `StudentNotification` 表
-- [ ] 消息通知中心完整实现
 
 
 
 *文档更新记录：*
 - *2026-03-06: 全面核对代码实现情况，更新各功能模块的实现状态，补充技术实现细节*
 - *2026-03-09: 更新与 Sentinel 后端的 API 联调状态，标记已接通的接口，补充后端待办清单*
+- *2026-03-19: 更新 AI 心理治疗师对话、心理测评、VR 记录、消息通知功能实现状态；更新分包优化和刘海屏适配说明；更新教师端功能实现状态*
 

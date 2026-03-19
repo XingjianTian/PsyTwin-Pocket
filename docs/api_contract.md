@@ -1692,7 +1692,7 @@ wss://api.psytwin.com/ws/chat?token=<access_token>
 | 学生端-AI对话 | ✅ | 已定义，含 OpenClaw Therapist 集成 |
 | 学生端-预约 | ✅ | 已定义 |
 | 学生端-我的 | ✅ | 已定义 |
-| 学生端-消息通知 | ✅ 前端已实现 | 后端待 Sentinel 实现 |
+| 学生端-消息通知 | ✅ 已实现 | Sentinel 后端已完成 |
 | 教师端-工作台 | ✅ | 已定义 |
 | 教师端-学生管理 | ✅ | 已定义 |
 | 教师端-预约管理 | ✅ | 已定义 |

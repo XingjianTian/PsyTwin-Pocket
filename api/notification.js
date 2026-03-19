@@ -2,13 +2,13 @@ import request from './request';
 
 export async function getNotifications(options = {}) {
   const { page = 1, limit = 20, type } = options;
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const queryParams = [`page=${page}`, `limit=${limit}`];
   if (type) {
-    params.append('type', type);
+    queryParams.push(`type=${encodeURIComponent(type)}`);
   }
 
   try {
-    const res = await request(`/student/my/notifications?${params.toString()}`, 'GET');
+    const res = await request(`/student/my/notifications?${queryParams.join('&')}`, 'GET');
     return res;
   } catch (err) {
     console.error('[Notification] getNotifications error:', err);

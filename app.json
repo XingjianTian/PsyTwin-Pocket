@@ -6,6 +6,7 @@
     "pages/dataCenter/index",
     "pages/appointment/index"
   ],
+  "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
     "t-toast": "tdesign-miniprogram/toast/toast"
   },
@@ -64,6 +65,11 @@
       "root": "pages/notification",
       "name": "notification",
       "pages": ["index"]
+    },
+    {
+      "root": "pages/teacher",
+      "name": "teacher",
+      "pages": ["warning-list/index", "appointment-manage/index", "student-list/index"]
     }
   ],
   "window": {

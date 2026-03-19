@@ -1,0 +1,97 @@
+<t-navbar title="学生档案" left-arrow />
+
+<view class="student-list-page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <t-search
+      value="{{searchKeyword}}"
+      placeholder="搜索姓名/学号"
+      shape="round"
+      bind:change="onSearchChange"
+      bind:submit="onSearchConfirm"
+    />
+  </view>
+
+  <!-- Tab筛选 -->
+  <view class="tabs-wrapper">
+    <t-tabs value="{{activeTab}}" bind:change="onTabChange">
+      <t-tab-panel wx:for="{{tabs}}" wx:key="key" label="{{item.label}}" value="{{item.key}}" />
+    </t-tabs>
+  </view>
+
+  <!-- 学生列表 -->
+  <scroll-view class="student-list" scroll-y enable-flex>
+    <view
+      class="student-item"
+      wx:for="{{studentList}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onStudentTap"
+    >
+      <image class="student-avatar" src="{{item.avatar}}" mode="aspectFill" />
+      
+      <view class="student-info">
+        <view class="student-header">
+          <text class="student-name">{{item.name}}</text>
+          <t-tag
+            wx:if="{{item.riskLevel === 'high'}}"
+            theme="danger"
+            size="small"
+          >高风险</t-tag>
+          <t-tag
+            wx:if="{{item.riskLevel === 'medium'}}"
+            theme="warning"
+            size="small"
+          >中风险</t-tag>
+          <t-tag
+            wx:if="{{item.riskLevel === 'low'}}"
+            theme="success"
+            size="small"
+          >低风险</t-tag>
+        </view>
+        
+        <text class="student-id">{{item.studentId}}</text>
+        <text class="student-dept">{{item.department}} · {{item.className}}</text>
+        
+        <view wx:if="{{item.riskReason}}" class="risk-reason">
+          <t-icon name="error-circle" size="24rpx" color="#ff4d4f" />
+          <text>{{item.riskReason}}</text>
+        </view>
+        
+        <view wx:if="{{item.lastConsultTime}}" class="last-consult">
+          <text>上次咨询: {{item.lastConsultTime}}</text>
+        </view>
+      </view>
+
+      <view class="student-actions">
+        <view
+          class="action-btn"
+          data-id="{{item.id}}"
+          catchtap="onFollowTap"
+        >
+          <t-icon name="{{item.isFollowed ? 'star-filled' : 'star'}}" size="40rpx" color="{{item.isFollowed ? '#faad14' : '#999'}}" />
+        </view>
+        <view
+          class="action-btn primary"
+          data-id="{{item.id}}"
+          catchtap="onMessageTap"
+        >
+          <t-icon name="chat" size="40rpx" color="#fff" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <t-empty
+      wx:if="{{studentList.length === 0 && !loading}}"
+      icon="search"
+      description="暂无符合条件的学生"
+    />
+
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-more">
+      <t-icon name="loading" size="40rpx" />
+      <text>加载中...</text>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,101 @@
+<t-navbar title="预警列表" left-arrow />
+
+<view class="warning-list-page">
+  <!-- Tab筛选 -->
+  <view class="tabs-wrapper">
+    <t-tabs value="{{activeTab}}" bind:change="onTabChange">
+      <t-tab-panel wx:for="{{tabs}}" wx:key="key" label="{{item.label}}" value="{{item.key}}" />
+    </t-tabs>
+  </view>
+
+  <!-- 预警列表 -->
+  <scroll-view class="warning-list" scroll-y>
+    <view
+      class="warning-item {{item.riskLevel}}"
+      wx:for="{{warningList}}"
+      wx:key="id"
+      data-item="{{item}}"
+      bindtap="onWarningTap"
+    >
+      <view class="warning-header">
+        <image class="warning-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="warning-student">
+          <text class="student-name">{{item.studentName}}</text>
+          <text class="trigger-time">{{item.triggeredAt}}</text>
+        </view>
+        <t-tag
+          wx:if="{{item.riskLevel === 'high'}}"
+          theme="danger"
+          size="small"
+        >高风险</t-tag>
+        <t-tag
+          wx:if="{{item.riskLevel === 'medium'}}"
+          theme="warning"
+          size="small"
+        >中风险</t-tag>
+        <t-tag
+          wx:if="{{item.riskLevel === 'low'}}"
+          theme="success"
+          size="small"
+        >低风险</t-tag>
+      </view>
+
+      <view class="warning-content">
+        <view class="warning-reason">
+          <t-icon name="error-circle" size="28rpx" color="#ff4d4f" />
+          <text>{{item.riskReason}}</text>
+        </view>
+        
+        <view class="trigger-source">
+          <text class="source-label">触发来源:</text>
+          <text class="source-value">
+            {{item.triggerSource === 'chat' ? 'AI对话' : 
+              item.triggerSource === 'post' ? '心墙动态' : 
+              item.triggerSource === 'assessment' ? '心理测评' : '行为数据'}}
+          </text>
+        </view>
+      </view>
+
+      <view wx:if="{{item.lastAction}}" class="last-action">
+        <t-icon name="time" size="24rpx" color="#999" />
+        <text>{{item.lastAction.content}}</text>
+        <text class="action-time">{{item.lastAction.time}}</text>
+      </view>
+
+      <view class="warning-actions">
+        <t-button
+          wx:if="{{activeTab === 'pending'}}"
+          theme="primary"
+          size="small"
+          shape="round"
+          bindtap=""
+        >立即处理</t-button>
+        <t-button
+          wx:if="{{activeTab === 'processing'}}"
+          theme="light"
+          size="small"
+          shape="round"
+        >继续跟进</t-button>
+        <t-button
+          wx:if="{{activeTab === 'resolved'}}"
+          theme="light"
+          size="small"
+          shape="round"
+        >查看详情</t-button>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <t-empty
+      wx:if="{{warningList.length === 0 && !loading}}"
+      icon="check-circle"
+      description="暂无{{activeTab === 'pending' ? '待处理' : activeTab === 'processing' ? '处理中' : '已解决'}}的预警"
+    />
+
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <t-icon name="loading" size="40rpx" />
+      <text>加载中...</text>
+    </view>
+  </scroll-view>
+</view>

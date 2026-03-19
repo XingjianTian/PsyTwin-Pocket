@@ -7,6 +7,7 @@
   width: 100vw;
   height: 100vh;
   padding: 0 30rpx;
+  padding-top: env(safe-area-inset-top);
 }
 
 .search-page .t-class__input-container {

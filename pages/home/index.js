@@ -125,4 +125,10 @@ Page({
   onReachBottom() {
     console.log('reach bottom - load more');
   },
+
+  goRelease() {
+    wx.navigateTo({
+      url: '/pages/release/index',
+    });
+  },
 });
