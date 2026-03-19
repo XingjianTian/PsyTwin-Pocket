@@ -75,8 +75,12 @@ PsyTwin 是一套完整的**校园心理健康数字孪生解决方案**，由�
 │            │      OpenClaw Gateway (AI 编排中心)      │                  │
 │            │                                         │                  │
 │            │  ┌──────────┐ ┌──────────┐ ┌────────┐  │                  │
-│            │  │Therapist │ │ Analyst  │ │Collector│  │                  │
-│            │  │AI咨询师  │ │ 分析师   │ │ 数据收集│  │                  │
+│            │  │  main    │ │ Collector│ │Therapist│  │                  │
+│            │  │首席数据官 │ │  采集员   │ │ 咨询师  │  │                  │
+│            │  └──────────┘ └──────────┘ └────────┘  │                  │
+│            │  ┌──────────┐ ┌──────────┐ ┌────────┐  │                  │
+│            │  │ Relayer  │ │   DBA    │ │ Analyst │  │                  │
+│            │  │中继工程师 │ │ 数据哨兵  │ │ 分析师  │  │                  │
 │            │  └──────────┘ └──────────┘ └────────┘  │                  │
 │            │                                         │                  │
 │            └─────────────────────────────────────────┘                  │
@@ -99,7 +103,7 @@ PsyTwin 是一套完整的**校园心理健康数字孪生解决方案**，由�
  **[PsyTwin-Sentinel](https://github.com/XingjianTian/PsyTwin-Sentinel)** | **后端中台** | 心理教师<br>学校管理层 | • 多模态数据实时监控<br>• 风险预警与溯源<br>• 学生心理孪生档案<br>• 干预工单管理<br>• 预约调度管理 | Next.js 16<br>React 19<br>TypeScript<br>PostgreSQL<br>Redis | [Sentinel](https://github.com/XingjianTian/PsyTwin-Sentinel) |
 | **[PsyTwin-Pocket](https://github.com/XingjianTian/PsyTwin-Pocket)**<br>📱 **本仓库** | **移动端入口** | 在校学生<br>教师 | • 心墙瀑布流社交<br>• AI 心理咨询 (Therapist)<br>• 心理画像查看<br>• 线上预约服务<br>• 消息通知中心 | 微信小程序<br>TDesign<br>LESS | **本仓库** |
 | **[PsyTwin-Companion](https://github.com/XingjianTian/PsyTwin-Companion)** | **边缘网关** | 系统对接<br>(Raspberry Pi) | • 多模态数据采集 (生理/语音/脑电)<br>• 实时数据转发 (WebSocket)<br>• 百度 ASR 语音转写<br>• 百度 TTS 语音合成<br>• 设备管理 | Node.js<br>TypeScript<br>Python<br>Docker | [Companion](https://github.com/XingjianTian/PsyTwin-Companion) |
-| **[PsyTwin-OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw)** | **AI 编排** | AI 代理 | • Therapist: AI 心理治疗师<br>• Analyst: 心理画像分析师<br>• Collector: 数据收集 Agent<br>• 多 Agent 协作编排 | Python<br>FastAPI<br>WebSocket | [OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw) |
+| **[PsyTwin-OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw)** | **AI 编排** | AI 代理 | • main (首席数据官) - 全链路监控<br>• Collector (采集员) - 多模态采集<br>• Therapist (咨询师) - VR干预策略<br>• Relayer (中继工程师) - 边缘处理<br>• DBA (数据哨兵) - 数据整理<br>• Analyst (分析师) - 特征提取<br>• 多 Agent 协作编排 | Python<br>FastAPI<br>WebSocket | [OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw) |
 
 ### 数据流向
 
