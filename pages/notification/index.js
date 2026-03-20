@@ -9,6 +9,15 @@ Page({
 
   onLoad() {
     this.loadNotifications();
+    this._interval = setInterval(() => {
+      this.loadNotifications();
+    }, 10000);
+  },
+
+  onUnload() {
+    if (this._interval) {
+      clearInterval(this._interval);
+    }
   },
 
   async loadNotifications() {

@@ -1,7 +1,9 @@
+@import '/variable.less';
+
 .notification-page {
-  min-height: 100vh;
+  min-height: calc(100vh - @tab-bar-height);
   background-color: #f5f5f5;
-  padding-top: calc(env(safe-area-inset-top) + 120rpx);
+  padding-top: calc(env(safe-area-inset-top) + 88rpx);
 }
 
 .nav-bar {
