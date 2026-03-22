@@ -1,4 +1,5 @@
 import { getNotifications, markAsRead } from '../../api/notification';
+import { formatNotificationTime } from '../../utils/util';
 
 Page({
   data: {
@@ -24,8 +25,12 @@ Page({
     this.setData({ loading: true });
     const res = await getNotifications();
     if (res.code === 0 && res.data) {
+      const list = (res.data.list || []).map((item) => ({
+        ...item,
+        createdAt: formatNotificationTime(item.createdAt),
+      }));
       this.setData({
-        notifications: res.data.list || [],
+        notifications: list,
         unreadCount: res.data.unreadCount || 0,
       });
     }
@@ -39,20 +44,31 @@ Page({
     if (!id) return;
 
     const notification = notifications.find((n) => n.id === id);
-    if (!notification || notification.isRead) return;
+    if (!notification) return;
 
-    await markAsRead(id);
-    const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-    const unreadCount = updated.filter((n) => !n.isRead).length;
-    this.setData({ notifications: updated, unreadCount });
-
-    if (url) {
-      if (url.startsWith('/pages')) {
-        wx.navigateTo({ url });
-      } else {
-        wx.switchTab({ url });
-      }
+    if (!notification.isRead) {
+      await markAsRead(id);
+      const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      const unreadCount = updated.filter((n) => !n.isRead).length;
+      this.setData({ notifications: updated, unreadCount });
     }
+
+    wx.showModal({
+      title: notification.title,
+      content: notification.content,
+      showCancel: !!url,
+      confirmText: url ? '查看详情' : '知道了',
+      cancelText: '关闭',
+      success: (res) => {
+        if (res.confirm && url) {
+          if (url.startsWith('/pages')) {
+            wx.navigateTo({ url });
+          } else {
+            wx.switchTab({ url });
+          }
+        }
+      },
+    });
   },
 
   onMarkAllRead() {

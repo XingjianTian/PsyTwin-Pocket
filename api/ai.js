@@ -1,6 +1,6 @@
 import request from './request';
 
-const OPENCLAW_API_URL = 'http://localhost:3000/api/openclaw/agent-chat';
+const OPENCLAW_API_URL = 'http://localhost:3000/api/openclaw/pocket/chat';
 const DEFAULT_TOKEN = '123456';
 
 function wrapRequestWithTimeout(promise, timeoutMs = 30000) {
@@ -75,6 +75,12 @@ export function extractResponseText(response) {
   if (!response || typeof response !== 'object') {
     console.log('[AI] extractResponseText: response 不是对象');
     return '';
+  }
+
+  if (response.response && typeof response.response === 'string') {
+    const text = response.response;
+    console.log('[AI] extractResponseText 输出 (直接):', text.substring(0, 200));
+    return text;
   }
 
   if (!response.output || !Array.isArray(response.output) || !response.output[0]) {

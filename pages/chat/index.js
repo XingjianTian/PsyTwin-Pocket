@@ -8,7 +8,7 @@ Page({
   data: {
     myAvatar: '/static/chat/avatar.png',
     userId: null,
-    avatar: '/agents-icons/Therapist.png',
+    avatar: '/static/agents-icons/Therapist.png',
     name: '',
     messages: [],
     input: '',
@@ -16,6 +16,7 @@ Page({
     keyboardHeight: 0,
     chatType: 'counselor',
     isAIThinking: false,
+    isSending: false,
   },
 
   onLoad(options) {
@@ -108,14 +109,14 @@ Page({
   },
 
   sendMessage() {
-    const { userId, messages, input: content, chatType } = this.data;
+    const { userId, messages, input: content, chatType, isAIThinking } = this.data;
     console.log('[Chat] sendMessage called', { content, chatType, hasUserId: !!userId });
-    if (!content) return;
+    if (!content || isAIThinking) return;
 
     const userMessage = { messageId: null, from: 0, content, time: Date.now(), read: true };
     messages.push(userMessage);
     this.setData({ input: '', messages });
-    wx.nextTick(this.scrollToBottom);
+    wx.nextTick(() => this.scrollToBottom());
 
     if (chatType === 'ai') {
       console.log('[Chat] 触发 AI 模式，调用 sendToAI');
@@ -127,8 +128,10 @@ Page({
   },
 
   async sendToAI(content) {
-    const { messages } = this.data;
+    if (this._aiSending) return;
+    this._aiSending = true;
 
+    const { messages } = this.data;
     this.setData({ isAIThinking: true });
 
     console.log('[Chat] 发送消息给 AI:', content);
@@ -153,7 +156,8 @@ Page({
     }
 
     this.setData({ messages, isAIThinking: false });
-    wx.nextTick(this.scrollToBottom);
+    this._aiSending = false;
+    wx.nextTick(() => this.scrollToBottom());
   },
 
   /** 消息列表滚动到底部 */

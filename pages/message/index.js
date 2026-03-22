@@ -77,8 +77,7 @@ Page({
     try {
       const res = await request('/student/my/info');
       const nickname = res.data?.nickname || '同学';
-      // 只取名字前两个字避免过长
-      const shortName = nickname.length > 3 ? nickname.slice(0, 2) : nickname;
+      const shortName = nickname;
       this.setData({ userName: shortName });
     } catch (err) {
       // 保持默认"同学"

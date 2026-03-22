@@ -14,6 +14,17 @@ const formatTime = (date) => {
   return `${[year, month, day].map(formatNumber).join('/')} ${[hour, minute, second].map(formatNumber).join(':')}`;
 };
 
+const formatNotificationTime = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  return `${[year, month, day].map(formatNumber).join('-')} ${[hour, minute].map(formatNumber).join(':')}`;
+};
+
 // 复制到本地临时路径，方便预览
 const getLocalUrl = (path, name) => {
   const fs = wx.getFileSystemManager();
@@ -24,5 +35,6 @@ const getLocalUrl = (path, name) => {
 
 module.exports = {
   formatTime,
+  formatNotificationTime,
   getLocalUrl,
 };

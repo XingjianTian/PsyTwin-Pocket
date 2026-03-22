@@ -6,28 +6,30 @@
     <text class="mark-read" bindtap="onMarkAllRead">全部已读</text>
   </view>
 
-  <view class="notification-list">
-    <view
-      class="notification-item {{item.isRead ? 'read' : 'unread'}}"
-      wx:for="{{notifications}}"
-      wx:key="id"
-      bindtap="onNotificationTap"
-      data-id="{{item.id}}"
-      data-url="{{item.actionUrl}}"
-    >
-      <view class="notification-icon notification-icon-{{item.type}}">
-        <t-icon name="{{item.type === 'warning' ? 'warning' : item.type === 'appointment' ? 'calendar' : 'notification'}}" size="36rpx" />
-      </view>
-      <view class="notification-content">
-        <view class="notification-title-row">
-          <text class="notification-title">{{item.title}}</text>
-          <view class="notification-dot" wx:if="{{!item.isRead}}"></view>
+  <scroll-view class="notification-scroll" scroll-y>
+    <view class="notification-list">
+      <view
+        class="notification-item {{item.isRead ? 'read' : 'unread'}}"
+        wx:for="{{notifications}}"
+        wx:key="id"
+        bindtap="onNotificationTap"
+        data-id="{{item.id}}"
+        data-url="{{item.actionUrl}}"
+      >
+        <view class="notification-icon notification-icon-{{item.type}}">
+          <t-icon name="{{item.type === 'warning' ? 'warning' : item.type === 'appointment' ? 'calendar' : 'notification'}}" size="36rpx" />
         </view>
-        <text class="notification-content-text">{{item.content}}</text>
-        <text class="notification-time">{{item.createdAt}}</text>
+        <view class="notification-content">
+          <view class="notification-title-row">
+            <text class="notification-title">{{item.title}}</text>
+            <view class="notification-dot" wx:if="{{!item.isRead}}"></view>
+          </view>
+          <text class="notification-content-text">{{item.content}}</text>
+          <text class="notification-time">{{item.createdAt}}</text>
+        </view>
       </view>
     </view>
-  </view>
+  </scroll-view>
 
   <view class="empty-state" wx:if="{{notifications.length === 0 && !loading}}">
     <t-icon name="notification" size="80rpx" color="#d1d5db" />
