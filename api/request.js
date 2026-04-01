@@ -527,36 +527,8 @@ const mockResponses = {
     code: 0,
     message: '获取成功',
     data: {
-      list: [
-        {
-          id: 'notif_001',
-          type: 'warning',
-          title: '风险预警',
-          content: '您最近的情绪波动较大，建议进行心理咨询或测评',
-          isRead: false,
-          createdAt: '2026-03-18T10:30:00Z',
-          actionUrl: '',
-        },
-        {
-          id: 'notif_002',
-          type: 'appointment',
-          title: '预约成功',
-          content: '您预约的 3月20日 心理咨询室 A01 已确认',
-          isRead: false,
-          createdAt: '2026-03-17T15:00:00Z',
-          actionUrl: '/pages/appointment/index',
-        },
-        {
-          id: 'notif_003',
-          type: 'system',
-          title: '系统通知',
-          content: '欢迎使用心图PsyTwin，您的心理健康档案已创建',
-          isRead: true,
-          createdAt: '2026-03-15T09:00:00Z',
-          actionUrl: '',
-        },
-      ],
-      unreadCount: 2,
+      list: [],
+      unreadCount: 0,
     },
   },
 };

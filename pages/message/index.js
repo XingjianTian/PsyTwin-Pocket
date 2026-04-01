@@ -17,8 +17,8 @@ const CHIPS = [
     id: 1,
     icon: 'heart',
     color: 'purple',
-    title: '倾诉一下心情',
-    desc: '今天发生了什么，说出来轻松一点',
+    title: '我想倾诉一下心情',
+    desc: '今天发生了什么，说出来的话会轻松一点噢',
     prompt: '我想聊聊今天的心情',
   },
   {
@@ -26,7 +26,7 @@ const CHIPS = [
     icon: 'help-circle',
     color: 'blue',
     title: '我感到焦虑/压力大',
-    desc: '一起分析压力来源，找到应对方法',
+    desc: '让我们一起来分析压力来源，找找应对方法',
     prompt: '我最近感到很焦虑和压力很大，想聊聊',
   },
   {

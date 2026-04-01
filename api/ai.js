@@ -1,6 +1,7 @@
 import request from './request';
+import config from '../config/index';
 
-const OPENCLAW_API_URL = 'http://localhost:3000/api/openclaw/pocket/chat';
+const OPENCLAW_API_URL = config.baseUrl.replace('/api/pocket', '/api/openclaw/pocket/chat');
 const DEFAULT_TOKEN = '123456';
 
 function wrapRequestWithTimeout(promise, timeoutMs = 30000) {

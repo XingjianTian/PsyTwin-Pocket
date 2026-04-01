@@ -71,7 +71,7 @@ App({
 
   globalData: {
     userInfo: null,
-    unreadNum: 0, // 未读消息数量
+    unreadNum: 1, // 未读消息数量
     socket: null, // SocketTask 对象
     role: '', // 用户角色：student 或 teacher
   },

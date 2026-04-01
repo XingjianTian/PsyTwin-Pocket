@@ -98,6 +98,11 @@ Page({
     });
   },
 
+  
+
+
+
+
   /** 处理收起键盘事件 */
   handleBlur() {
     this.setData({ keyboardHeight: 0 });

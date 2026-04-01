@@ -22,6 +22,7 @@ Page({
   },
 
   async loadNotifications() {
+    const app = getApp();
     this.setData({ loading: true });
     const res = await getNotifications();
     if (res.code === 0 && res.data) {
@@ -29,10 +30,12 @@ Page({
         ...item,
         createdAt: formatNotificationTime(item.createdAt),
       }));
+      const unreadCount = res.data.unreadCount || 0;
       this.setData({
         notifications: list,
-        unreadCount: res.data.unreadCount || 0,
+        unreadCount,
       });
+      app.setUnreadNum(unreadCount);
     }
     this.setData({ loading: false });
   },
@@ -51,6 +54,7 @@ Page({
       const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
       const unreadCount = updated.filter((n) => !n.isRead).length;
       this.setData({ notifications: updated, unreadCount });
+      app.setUnreadNum(unreadCount);
     }
 
     wx.showModal({
@@ -72,6 +76,7 @@ Page({
   },
 
   onMarkAllRead() {
+    const app = getApp();
     const { notifications } = this.data;
     notifications.forEach((n) => {
       if (!n.isRead) {
@@ -80,5 +85,6 @@ Page({
     });
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
     this.setData({ notifications: updated, unreadCount: 0 });
+    app.setUnreadNum(0);
   },
 });

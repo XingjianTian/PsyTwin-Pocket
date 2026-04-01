@@ -40,7 +40,7 @@
       value="{{ input }}"
       type="text"
       confirm-type="send"
-      placeholder="请输入"
+      placeholder="请输入文本"
       placeholder-style="color: #00000066"
       adjust-position="{{ false }}"
       hold-keyboard
