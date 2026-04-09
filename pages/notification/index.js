@@ -9,22 +9,47 @@ Page({
   },
 
   onLoad() {
+    this._isPageActive = false;
+  },
+
+  onShow() {
+    this._isPageActive = true;
     this.loadNotifications();
+    this.startPolling();
+  },
+
+  onHide() {
+    this._isPageActive = false;
+    this.stopPolling();
+  },
+
+  onUnload() {
+    this._isPageActive = false;
+    this.stopPolling();
+  },
+
+  startPolling() {
+    this.stopPolling();
     this._interval = setInterval(() => {
+      if (!this._isPageActive) return;
       this.loadNotifications();
     }, 10000);
   },
 
-  onUnload() {
+  stopPolling() {
     if (this._interval) {
       clearInterval(this._interval);
+      this._interval = null;
     }
   },
 
   async loadNotifications() {
     const app = getApp();
+    if (!this._isPageActive) return;
     this.setData({ loading: true });
     const res = await getNotifications();
+    if (!this._isPageActive) return;
+
     if (res.code === 0 && res.data) {
       const list = (res.data.list || []).map((item) => ({
         ...item,
@@ -37,10 +62,13 @@ Page({
       });
       app.setUnreadNum(unreadCount);
     }
+
+    if (!this._isPageActive) return;
     this.setData({ loading: false });
   },
 
   async onNotificationTap(e) {
+    const app = getApp();
     const { id, url } = e.currentTarget.dataset;
     const { notifications } = this.data;
 
@@ -50,11 +78,13 @@ Page({
     if (!notification) return;
 
     if (!notification.isRead) {
-      await markAsRead(id);
-      const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-      const unreadCount = updated.filter((n) => !n.isRead).length;
-      this.setData({ notifications: updated, unreadCount });
-      app.setUnreadNum(unreadCount);
+      const res = await markAsRead(id);
+      if (res.code === 0) {
+        const updated = notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+        const unreadCount = updated.filter((n) => !n.isRead).length;
+        this.setData({ notifications: updated, unreadCount });
+        app.setUnreadNum(unreadCount);
+      }
     }
 
     wx.showModal({

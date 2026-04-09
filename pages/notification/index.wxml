@@ -1,4 +1,4 @@
-<t-navbar class="nav-bar" title="消息通知" left-arrow />
+<t-navbar class="nav-bar" title="消息通知" left-arrow placeholder="{{true}}" />
 
 <view class="notification-page">
   <view class="notification-header" wx:if="{{unreadCount > 0}}">
