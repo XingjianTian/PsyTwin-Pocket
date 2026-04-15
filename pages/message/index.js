@@ -18,16 +18,16 @@ const CHIPS = [
     icon: 'heart',
     color: 'purple',
     title: '我想倾诉一下心情',
-    desc: '今天发生了什么，说出来的话会轻松一点噢',
+    desc: '好呀，我们聊聊吧',
     prompt: '我想聊聊今天的心情',
   },
   {
     id: 2,
     icon: 'help-circle',
     color: 'blue',
-    title: '我感到焦虑/压力大',
-    desc: '让我们一起来分析压力来源，找找应对方法',
-    prompt: '我最近感到很焦虑和压力很大，想聊聊',
+    title: '我感到焦虑',
+    desc: '听起来你并不好受，找找应对方法',
+    prompt: '我最近感到很焦虑和压力很大，想和你聊聊',
   },
   {
     id: 3,
@@ -43,7 +43,7 @@ const CHIPS = [
     color: 'green',
     title: '人际关系的烦恼',
     desc: '和朋友、室友、家人的矛盾',
-    prompt: '我在人际关系上遇到了一些困扰，想聊聊',
+    prompt: '双向测试，后台系统，小程序端，多智能体，展望',
   },
 ];
 

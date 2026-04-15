@@ -63,7 +63,7 @@ const followList = [
       department: '机械学院',
     },
     content: {
-      text: '弟兄们刚打完一场球！汗流浃背但超开心，还是运动能让人忘掉烦恼。建议压力大的同学都去打球，真的很解压！',
+      text: '弟兄们刚打完一场球！汗流浃背但超开心，还是运动能让人忘掉烦恼，建议压力大的同学都去打球，真的很解压！',
       images: ['https://picsum.photos/400/500?random=44'],
       location: '体育馆',
       isAnonymous: false,
@@ -81,7 +81,7 @@ const followList = [
       department: '文学院',
     },
     content: {
-      text: '读了一本关于放下的小说，主人公说"我不需要别人的认可，只需要我自己的认可"。这句话不知道为什么看得我非常感动。',
+      text: '读了一本关于放下的小说，主人公说"我不需要别人的认可，只需要我自己的认可"。这句话不知道为什么看得我非常感动。（全局任务态势聚合，用于提取核心预警并排定优先级）',
       images: ['https://picsum.photos/400/280?random=55'],
       location: '图书馆',
       isAnonymous: false,
@@ -99,7 +99,7 @@ const followList = [
       department: '心理健康中心',
     },
     content: {
-      text: '【本周公开课】"与情绪和谐相处" 将于本周四下午 3 点在学活中心 101 开课，免费开放。我们一起探讨如何识别负面情绪并与之共处，而不是进行压抑。欢迎预约✨',
+      text: '【本周公开课】"与情绪和谐相处" 将于本周四下午 3 点在学生活动中心101 开课免费开放。请和我们一起来吧，我们一起探讨如何识别负面情绪并与之共处，而不是进行压抑。欢迎预约✨',
       images: [],
       location: '学活中心 101',
       isAnonymous: false,
@@ -117,7 +117,7 @@ const followList = [
       department: '艺术学院',
     },
     content: {
-      text: '今天展出了自己画了半年的作品，老师说暴露自己是一种勇气。我想是的。创作一直是我排解不安的方式。',
+      text: '今天我终于愿意展出五年前的一幅画，我终于愿意走出这一步，老师说，愿意自我暴露才能让伤口接触空气愈合，我想是这样的',
       images: ['https://picsum.photos/400/460?random=77'],
       location: '艺术展览馆',
       isAnonymous: false,
@@ -129,7 +129,7 @@ const followList = [
     id: '8',
     author: { id: 'u8', nickname: '匿名的你', avatar: '', role: 'student', department: '' },
     content: {
-      text: '考前第一次失眠，脑子躺在床上数羊数到忘了在哪。干脆开灯到天亮分析出考试是设计来考验人的心理承受能力的结论。你们这次期末有没有这样的时刻？',
+      text: '考前第一次失眠，脑子躺在床上数羊数到忘了在哪。干脆开灯研究到天亮，分析出考试是设计来考验人的心理承受能力的结论。你们这次期末有没有这样的时刻？（心理危机干预）',
       images: [],
       location: '',
       isAnonymous: true,
@@ -201,7 +201,7 @@ const services = [
     type: 'vr',
     description: '沉浸式心理体验与脱敏训练',
     duration: 30,
-    location: '心理健康教育中心',
+    location: '心理健康中心',
     icon: 'vr',
     status: 'maintenance',
     currentUser: null,
@@ -500,7 +500,7 @@ const mockResponses = {
         content: [
           {
             type: 'output_text',
-            text: '你好！我听到了你的分享。听起来你最近经历了一些压力。有什么具体的事情让你感到困扰吗？我在这里倾听你。',
+            text: '你好！我听到了你的分享。听起来你最近经历了一些压力。有什么具体的事情让你感到困扰吗？大家的认可，使我们前行路上的最大动我在这里倾听你。',
           },
         ],
         status: 'completed',

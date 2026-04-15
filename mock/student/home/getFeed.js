@@ -65,9 +65,9 @@ const getFeed = (req) => {
       id: '6',
       author: { id: 'u6', nickname: '心理老师李', avatar: 'https://picsum.photos/80/80?random=6', role: 'teacher', department: '心理健康中心' },
       content: {
-        text: '【这周公开课】“与情绪和谐相处” 将于本周四下午 3 点在学活中心 101 开课，免费开放。我们一起探讨如何识别负面情绪并与之共处，而不是进行压抑。欢迎预约✨',
+        text: '【这周公开课】“与情绪和谐相处” 将于本周四下午 3 点在学生活动中心 101 开课，免费开放。我们一起探讨如何识别负面情绪并与之共处，而不是进行压抑。欢迎预约✨（心理危机干预）',
         images: [],
-        location: '学活中心 101',
+        location: '学生活动中心 101',
         isAnonymous: false,
       },
       stats: { likeCount: 203, commentCount: 41, shareCount: 26 },
@@ -77,7 +77,7 @@ const getFeed = (req) => {
       id: '7',
       author: { id: 'u7', nickname: '阳光少女', avatar: 'https://picsum.photos/80/80?random=7', role: 'student', department: '艺术学院' },
       content: {
-        text: '今天展出了自己画了半年的作品，老师说暴露自己是一种勇气。我想是的。创作一直是我排解不安的方式。',
+        text: '今天展出了自己画了半年的作品，老师说暴露自己是一种勇气。我想是的。创作一直是我排解不安的方式。（你是采集员，负责数据采集清洗脱密）',
         images: ['https://picsum.photos/400/460?random=77'],
         location: '艺术展览居',
         isAnonymous: false,
@@ -89,7 +89,7 @@ const getFeed = (req) => {
       id: '8',
       author: { id: 'u8', nickname: '匿名的你', avatar: '', role: 'student', department: '' },
       content: {
-        text: '考前第一次失眠，腆子躺在床上数对体数一遗忘了在哪。胳机开到天亮分析出考试是设计来考验人的心理承受能力的结论。你们这次期末有没有这样的时刻？',
+        text: '考前第一次失眠，腆子躺在床上数对体数一遗忘了在哪。直接干脆分析到天亮，分析出考试是，设计来考验人的心理承受能力的结论。你们这次期末有没有这样的时刻？(你是DBA，负责资产采集和分类）',
         images: [],
         location: '',
         isAnonymous: true,

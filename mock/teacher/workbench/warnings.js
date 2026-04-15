@@ -69,7 +69,7 @@ const warnings = [
     studentName: '钱七',
     avatar: 'https://picsum.photos/80/80?random=15',
     riskLevel: 'low',
-    riskReason: '情绪波动较大',
+    riskReason: '情绪波动过大',
     triggerSource: 'behavior',
     triggeredAt: '2026-03-06T09:00:00',
     status: 'pending',
