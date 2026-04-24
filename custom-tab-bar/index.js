@@ -57,12 +57,17 @@ Component({
         ];
 
       } else {
-        // 学生端 Tab：心友圈 + AI + 预约 + 我的
+        // 学生端 Tab：心墙 + 心宠 + AI + 预约 + 我的
         tabList = [
           {
             icon: 'home',
             value: 'home',
             label: '心墙',
+          },
+          {
+            icon: 'heart',
+            value: 'pet',
+            label: '心宠',
           },
           {
             icon: 'chat',

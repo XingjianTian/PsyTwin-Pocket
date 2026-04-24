@@ -1,0 +1,65 @@
+<view class="pet-container">
+  <!-- 顶部状态栏 -->
+  <view class="status-bar">
+    <view class="status-content">
+      <!-- 心情 -->
+      <view class="status-item">
+        <view class="status-icon mood-icon">❤️</view>
+        <view class="status-label">心情</view>
+        <view class="progress-bar">
+          <view class="progress-fill mood-fill" style="width: {{mood}}%"></view>
+        </view>
+        <view class="status-value">{{mood}}%</view>
+      </view>
+      
+      <!-- 能量 -->
+      <view class="status-item">
+        <view class="status-icon energy-icon">⚡</view>
+        <view class="status-label">能量</view>
+        <view class="progress-bar">
+          <view class="progress-fill energy-fill" style="width: {{energy}}%"></view>
+        </view>
+        <view class="status-value">{{energy}}%</view>
+      </view>
+      
+      <!-- 社交 -->
+      <view class="status-item">
+        <view class="status-icon social-icon">👥</view>
+        <view class="status-label">社交</view>
+        <view class="progress-bar">
+          <view class="progress-fill social-fill" style="width: {{social}}%"></view>
+        </view>
+        <view class="status-value">{{social}}%</view>
+      </view>
+    </view>
+    
+    <!-- 设置按钮 -->
+    <view class="settings-btn" bindtap="onSettingsTap">
+      <view class="settings-icon">⚙️</view>
+      <view class="settings-text">设置</view>
+    </view>
+  </view>
+  
+  <!-- 中间区域（场景和小猫位置，暂时留空） -->
+  <view class="pet-scene">
+    <view class="scene-placeholder">
+      <view class="placeholder-text">心宠场景开发中...</view>
+    </view>
+  </view>
+  
+  <!-- 下方功能按钮区域 -->
+  <view class="function-grid">
+    <view 
+      class="function-item" 
+      wx:for="{{functions}}" 
+      wx:key="index"
+      data-index="{{index}}"
+      bindtap="onFunctionTap"
+    >
+      <view class="function-icon" style="background-color: {{item.color}}">
+        <text>{{item.icon}}</text>
+      </view>
+      <view class="function-label">{{item.label}}</view>
+    </view>
+  </view>
+</view>
