@@ -1,0 +1,63 @@
+<!-- pages/pet/events/index.wxml -->
+<view class="events-container">
+  <!-- 标题栏 -->
+  <view class="events-header">
+    <view class="back-btn" bindtap="onBackTap">←</view>
+    <text class="events-title">提供帮助</text>
+    <view class="placeholder"></view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 事件列表 -->
+  <view wx:else class="event-list">
+    <view wx:if="{{events.length === 0}}" class="empty">
+      <text class="empty-icon">🌟</text>
+      <text class="empty-text">暂无求助事件</text>
+      <text class="empty-desc">心宠一切安好，继续保持关注哦~</text>
+    </view>
+
+    <view 
+      class="event-card {{item.status === 'resolved' ? 'resolved' : ''}}"
+      wx:for="{{events}}"
+      wx:key="id"
+    >
+      <view class="event-header">
+        <text class="event-type">{{item.type === 'large' ? '大型事件' : '日常事件'}}</text>
+        <text class="event-status {{item.status}}">{{item.status === 'pending' ? '待处理' : '已解决'}}</text>
+      </view>
+
+      <view class="event-title">{{item.title}}</view>
+      <view class="event-desc">{{item.description}}</view>
+
+      <!-- 选项列表 -->
+      <view wx:if="{{item.status === 'pending'}}" class="options-list">
+        <view 
+          class="option-item"
+          wx:for="{{item.options}}"
+          wx:for-item="option"
+          wx:key="id"
+          data-event-id="{{item.id}}"
+          data-option-id="{{option.id}}"
+          bindtap="onOptionSelect"
+        >
+          <text class="option-text">{{option.text}}</text>
+          <text class="option-hint">{{option.hint}}</text>
+          <view class="option-impact">
+            <text wx:if="{{option.impact.mood}}">心情{{option.impact.mood > 0 ? '+' : ''}}{{option.impact.mood}}</text>
+            <text wx:if="{{option.impact.energy}}">能量{{option.impact.energy > 0 ? '+' : ''}}{{option.impact.energy}}</text>
+            <text wx:if="{{option.impact.sociability}}">社交{{option.impact.sociability > 0 ? '+' : ''}}{{option.impact.sociability}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 已解决显示结果 -->
+      <view wx:if="{{item.status === 'resolved'}}" class="resolved-info">
+        <text>已选择：{{item.resolvedOptionText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

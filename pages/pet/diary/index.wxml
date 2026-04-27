@@ -1,0 +1,83 @@
+<!-- pages/pet/diary/index.wxml -->
+<view class="diary-container">
+  <!-- 标题栏 -->
+  <view class="diary-header">
+    <view class="back-btn" bindtap="onBackTap">←</view>
+    <text class="diary-title">心情日记</text>
+    <view class="placeholder"></view>
+  </view>
+
+  <!-- 日期选择器 -->
+  <view class="date-selector">
+    <view 
+      class="date-item {{item.date === selectedDate ? 'active' : ''}} {{item.isToday ? 'today' : ''}}"
+      wx:for="{{dates}}"
+      wx:key="date"
+      data-date="{{item.date}}"
+      bindtap="onDateSelect"
+    >
+      <text class="date-weekday">{{item.weekDay}}</text>
+      <text class="date-day">{{item.day}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{entries.length === 0}}" class="empty-state">
+    <text class="empty-icon">📖</text>
+    <text class="empty-text">今天还没有记录</text>
+    <text class="empty-subtext">心宠的一天即将开始~</text>
+  </view>
+
+  <!-- 时间线 -->
+  <view wx:else class="timeline">
+    <view 
+      class="timeline-item"
+      wx:for="{{entries}}"
+      wx:key="id"
+    >
+      <!-- 时间线左侧 -->
+      <view class="timeline-left">
+        <view class="timeline-dot" style="background-color: {{getTypeColor(item.type)}}"></view>
+        <view wx:if="{{index !== entries.length - 1}}" class="timeline-line"></view>
+      </view>
+
+      <!-- 时间线内容 -->
+      <view class="timeline-content">
+        <view class="timeline-time">{{item.time}}</view>
+        <view class="timeline-card">
+          <view class="timeline-type-badge" style="background-color: {{getTypeColor(item.type)}}20; color: {{getTypeColor(item.type)}}">
+            {{getTypeLabel(item.type)}}
+          </view>
+          <view class="timeline-text">{{item.content}}</view>
+          
+          <!-- 属性变化 -->
+          <view class="timeline-stats">
+            <view class="stat-change" wx:if="{{item.moodAfter !== item.moodBefore}}">
+              <text class="stat-label">心情</text>
+              <text class="stat-value {{item.moodAfter > item.moodBefore ? 'positive' : 'negative'}}">
+                {{item.moodAfter > item.moodBefore ? '+' : ''}}{{item.moodAfter - item.moodBefore}}
+              </text>
+            </view>
+            <view class="stat-change" wx:if="{{item.energyAfter !== item.energyBefore}}">
+              <text class="stat-label">能量</text>
+              <text class="stat-value {{item.energyAfter > item.energyBefore ? 'positive' : 'negative'}}">
+                {{item.energyAfter > item.energyBefore ? '+' : ''}}{{item.energyAfter - item.energyBefore}}
+              </text>
+            </view>
+            <view class="stat-change" wx:if="{{item.socialAfter !== item.socialBefore}}">
+              <text class="stat-label">社交</text>
+              <text class="stat-value {{item.socialAfter > item.socialBefore ? 'positive' : 'negative'}}">
+                {{item.socialAfter > item.socialBefore ? '+' : ''}}{{item.socialAfter - item.socialBefore}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

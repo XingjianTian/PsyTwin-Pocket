@@ -1,0 +1,52 @@
+<!-- pages/pet/bag/index.wxml -->
+<view class="bag-container">
+  <!-- 标题栏 -->
+  <view class="bag-header">
+    <view class="back-btn" bindtap="onBackTap">←</view>
+    <text class="bag-title">心宠背包</text>
+    <view class="placeholder"></view>
+  </view>
+
+  <!-- 容量信息 -->
+  <view class="capacity-bar">
+    <view class="capacity-info">
+      <text class="capacity-text">背包容量</text>
+      <text class="capacity-value">{{capacity.used}}/{{capacity.total}}</text>
+    </view>
+    <view class="capacity-progress">
+      <view class="capacity-fill" style="width: {{(capacity.used / capacity.total) * 100}}%"></view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{items.length === 0}}" class="empty-state">
+    <text class="empty-icon">🎒</text>
+    <text class="empty-text">背包空空如也</text>
+    <text class="empty-subtext">快去探索获得物品吧~</text>
+  </view>
+
+  <!-- 物品网格 -->
+  <view wx:else class="item-grid">
+    <view 
+      class="item-card"
+      wx:for="{{items}}"
+      wx:key="itemId"
+      data-item="{{item}}"
+      bindtap="onItemTap"
+    >
+      <view class="item-icon">{{item.icon}}</view>
+      <view class="item-info">
+        <text class="item-name">{{item.name}}</text>
+        <text class="item-type">{{item.type}}</text>
+      </view>
+      <view class="item-quantity">
+        <text>x{{item.quantity}}</text>
+      </view>
+    </view>
+  </view>
+</view>

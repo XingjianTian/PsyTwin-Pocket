@@ -1,0 +1,125 @@
+<!-- pages/pet/map/index.wxml -->
+<view class="map-page">
+  <!-- 标题栏 -->
+  <view class="map-header">
+    <view class="back-btn" bindtap="onBackTap">←</view>
+    <text class="map-title">世界地图</text>
+    <view class="placeholder"></view>
+  </view>
+
+  <!-- 地图画布区域 -->
+  <view class="map-canvas">
+    <!-- 地图背景纹理 -->
+    <view class="map-bg">
+      <!-- 网格线 -->
+      <view class="grid-lines">
+        <view class="grid-line" wx:for="{{10}}" wx:key="*this" style="top: {{index * 10}}%"></view>
+        <view class="grid-line-v" wx:for="{{10}}" wx:key="*this" style="left: {{index * 10}}%"></view>
+      </view>
+      
+      <!-- 装饰：云朵 -->
+      <view class="cloud cloud-1">☁️</view>
+      <view class="cloud cloud-2">☁️</view>
+      <view class="cloud cloud-3">☁️</view>
+      
+      <!-- 装饰：指南针 -->
+      <view class="compass">🧭</view>
+    </view>
+
+    <!-- 路径连接线 -->
+    <view class="paths">
+      <!-- 奇幻空间 → 梦境小屋 -->
+      <view class="path path-1"></view>
+      <!-- 梦境小屋 → 自由旷野 -->
+      <view class="path path-2"></view>
+      <!-- 梦境小屋 → 心灵港湾 -->
+      <view class="path path-3"></view>
+      <!-- 自由旷野 → 学校 -->
+      <view class="path path-4"></view>
+      <!-- 心灵港湾 → 学校 -->
+      <view class="path path-5"></view>
+    </view>
+
+    <!-- 地块区域 -->
+    <view class="territories">
+      <view 
+        class="territory {{item.current ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
+        wx:for="{{scenes}}"
+        wx:key="id"
+        style="left: {{item.x}}; top: {{item.y}};"
+        data-scene="{{item}}"
+        bindtap="onSceneTap"
+      >
+        <!-- 地块主体 -->
+        <view class="territory-body" style="background: {{item.gradient}};">
+          <!-- 地块纹理 -->
+          <view class="terrain-texture"></view>
+          
+          <!-- 地块图标 -->
+          <view class="territory-icon">{{item.icon}}</view>
+          
+          <!-- 装饰元素 -->
+          <view class="terrain-deco" wx:if="{{item.deco}}">{{item.deco}}</view>
+        </view>
+        
+        <!-- 地名标牌 -->
+        <view class="territory-sign">
+          <view class="sign-board">
+            <text class="sign-text">{{item.name}}</text>
+          </view>
+          <view class="sign-post"></view>
+        </view>
+        
+        <!-- 当前位置标记 -->
+        <view class="current-marker" wx:if="{{item.current}}">
+          <view class="marker-dot"></view>
+          <view class="marker-pulse"></view>
+        </view>
+        
+        <!-- 锁定标记 -->
+        <view class="lock-marker" wx:if="{{!item.unlocked}}">
+          <text>🔒</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图例 -->
+    <view class="map-legend">
+      <view class="legend-item">
+        <view class="legend-dot" style="background: #6B5B95;"></view>
+        <text>当前位置</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-dot" style="background: #7BC8A4;"></view>
+        <text>已解锁</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-dot" style="background: #ccc;"></view>
+        <text>未解锁</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 场景详情弹窗 -->
+  <view class="scene-modal {{showModal ? 'show' : ''}}" wx:if="{{showModal}}">
+    <view class="modal-mask" bindtap="closeModal"></view>
+    <view class="modal-content">
+      <view class="modal-header" style="background: {{selectedScene.gradient}};">
+        <view class="modal-icon">{{selectedScene.icon}}</view>
+        <text class="modal-title">{{selectedScene.name}}</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-desc">{{selectedScene.description}}</text>
+        <view class="modal-tags">
+          <view class="modal-tag" wx:for="{{selectedScene.tags}}" wx:key="*this">{{item}}</view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="closeModal">取消</view>
+        <view class="modal-btn confirm {{selectedScene.unlocked ? '' : 'disabled'}}" bindtap="confirmEnter">
+          {{selectedScene.current ? '当前场景' : (selectedScene.unlocked ? '进入场景' : '未解锁')}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

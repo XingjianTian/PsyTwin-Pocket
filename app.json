@@ -2,6 +2,10 @@
   "pages": [
     "pages/home/index",
     "pages/pet/index",
+    "pages/pet/map/index",
+    "pages/pet/events/index",
+    "pages/pet/bag/index",
+    "pages/pet/diary/index",
     "pages/message/index",
     "pages/my/index",
     "pages/dataCenter/index",

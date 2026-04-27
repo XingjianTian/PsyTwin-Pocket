@@ -1,0 +1,573 @@
+/* pages/pet/map/index.less */
+
+// 颜色变量
+@primary: #6B5B95;
+@primary-light: #9B89B3;
+@bg-page: #f8f5f0;
+@text-primary: #3D3642;
+@text-secondary: #8C8299;
+
+// 地块颜色
+@forest: #7BC8A4;
+@temple: #9B89B3;
+@counsel: #87CEEB;
+@open: #A8E6CF;
+@class: #FF8E8E;
+
+.map-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #e8e0d5 0%, #f5f0e8 50%, #e8e0d5 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ========== 标题栏 ========== */
+.map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40rpx 30rpx 30rpx;
+  background: linear-gradient(135deg, @primary 0%, @primary-light 100%);
+  border-radius: 0 0 40rpx 40rpx;
+  box-shadow: 0 4rpx 20rpx rgba(107, 91, 149, 0.3);
+  position: relative;
+  z-index: 10;
+}
+
+.back-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 30rpx;
+  color: #fff;
+  font-size: 32rpx;
+  transition: all 0.2s;
+
+  &:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.map-title {
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: bold;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.placeholder {
+  width: 60rpx;
+}
+
+/* ========== 地图画布 ========== */
+.map-canvas {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 130rpx);
+  overflow: hidden;
+}
+
+/* 地图背景 */
+.map-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(123, 200, 164, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(168, 230, 207, 0.1) 0%, transparent 50%),
+    linear-gradient(180deg, #f5f0e8 0%, #ede5d8 100%);
+}
+
+/* 网格线 */
+.grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.15;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent 0%, #8B7355 50%, transparent 100%);
+}
+
+.grid-line-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1rpx;
+  background: linear-gradient(180deg, transparent 0%, #8B7355 50%, transparent 100%);
+}
+
+/* 云朵装饰 */
+.cloud {
+  position: absolute;
+  font-size: 60rpx;
+  opacity: 0.4;
+  animation: float 6s ease-in-out infinite;
+}
+
+.cloud-1 {
+  top: 5%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.cloud-2 {
+  top: 15%;
+  right: 15%;
+  animation-delay: 2s;
+  font-size: 48rpx;
+}
+
+.cloud-3 {
+  top: 60%;
+  left: 5%;
+  animation-delay: 4s;
+  font-size: 40rpx;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-10rpx) translateX(5rpx); }
+}
+
+/* 指南针 */
+.compass {
+  position: absolute;
+  bottom: 120rpx;
+  right: 30rpx;
+  font-size: 48rpx;
+  opacity: 0.3;
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ========== 路径连接线 ========== */
+.paths {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.path {
+  position: absolute;
+  border-top: 4rpx dashed rgba(139, 115, 85, 0.4);
+  transform-origin: left center;
+}
+
+// 奇幻空间 → 梦境小屋
+.path-1 {
+  left: 50%;
+  top: 18%;
+  width: 2rpx;
+  height: 15%;
+  border-top: none;
+  border-left: 4rpx dashed rgba(139, 115, 85, 0.4);
+}
+
+// 梦境小屋 → 自由旷野
+.path-2 {
+  left: 35%;
+  top: 38%;
+  width: 15%;
+  transform: rotate(25deg);
+}
+
+// 梦境小屋 → 心灵港湾
+.path-3 {
+  left: 50%;
+  top: 38%;
+  width: 15%;
+  transform: rotate(-25deg);
+}
+
+// 自由旷野 → 学校
+.path-4 {
+  left: 35%;
+  top: 58%;
+  width: 15%;
+  height: 15%;
+  border-top: none;
+  border-left: 4rpx dashed rgba(139, 115, 85, 0.4);
+  transform: rotate(15deg);
+}
+
+// 心灵港湾 → 学校
+.path-5 {
+  left: 50%;
+  top: 58%;
+  width: 2rpx;
+  height: 15%;
+  border-top: none;
+  border-left: 4rpx dashed rgba(139, 115, 85, 0.4);
+}
+
+/* ========== 地块区域 ========== */
+.territories {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.territory {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+  z-index: 5;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.current {
+    z-index: 10;
+
+    .territory-body {
+      box-shadow: 
+        0 8rpx 32rpx rgba(0, 0, 0, 0.2),
+        0 0 60rpx rgba(107, 91, 149, 0.3);
+      animation: glow 2s ease-in-out infinite;
+    }
+  }
+
+  &.locked {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+
+    .territory-body {
+      background: linear-gradient(135deg, #d0d0d0, #b0b0b0) !important;
+    }
+  }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2), 0 0 60rpx rgba(107, 91, 149, 0.3); }
+  50% { box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2), 0 0 100rpx rgba(107, 91, 149, 0.5); }
+}
+
+.territory-body {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 
+    0 6rpx 20rpx rgba(0, 0, 0, 0.15),
+    inset 0 -4rpx 10rpx rgba(0, 0, 0, 0.1),
+    inset 0 4rpx 10rpx rgba(255, 255, 255, 0.3);
+  border: 4rpx solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+
+/* 地块纹理 */
+.terrain-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.territory-icon {
+  font-size: 72rpx;
+  z-index: 2;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.2));
+}
+
+.terrain-deco {
+  position: absolute;
+  font-size: 32rpx;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* 地名标牌 */
+.territory-sign {
+  margin-top: -10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3;
+}
+
+.sign-board {
+  background: linear-gradient(180deg, #f5e6c8 0%, #e8d5a8 100%);
+  padding: 8rpx 24rpx;
+  border-radius: 12rpx;
+  border: 3rpx solid #c9a96e;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.15);
+  position: relative;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 8rpx;
+    height: 8rpx;
+    background: #8B7355;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &::before {
+    left: 8rpx;
+  }
+
+  &::after {
+    right: 8rpx;
+  }
+}
+
+.sign-text {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #5c4033;
+  text-shadow: 0 1rpx 0 rgba(255, 255, 255, 0.5);
+}
+
+.sign-post {
+  width: 6rpx;
+  height: 16rpx;
+  background: linear-gradient(90deg, #8B7355, #a08060);
+  border-radius: 0 0 3rpx 3rpx;
+}
+
+/* 当前位置标记 */
+.current-marker {
+  position: absolute;
+  top: -20rpx;
+  right: -10rpx;
+  z-index: 10;
+}
+
+.marker-dot {
+  width: 24rpx;
+  height: 24rpx;
+  background: #FF6B6B;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.5);
+}
+
+.marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24rpx;
+  height: 24rpx;
+  background: rgba(255, 107, 107, 0.4);
+  border-radius: 50%;
+  animation: pulse 1.5s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+
+/* 锁定标记 */
+.lock-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48rpx;
+  z-index: 10;
+  opacity: 0.8;
+}
+
+/* ========== 图例 ========== */
+.map-legend {
+  position: absolute;
+  bottom: 30rpx;
+  left: 30rpx;
+  display: flex;
+  gap: 20rpx;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  backdrop-filter: blur(10rpx);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.legend-item text {
+  font-size: 22rpx;
+  color: @text-secondary;
+}
+
+/* ========== 弹窗 ========== */
+.scene-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+
+  &.show {
+    opacity: 1;
+    pointer-events: auto;
+
+    .modal-content {
+      transform: translateY(0);
+    }
+  }
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  margin-bottom: 0;
+}
+
+.modal-header {
+  padding: 60rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.modal-icon {
+  font-size: 80rpx;
+}
+
+.modal-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-body {
+  padding: 40rpx;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: @text-secondary;
+  line-height: 1.6;
+  text-align: center;
+  display: block;
+  margin-bottom: 30rpx;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  justify-content: center;
+}
+
+.modal-tag {
+  background: #F2EEFA;
+  color: @primary;
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 12rpx;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 0 40rpx 40rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.cancel {
+    background: #F5F5F5;
+    color: @text-secondary;
+  }
+
+  &.confirm {
+    background: linear-gradient(135deg, @primary, @primary-light);
+    color: #fff;
+    box-shadow: 0 4rpx 16rpx rgba(107, 91, 149, 0.3);
+
+    &:active {
+      box-shadow: 0 2rpx 8rpx rgba(107, 91, 149, 0.2);
+    }
+
+    &.disabled {
+      background: #E0E0E0;
+      color: #999;
+      box-shadow: none;
+    }
+  }
+}

@@ -1,65 +1,315 @@
 <view class="pet-container">
-  <!-- 顶部状态栏 -->
+  <!-- 状态栏 -->
   <view class="status-bar">
     <view class="status-content">
       <!-- 心情 -->
       <view class="status-item">
-        <view class="status-icon mood-icon">❤️</view>
+        <view class="status-icon {{mood < 30 ? 'warning' : ''}}">❤️</view>
         <view class="status-label">心情</view>
         <view class="progress-bar">
           <view class="progress-fill mood-fill" style="width: {{mood}}%"></view>
         </view>
-        <view class="status-value">{{mood}}%</view>
+        <view class="status-value {{mood < 30 ? 'warning-text' : ''}}">{{mood}}</view>
       </view>
-      
+
       <!-- 能量 -->
       <view class="status-item">
-        <view class="status-icon energy-icon">⚡</view>
+        <view class="status-icon {{energy < 30 ? 'warning' : ''}}">⚡</view>
         <view class="status-label">能量</view>
         <view class="progress-bar">
           <view class="progress-fill energy-fill" style="width: {{energy}}%"></view>
         </view>
-        <view class="status-value">{{energy}}%</view>
+        <view class="status-value {{energy < 30 ? 'warning-text' : ''}}">{{energy}}</view>
       </view>
-      
+
       <!-- 社交 -->
       <view class="status-item">
-        <view class="status-icon social-icon">👥</view>
+        <view class="status-icon {{social < 30 ? 'warning' : ''}}">👥</view>
         <view class="status-label">社交</view>
         <view class="progress-bar">
           <view class="progress-fill social-fill" style="width: {{social}}%"></view>
         </view>
-        <view class="status-value">{{social}}%</view>
+        <view class="status-value {{social < 30 ? 'warning-text' : ''}}">{{social}}</view>
       </view>
     </view>
-    
-    <!-- 设置按钮 -->
-    <view class="settings-btn" bindtap="onSettingsTap">
-      <view class="settings-icon">⚙️</view>
-      <view class="settings-text">设置</view>
+
+    <!-- 设置按钮 / 返回按钮 -->
+    <view class="settings-btn" bindtap="{{currentView === 'game' ? 'onSettingsTap' : 'backToGame'}}">
+      {{currentView === 'game' ? '⚙️' : '✕'}}
     </view>
   </view>
-  
-  <!-- 中间区域（场景和小猫位置，暂时留空） -->
-  <view class="pet-scene">
-    <view class="scene-placeholder">
-      <view class="placeholder-text">心宠场景开发中...</view>
-    </view>
-  </view>
-  
-  <!-- 下方功能按钮区域 -->
-  <view class="function-grid">
-    <view 
-      class="function-item" 
-      wx:for="{{functions}}" 
-      wx:key="index"
-      data-index="{{index}}"
-      bindtap="onFunctionTap"
-    >
-      <view class="function-icon" style="background-color: {{item.color}}">
-        <text>{{item.icon}}</text>
+
+  <!-- 主游戏区域 -->
+  <view class="main-area">
+    <!-- ========== 游戏视图 ========== -->
+    <block wx:if="{{currentView === 'game'}}">
+      <view class="game-view">
+        <!-- 背景渐变层 -->
+        <view class="game-background"></view>
+
+        <!-- 地面层 -->
+        <view class="game-ground"></view>
+
+        <!-- 装饰层：树 -->
+        <view class="game-decorations">
+          <text class="deco-tree">🌲</text>
+          <text class="deco-tree deco-tree-2">🌲</text>
+          <text class="deco-tree deco-tree-3">🌲</text>
+          <text class="deco-grass">🌿</text>
+          <text class="deco-grass deco-grass-2">🌿</text>
+          <text class="deco-flower">🌸</text>
+        </view>
+
+        <!-- 虚拟宠物层 -->
+        <view class="virtual-pets">
+          <view class="virtual-pet" style="left: 60px; top: 80px;">
+            <text>🐱</text>
+          </view>
+          <view class="virtual-pet" style="left: 140px; top: 100px;">
+            <text>🐶</text>
+          </view>
+          <view class="virtual-pet" style="left: 220px; top: 90px;">
+            <text>🦊</text>
+          </view>
+        </view>
+
+        <!-- 心宠精灵层 -->
+        <view class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;">
+          <view class="pet-body">
+            <view class="pet-face">
+              <view class="pet-eye pet-eye-left"></view>
+              <view class="pet-eye pet-eye-right"></view>
+              <view class="pet-blush pet-blush-left"></view>
+              <view class="pet-blush pet-blush-right"></view>
+              <view class="pet-mouth"></view>
+            </view>
+            <view class="pet-ear pet-ear-left">💕</view>
+            <view class="pet-ear pet-ear-right">💕</view>
+          </view>
+        </view>
+
+        <!-- 状态浮层 -->
+        <view class="activity-overlay">
+          <text class="activity-text">{{currentActivity}}</text>
+          <text class="scene-name">{{currentScene}}</text>
+        </view>
       </view>
-      <view class="function-label">{{item.label}}</view>
+    </block>
+
+    <!-- ========== 世界地图视图 ========== -->
+    <block wx:if="{{currentView === 'map'}}">
+      <scroll-view class="view-content map-view" scroll-y>
+        <!-- 装饰：云朵 -->
+        <view class="cloud cloud-1">☁️</view>
+        <view class="cloud cloud-2">☁️</view>
+
+        <!-- 装饰：指南针 -->
+        <view class="compass">🧭</view>
+
+        <!-- 路径连接线 -->
+        <view class="paths">
+          <view class="path path-1"></view>
+          <view class="path path-2"></view>
+          <view class="path path-3"></view>
+        </view>
+
+        <!-- 地块区域 -->
+        <view class="territories">
+          <view
+            class="territory {{item.current ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
+            wx:for="{{scenes}}"
+            wx:key="id"
+            style="left: {{item.x}}; top: {{item.y}};"
+            data-scene="{{item}}"
+            bindtap="onSceneTap"
+          >
+            <view class="territory-body" style="background: {{item.gradient}};">
+              <view class="terrain-texture"></view>
+              <view class="territory-icon">{{item.icon}}</view>
+              <view class="terrain-deco" wx:if="{{item.deco}}">{{item.deco}}</view>
+            </view>
+            <view class="territory-sign">
+              <view class="sign-board">
+                <text class="sign-text">{{item.name}}</text>
+              </view>
+              <view class="sign-post"></view>
+            </view>
+            <view class="current-marker" wx:if="{{item.current}}">
+              <view class="marker-dot"></view>
+              <view class="marker-pulse"></view>
+            </view>
+            <view class="lock-marker" wx:if="{{!item.unlocked}}">
+              <text>🔒</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 图例 -->
+        <view class="map-legend">
+          <view class="legend-item">
+            <view class="legend-dot" style="background: #6B5B95;"></view>
+            <text>当前位置</text>
+          </view>
+          <view class="legend-item">
+            <view class="legend-dot" style="background: #7BC8A4;"></view>
+            <text>已解锁</text>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+
+    <!-- ========== 背包视图 ========== -->
+    <block wx:if="{{currentView === 'bag'}}">
+      <view class="view-header">
+        <text class="view-title">心宠背包</text>
+      </view>
+      <!-- 容量条 -->
+      <view class="capacity-bar">
+        <view class="capacity-info">
+          <text class="capacity-text">背包容量</text>
+          <text class="capacity-value">{{bagCapacity.used}}/{{bagCapacity.total}}</text>
+        </view>
+        <view class="capacity-progress">
+          <view class="capacity-fill" style="width: {{(bagCapacity.used / bagCapacity.total) * 100}}%"></view>
+        </view>
+      </view>
+      <!-- 物品网格 -->
+      <scroll-view class="view-content bag-view" scroll-y>
+        <view wx:if="{{bagLoading}}" class="view-loading">
+          <text>加载中...</text>
+        </view>
+        <view wx:elif="{{bagItems.length === 0}}" class="view-empty">
+          <text class="empty-icon">🎒</text>
+          <text class="empty-text">背包空空如也</text>
+          <text class="empty-subtext">快去探索获得物品吧~</text>
+        </view>
+        <view wx:else class="bag-grid">
+          <view
+            class="bag-card"
+            wx:for="{{bagItems}}"
+            wx:key="itemId"
+            data-item="{{item}}"
+            bindtap="onBagItemTap"
+          >
+            <view class="bag-icon">{{item.icon}}</view>
+            <view class="bag-name">{{item.name}}</view>
+            <view class="bag-quantity">x{{item.quantity}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+
+    <!-- ========== 日记视图 ========== -->
+    <block wx:if="{{currentView === 'diary'}}">
+      <view class="view-header">
+        <text class="view-title">心情日记</text>
+      </view>
+      <!-- 日期选择器 -->
+      <view class="date-selector">
+        <view
+          class="date-item {{item.date === diarySelectedDate ? 'active' : ''}} {{item.isToday ? 'today' : ''}}"
+          wx:for="{{diaryDates}}"
+          wx:key="date"
+          data-date="{{item.date}}"
+          bindtap="onDiaryDateSelect"
+        >
+          <text class="date-weekday">{{item.weekDay}}</text>
+          <text class="date-day">{{item.day}}</text>
+        </view>
+      </view>
+      <!-- 时间线 -->
+      <scroll-view class="view-content diary-view" scroll-y>
+        <view wx:if="{{diaryLoading}}" class="view-loading">
+          <text>加载中...</text>
+        </view>
+        <view wx:elif="{{diaryEntries.length === 0}}" class="view-empty">
+          <text class="empty-icon">📖</text>
+          <text class="empty-text">今天还没有记录</text>
+          <text class="empty-subtext">心宠的一天即将开始~</text>
+        </view>
+        <view wx:else class="timeline">
+          <view class="timeline-item" wx:for="{{diaryEntries}}" wx:key="id">
+            <view class="timeline-left">
+              <view class="timeline-dot" style="background-color: {{getDiaryTypeColor(item.type)}}"></view>
+              <view wx:if="{{index !== diaryEntries.length - 1}}" class="timeline-line"></view>
+            </view>
+            <view class="timeline-content">
+              <view class="timeline-time">{{item.time}}</view>
+              <view class="timeline-card">
+                <view class="timeline-badge" style="background-color: {{getDiaryTypeColor(item.type)}}20; color: {{getDiaryTypeColor(item.type)}}">
+                  {{getDiaryTypeLabel(item.type)}}
+                </view>
+                <view class="timeline-text">{{item.content}}</view>
+                <view class="timeline-stats">
+                  <view class="stat-change" wx:if="{{item.moodAfter !== item.moodBefore}}">
+                    <text class="stat-label">心情</text>
+                    <text class="stat-value {{item.moodAfter > item.moodBefore ? 'positive' : 'negative'}}">
+                      {{item.moodAfter > item.moodBefore ? '+' : ''}}{{item.moodAfter - item.moodBefore}}
+                    </text>
+                  </view>
+                  <view class="stat-change" wx:if="{{item.energyAfter !== item.energyBefore}}">
+                    <text class="stat-label">能量</text>
+                    <text class="stat-value {{item.energyAfter > item.energyBefore ? 'positive' : 'negative'}}">
+                      {{item.energyAfter > item.energyBefore ? '+' : ''}}{{item.energyAfter - item.energyBefore}}
+                    </text>
+                  </view>
+                  <view class="stat-change" wx:if="{{item.socialAfter !== item.socialBefore}}">
+                    <text class="stat-label">社交</text>
+                    <text class="stat-value {{item.socialAfter > item.socialBefore ? 'positive' : 'negative'}}">
+                      {{item.socialAfter > item.socialBefore ? '+' : ''}}{{item.socialAfter - item.socialBefore}}
+                    </text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+
+  </view>
+
+  <!-- 按钮面板 - 悬浮在游戏区域上方 -->
+  <view class="button-panel">
+    <view class="btn-item {{currentView === 'map' ? 'active' : ''}}" bindtap="onMapTap">
+      <view class="btn-icon">🗺️</view>
+      <text class="btn-label">世界地图</text>
+    </view>
+    <view class="btn-item {{hasEvent ? 'has-event' : ''}}" bindtap="onHelpTap">
+      <view class="btn-icon">🤝</view>
+      <text class="btn-label">{{hasEvent ? '需要帮助' : '暂无求助'}}</text>
+      <view wx:if="{{hasEvent}}" class="event-badge">{{eventCount}}</view>
+    </view>
+    <view class="btn-item {{currentView === 'bag' ? 'active' : ''}}" bindtap="onBagTap">
+      <view class="btn-icon">🎒</view>
+      <text class="btn-label">心宠背包</text>
+    </view>
+    <view class="btn-item {{currentView === 'diary' ? 'active' : ''}}" bindtap="onDiaryTap">
+      <view class="btn-icon">📖</view>
+      <text class="btn-label">心情日记</text>
+    </view>
+  </view>
+
+  <!-- 场景详情弹窗（世界地图用） -->
+  <view class="scene-modal {{showSceneModal ? 'show' : ''}}" wx:if="{{showSceneModal}}">
+    <view class="modal-mask" bindtap="closeSceneModal"></view>
+    <view class="modal-content">
+      <view class="modal-header" style="background: {{selectedScene.gradient}};">
+        <view class="modal-icon">{{selectedScene.icon}}</view>
+        <text class="modal-title">{{selectedScene.name}}</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-desc">{{selectedScene.description}}</text>
+        <view class="modal-tags">
+          <view class="modal-tag" wx:for="{{selectedScene.tags}}" wx:key="*this">{{item}}</view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <view class="modal-btn cancel" bindtap="closeSceneModal">取消</view>
+        <view class="modal-btn confirm {{selectedScene.unlocked ? '' : 'disabled'}}" bindtap="confirmEnterScene">
+          {{selectedScene.current ? '当前场景' : (selectedScene.unlocked ? '进入场景' : '未解锁')}}
+        </view>
+      </view>
     </view>
   </view>
 </view>
