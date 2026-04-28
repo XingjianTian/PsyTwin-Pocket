@@ -224,6 +224,55 @@
   z-index: 0;
 }
 
+/* 场景信息卡片（左上角） */
+.scene-info-card {
+  position: absolute;
+  top: 120rpx;
+  left: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20rpx);
+  padding: 20rpx 28rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.scene-info-icon {
+  font-size: 48rpx;
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, @primary-50, #fff);
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(107, 91, 149, 0.15);
+}
+
+.scene-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.scene-info-label {
+  font-size: 20rpx;
+  color: @text-secondary;
+  font-weight: 500;
+  letter-spacing: 2rpx;
+}
+
+.scene-info-name {
+  font-size: 28rpx;
+  color: @text-primary;
+  font-weight: bold;
+}
+
 /* 装饰层 */
 .game-decorations {
   position: absolute;

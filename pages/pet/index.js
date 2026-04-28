@@ -30,6 +30,8 @@ Page({
     // 当前活动
     currentActivity: '在森林里悠闲地散步',
     currentScene: '奇幻森林 · 翡翠谷',
+    currentSceneId: 'fantasy_space',
+    currentSceneIcon: '🌲',
     // 事件
     hasEvent: false,
     eventCount: 0,
@@ -38,6 +40,10 @@ Page({
     petSpriteY: 0,
     // 心宠移动动画
     petAnimation: {},
+    // 心宠当前所在场景
+    petSceneId: 'fantasy_space',
+    petSceneName: '奇幻空间',
+    petActivity: '在森林里悠闲地散步',
     // 全屏模式
     isFullscreen: false,
 
@@ -293,6 +299,11 @@ Page({
         currentActivity: ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)],
       });
 
+      // 心宠随机切换场景（每15秒有30%概率切换）
+      if (Math.random() < 0.3) {
+        this.switchPetScene();
+      }
+
       // 模拟事件（每30秒可能触发一次）
       if (Math.random() < 0.1) {
         this.setData({
@@ -310,6 +321,37 @@ Page({
     if (newValue > max) newValue = max;
     if (newValue < min) newValue = min;
     return Math.round(newValue);
+  },
+
+  // 心宠切换场景
+  switchPetScene() {
+    const { scenes, petSceneId } = this.data;
+    const unlockedScenes = scenes.filter((s) => s.unlocked);
+    if (unlockedScenes.length <= 1) return;
+
+    // 随机选择一个不同于当前的场景
+    let newScene;
+    do {
+      newScene = unlockedScenes[Math.floor(Math.random() * unlockedScenes.length)];
+    } while (newScene.id === petSceneId);
+
+    // 随机选择一个活动
+    const newActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
+
+    this.setData({
+      petSceneId: newScene.id,
+      petSceneName: newScene.name,
+      petActivity: newActivity,
+    });
+
+    // 如果心宠切换到了当前场景，显示提示
+    const currentSceneObj = scenes.find((s) => s.current);
+    if (currentSceneObj && currentSceneObj.id === newScene.id) {
+      wx.showToast({
+        title: '心宠回来了！',
+        icon: 'none',
+      });
+    }
   },
 
   // 点击设置
@@ -367,6 +409,8 @@ Page({
           this.setData({
             scenes,
             currentScene: selectedScene.name,
+            currentSceneId: selectedScene.id,
+            currentSceneIcon: selectedScene.icon || '🌲',
           });
 
           wx.showToast({

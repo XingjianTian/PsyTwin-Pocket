@@ -55,6 +55,15 @@
         <!-- 背景图片层 -->
         <image class="game-bg-image" src="/static/pet/scenes/BackGround1.png" mode="aspectFill"></image>
 
+        <!-- 场景信息卡片（左上角） -->
+        <view class="scene-info-card">
+          <view class="scene-info-icon">{{currentSceneIcon}}</view>
+          <view class="scene-info-content">
+            <text class="scene-info-label">当前场景</text>
+            <text class="scene-info-name">{{currentScene}}</text>
+          </view>
+        </view>
+
         <!-- 装饰层：树 -->
         <view class="game-decorations">
           <text class="deco-tree">🌲</text>
@@ -65,21 +74,8 @@
           <text class="deco-flower">🌸</text>
         </view>
 
-        <!-- 虚拟宠物层 -->
-        <view class="virtual-pets">
-          <view class="virtual-pet" style="left: 60px; top: 80px;">
-            <text>🐱</text>
-          </view>
-          <view class="virtual-pet" style="left: 140px; top: 100px;">
-            <text>🐶</text>
-          </view>
-          <view class="virtual-pet" style="left: 220px; top: 90px;">
-            <text>🦊</text>
-          </view>
-        </view>
-
-        <!-- 心宠精灵层 -->
-        <view class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
+        <!-- 心宠精灵层（仅当在当前场景时显示） -->
+        <view wx:if="{{petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
           <view class="pet-body">
             <view class="pet-face">
               <view class="pet-eye pet-eye-left"></view>
@@ -95,8 +91,14 @@
 
         <!-- 状态浮层 -->
         <view class="activity-overlay">
-          <text class="activity-text">{{currentActivity}}</text>
-          <text class="scene-name">{{currentScene}}</text>
+          <block wx:if="{{petSceneId === currentSceneId}}">
+            <text class="activity-text">心宠在这里</text>
+            <text class="scene-name">{{petActivity}}</text>
+          </block>
+          <block wx:else>
+            <text class="activity-text">心宠正在 {{petSceneName}}</text>
+            <text class="scene-name">{{petActivity}}</text>
+          </block>
         </view>
       </view>
     </block>
