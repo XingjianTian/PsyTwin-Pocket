@@ -37,7 +37,7 @@
     <view class="settings-btn" bindtap="{{currentView === 'game' ? 'onSettingsTap' : 'backToGame'}}">
       {{currentView === 'game' ? '⚙️' : '✕'}}
     </view>
-    <!-- 全屏按钮（仅在游戏视图显示） -->
+    <!-- 全屏按钮（仅在游戏视图且非全屏时显示） -->
     <view wx:if="{{currentView === 'game' && !isFullscreen}}" class="fullscreen-btn" bindtap="toggleFullscreen">
       ⛶
     </view>
@@ -105,57 +105,92 @@
 
     <!-- ========== 世界地图视图 ========== -->
     <block wx:if="{{currentView === 'map'}}">
-      <scroll-view class="view-content map-view" scroll-y>
-        <!-- 装饰：云朵 -->
-        <view class="cloud cloud-1">☁️</view>
-        <view class="cloud cloud-2">☁️</view>
+      <scroll-view class="view-content map-view" scroll-y style="height: 100%;">
+        <view class="map-scroll-content">
+          <!-- 装饰：云朵 -->
+          <view class="cloud cloud-1">☁️</view>
+          <view class="cloud cloud-2">☁️</view>
 
-        <!-- 装饰：指南针 -->
-        <view class="compass">🧭</view>
+          <!-- 装饰：指南针 -->
+          <view class="compass">🧭</view>
 
-        <!-- 路径连接线 -->
-        <view class="paths">
-          <view class="path path-1"></view>
-          <view class="path path-2"></view>
-          <view class="path path-3"></view>
-        </view>
-
-        <!-- 地块区域 -->
-        <view class="territories">
-          <!-- 心宠位置标记（独立元素，平滑移动） -->
-          <view class="pet-marker-map" style="{{petMarkerStyle}}">
-            <view class="pet-marker-body">🎀</view>
-            <view class="pet-marker-glow"></view>
+          <!-- 返回按钮（二级场景时显示） -->
+          <view wx:if="{{mapLevel === 'secondary'}}" class="back-btn-secondary" bindtap="backToPrimary">
+            ← 返回
           </view>
-          <view
-            class="territory {{item.current ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
-            wx:for="{{scenes}}"
-            wx:key="id"
-            style="left: {{item.x}}; top: {{item.y}};"
-            data-scene="{{item}}"
-            bindtap="onSceneTap"
-          >
-            <view class="territory-body" style="background: {{item.gradient}};">
-              <view class="terrain-texture"></view>
-              <view class="territory-icon">{{item.icon}}</view>
-              <view class="terrain-deco" wx:if="{{item.deco}}">{{item.deco}}</view>
+
+          <!-- 一级场景 -->
+          <view class="territories primary-territories {{mapLevel === 'secondary' ? 'zoom-out' : 'zoom-in'}}">
+            <!-- 一级地图心宠标记（仅在显示一级地图时可见） -->
+            <view class="pet-marker-map pet-marker-primary" style="{{petMarkerPrimaryStyle}}">
+              <view class="pet-marker-body">🎀</view>
+              <view class="pet-marker-glow"></view>
             </view>
-            <view class="territory-sign">
-              <view class="sign-board">
-                <text class="sign-text">{{item.name}}</text>
+            <view
+              class="territory {{item.current && currentSceneId === item.id ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
+              wx:for="{{scenes}}"
+              wx:key="id"
+              style="left: {{item.x}}; top: {{item.y}};"
+              data-scene="{{item}}"
+              bindtap="onSceneTap"
+            >
+              <view class="territory-body" style="background: {{item.gradient}};">
+                <view class="terrain-texture"></view>
+                <view class="territory-icon">{{item.icon}}</view>
+                <view class="terrain-deco" wx:if="{{item.deco}}">{{item.deco}}</view>
               </view>
-              <view class="sign-post"></view>
-            </view>
-            <view class="current-marker" wx:if="{{item.current}}">
-              <view class="marker-dot"></view>
-              <view class="marker-pulse"></view>
-            </view>
-            <view class="lock-marker" wx:if="{{!item.unlocked}}">
-              <text>🔒</text>
+              <view class="territory-sign">
+                <view class="sign-board">
+                  <text class="sign-text">{{item.name}}</text>
+                </view>
+                <view class="sign-post"></view>
+              </view>
+              <view class="secondary-badge" wx:if="{{item.hasSecondary}}">
+                <text>🏠</text>
+              </view>
+              <view class="current-marker" wx:if="{{item.current && currentSceneId === item.id}}">
+                <view class="marker-dot"></view>
+                <view class="marker-pulse"></view>
+              </view>
+              <view class="lock-marker" wx:if="{{!item.unlocked}}">
+                <text>🔒</text>
+              </view>
             </view>
           </view>
-        </view>
 
+          <!-- 二级场景 -->
+          <view wx:if="{{mapLevel === 'secondary'}}" class="territories secondary-territories zoom-in">
+            <!-- 二级地图心宠标记（只有当心宠在当前查看的二级地图里时才显示） -->
+            <view wx:if="{{petMarkerSecondaryStyle}}" class="pet-marker-map pet-marker-secondary" style="{{petMarkerSecondaryStyle}}">
+              <view class="pet-marker-body">🎀</view>
+              <view class="pet-marker-glow"></view>
+            </view>
+            <view
+              class="territory {{currentSceneId === item.id ? 'current' : ''}}"
+              wx:for="{{secondaryScenes[activePrimarySceneId]}}"
+              wx:key="id"
+              style="left: {{item.x}}; top: {{item.y}};"
+              data-scene="{{item}}"
+              bindtap="onSecondarySceneTap"
+            >
+              <view class="territory-body" style="background: {{item.gradient}};">
+                <view class="terrain-texture"></view>
+                <view class="territory-icon">{{item.icon}}</view>
+              </view>
+              <view class="territory-sign">
+                <view class="sign-board">
+                  <text class="sign-text">{{item.name}}</text>
+                </view>
+                <view class="sign-post"></view>
+              </view>
+              <view class="current-marker" wx:if="{{currentSceneId === item.id}}">
+                <view class="marker-dot"></view>
+                <view class="marker-pulse"></view>
+              </view>
+            </view>
+          </view>
+
+        </view>
       </scroll-view>
     </block>
 

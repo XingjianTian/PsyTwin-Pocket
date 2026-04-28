@@ -169,8 +169,8 @@
 
 /* 退出全屏按钮 */
 .exit-fullscreen-btn {
-  position: fixed;
-  top: 20rpx;
+  position: absolute;
+  top: 80rpx;
   right: 20rpx;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
@@ -556,6 +556,31 @@
   top: 0rpx; /* 地图没有标题栏 */
 }
 
+.map-scroll-content {
+  position: relative;
+  min-height: 1200rpx;
+  padding-bottom: 200rpx;
+}
+
+/* 一级/二级场景容器重叠 */
+.territories.primary-territories {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 1000rpx;
+  z-index: 5;
+}
+
+.territories.secondary-territories {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 1000rpx;
+  z-index: 10;
+}
+
 /* 云朵装饰 */
 .cloud {
   position: absolute;
@@ -641,11 +666,9 @@
 
 /* 地块区域 */
 .territories {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  width: 100%;
+  min-height: 1000rpx;
 }
 
 .territory {
@@ -772,6 +795,78 @@
   text-shadow: 0 1rpx 0 rgba(255, 255, 255, 0.5);
 }
 
+/* 二级场景徽章 */
+.secondary-badge {
+  position: absolute;
+  top: -16rpx;
+  right: -16rpx;
+  background: linear-gradient(135deg, #FFD93D, #F6AD55);
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  z-index: 15;
+  border: 2rpx solid #fff;
+}
+
+/* 返回按钮 */
+.back-btn-secondary {
+  position: absolute;
+  top: 30rpx;
+  left: 30rpx;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20rpx);
+  padding: 16rpx 32rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: @text-primary;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  transition: all 0.3s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 1);
+  }
+}
+
+/* 一级/二级场景切换动画 */
+.primary-territories,
+.secondary-territories {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.primary-territories.zoom-out {
+  transform: scale(0.6);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.primary-territories.zoom-in {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.secondary-territories.zoom-in {
+  animation: secondary-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes secondary-pop-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .sign-post {
   width: 6rpx;
   height: 16rpx;
@@ -785,6 +880,11 @@
   z-index: 20;
   transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
+}
+
+/* 二级地图心宠标记需要更高层级 */
+.pet-marker-secondary {
+  z-index: 30;
 }
 
 .pet-marker-map .pet-marker-body {

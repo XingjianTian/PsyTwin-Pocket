@@ -28,10 +28,10 @@ Page({
     energy: 75,
     social: 45,
     // 当前活动
-    currentActivity: '在森林里悠闲地散步',
-    currentScene: '奇幻森林 · 翡翠谷',
-    currentSceneId: 'fantasy_space',
-    currentSceneIcon: '🌲',
+    currentActivity: '在温暖的床上休息',
+    currentScene: '卧室',
+    currentSceneId: 'bedroom',
+    currentSceneIcon: '🛏️',
     // 事件
     hasEvent: false,
     eventCount: 0,
@@ -40,12 +40,14 @@ Page({
     petSpriteY: 0,
     // 心宠移动动画
     petAnimation: {},
-    // 心宠当前所在场景
-    petSceneId: 'fantasy_space',
-    petSceneName: '奇幻空间',
-    petActivity: '在森林里悠闲地散步',
-    // 地图中心宠标记位置
-    petMarkerStyle: 'left: calc(50% - 80rpx); top: 8%;',
+    // 心宠当前所在场景（默认在卧室的床上）
+    petSceneId: 'bedroom',
+    petSceneName: '卧室',
+    petActivity: '在温暖的床上休息',
+    // 地图中心宠标记位置（一级地图用，初始在梦境小屋）
+    petMarkerPrimaryStyle: 'left: calc(22% - 80rpx); top: 26%;',
+    // 地图中心宠标记位置（二级地图用，初始不在任何二级地图里）
+    petMarkerSecondaryStyle: '',
     // 全屏模式
     isFullscreen: false,
 
@@ -71,7 +73,11 @@ Page({
     helpEvents: [],
     helpLoading: true,
 
-    // 场景数据
+    // 地图层级：primary | secondary
+    mapLevel: 'primary',
+    activePrimarySceneId: '',
+
+    // 场景数据（五角星形状排列）
     scenes: [
       {
         id: 'fantasy_space',
@@ -84,36 +90,9 @@ Page({
         unlocked: true,
         current: true,
         x: 'calc(50% - 80rpx)',
-        y: '8%',
+        y: '5%',
         tags: ['探索', '魔法', '森林'],
-      },
-      {
-        id: 'dream_house',
-        name: '梦境小屋',
-        description: '温馨的夜晚小屋，窗外星空璀璨，适合休息、做梦和整理心情',
-        icon: '🌙',
-        gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
-        color: '#9B89B3',
-        deco: '⭐',
-        unlocked: true,
-        current: false,
-        x: 'calc(50% - 80rpx)',
-        y: '32%',
-        tags: ['梦境', '休息', '星空'],
-      },
-      {
-        id: 'open_wilderness',
-        name: '自由旷野',
-        description: '一望无际的开放林地，有篝火、吊床和野餐区，适合社交和放松身心',
-        icon: '🌳',
-        gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
-        color: '#A8E6CF',
-        deco: '🔥',
-        unlocked: true,
-        current: false,
-        x: 'calc(25% - 80rpx)',
-        y: '56%',
-        tags: ['野餐', '社交', '开阔'],
+        hasSecondary: true,
       },
       {
         id: 'soul_harbor',
@@ -125,11 +104,346 @@ Page({
         deco: '📚',
         unlocked: true,
         current: false,
-        x: 'calc(75% - 80rpx)',
-        y: '56%',
+        x: 'calc(78% - 80rpx)',
+        y: '26%',
         tags: ['安全', '舒适', '倾诉'],
+        hasSecondary: true,
+      },
+      {
+        id: 'open_wilderness',
+        name: '自由旷野',
+        description: '一望无际的开放林地，有篝火、吊床和野餐区，适合社交和放松身心',
+        icon: '🌳',
+        gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
+        color: '#A8E6CF',
+        deco: '🔥',
+        unlocked: true,
+        current: false,
+        x: 'calc(65% - 80rpx)',
+        y: '55%',
+        tags: ['野餐', '社交', '开阔'],
+        hasSecondary: true,
+      },
+      {
+        id: 'school',
+        name: '学校',
+        description: '充满知识与活力的校园，有图书馆、食堂、教学楼等众多场所',
+        icon: '🏫',
+        gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
+        color: '#FFD93D',
+        deco: '🎓',
+        unlocked: true,
+        current: false,
+        x: 'calc(35% - 80rpx)',
+        y: '55%',
+        tags: ['学习', '校园', '知识'],
+        hasSecondary: true,
+      },
+      {
+        id: 'dream_house',
+        name: '梦境小屋',
+        description: '温馨的夜晚小屋，窗外星空璀璨，适合休息、做梦和整理心情',
+        icon: '🌙',
+        gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+        color: '#9B89B3',
+        deco: '⭐',
+        unlocked: true,
+        current: false,
+        x: 'calc(22% - 80rpx)',
+        y: '26%',
+        tags: ['梦境', '休息', '星空'],
+        hasSecondary: true,
       },
     ],
+
+    // 二级场景数据（五角星形状排列，所有一级场景都有二级场景）
+    secondaryScenes: {
+      fantasy_space: [
+        {
+          id: 'deep_forest',
+          name: '魔法森林',
+          description: '充满神秘魔法的森林深处，古老的树木诉说着远古的故事',
+          icon: '🌳',
+          gradient: 'linear-gradient(135deg, #2E8B57, #3CB371)',
+          color: '#2E8B57',
+          x: 'calc(72% - 80rpx)',
+          y: '32%',
+          tags: ['魔法', '探索', '自然'],
+        },
+        {
+          id: 'crystal_cave',
+          name: '水晶洞穴',
+          description: '闪烁着七彩光芒的水晶洞穴，每一块水晶都蕴含着魔法能量',
+          icon: '💎',
+          gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
+          color: '#4A90E2',
+          x: 'calc(35% - 80rpx)',
+          y: '8%',
+          tags: ['水晶', '神秘', '能量'],
+        },
+        {
+          id: 'mushroom_village',
+          name: '蘑菇村落',
+          description: '可爱的蘑菇小屋组成的村落，居民是善良的小精灵',
+          icon: '🍄',
+          gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+          color: '#FF6B6B',
+          x: 'calc(50% - 80rpx)',
+          y: '62%',
+          tags: ['精灵', '村落', '温馨'],
+        },
+        {
+          id: 'fairy_lake',
+          name: '精灵湖泊',
+          description: '清澈见底的湖泊，水面上漂浮着发光的水莲花',
+          icon: '🧚',
+          gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
+          color: '#87CEEB',
+          x: 'calc(65% - 80rpx)',
+          y: '8%',
+          tags: ['湖泊', '精灵', '宁静'],
+        },
+        {
+          id: 'star_meadow',
+          name: '星空草地',
+          description: '夜晚会发出微光的神奇草地，躺在这里可以看到最亮的星星',
+          icon: '⭐',
+          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+          color: '#9B89B3',
+          x: 'calc(28% - 80rpx)',
+          y: '32%',
+          tags: ['星空', '草地', '浪漫'],
+        },
+      ],
+      soul_harbor: [
+        {
+          id: 'consulting_room',
+          name: '咨询室',
+          description: '温馨舒适的咨询空间，有柔软的沙发和温暖的灯光',
+          icon: '🛋️',
+          gradient: 'linear-gradient(135deg, #8B7355, #A08060)',
+          color: '#8B7355',
+          x: 'calc(72% - 80rpx)',
+          y: '32%',
+          tags: ['咨询', '舒适', '安全'],
+        },
+        {
+          id: 'reading_corner',
+          name: '阅读角',
+          description: '安静的阅读角落，书架上摆满了心理学和文学书籍',
+          icon: '📚',
+          gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
+          color: '#4A90E2',
+          x: 'calc(35% - 80rpx)',
+          y: '8%',
+          tags: ['阅读', '安静', '知识'],
+        },
+        {
+          id: 'meditation_room',
+          name: '冥想室',
+          description: '充满禅意的冥想空间，有助放松身心、平静情绪',
+          icon: '🧘',
+          gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
+          color: '#7BC8A4',
+          x: 'calc(50% - 80rpx)',
+          y: '62%',
+          tags: ['冥想', '放松', '平静'],
+        },
+        {
+          id: 'sandplay_room',
+          name: '沙盘室',
+          description: '摆放着各种沙盘道具的治疗室，通过游戏表达内心',
+          icon: '🏖️',
+          gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
+          color: '#FFD93D',
+          x: 'calc(65% - 80rpx)',
+          y: '8%',
+          tags: ['沙盘', '游戏', '表达'],
+        },
+        {
+          id: 'relaxation_area',
+          name: '放松区',
+          description: '配备按摩椅和轻音乐的放松区域，释放压力的最佳去处',
+          icon: '🎵',
+          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+          color: '#9B89B3',
+          x: 'calc(28% - 80rpx)',
+          y: '32%',
+          tags: ['放松', '音乐', '舒适'],
+        },
+      ],
+      open_wilderness: [
+        {
+          id: 'bonfire_area',
+          name: '篝火区',
+          description: '夜晚篝火温暖的地方，适合围坐聊天和烤棉花糖',
+          icon: '🔥',
+          gradient: 'linear-gradient(135deg, #FF8C42, #FF6B6B)',
+          color: '#FF8C42',
+          x: 'calc(72% - 80rpx)',
+          y: '32%',
+          tags: ['篝火', '温暖', '社交'],
+        },
+        {
+          id: 'picnic_lawn',
+          name: '野餐草坪',
+          description: '绿油油的草坪，是野餐和晒太阳的绝佳场所',
+          icon: '🧺',
+          gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
+          color: '#7BC8A4',
+          x: 'calc(35% - 80rpx)',
+          y: '8%',
+          tags: ['野餐', '草坪', '阳光'],
+        },
+        {
+          id: 'hammock_area',
+          name: '吊床区',
+          description: '挂在两棵树之间的吊床，是午睡和发呆的好地方',
+          icon: '🛏️',
+          gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
+          color: '#A8E6CF',
+          x: 'calc(50% - 80rpx)',
+          y: '62%',
+          tags: ['吊床', '休息', '慵懒'],
+        },
+        {
+          id: 'stream_side',
+          name: '溪流边',
+          description: '清澈的小溪边，可以听到流水声和鸟鸣声',
+          icon: '💧',
+          gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
+          color: '#87CEEB',
+          x: 'calc(65% - 80rpx)',
+          y: '8%',
+          tags: ['溪流', '自然', '宁静'],
+        },
+        {
+          id: 'viewing_platform',
+          name: '观景台',
+          description: '高地上的观景台，可以俯瞰整个旷野的美景',
+          icon: '🔭',
+          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+          color: '#9B89B3',
+          x: 'calc(28% - 80rpx)',
+          y: '32%',
+          tags: ['观景', '高地', '美景'],
+        },
+      ],
+      school: [
+        {
+          id: 'library',
+          name: '图书馆',
+          description: '安静的图书馆，书香四溢，适合阅读和学习',
+          icon: '📚',
+          gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
+          color: '#8B4513',
+          x: 'calc(72% - 80rpx)',
+          y: '32%',
+          tags: ['阅读', '学习', '安静'],
+        },
+        {
+          id: 'teaching_building',
+          name: '教学楼',
+          description: '知识的殿堂，每天在这里汲取新知识',
+          icon: '🏫',
+          gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
+          color: '#4A90E2',
+          x: 'calc(35% - 80rpx)',
+          y: '8%',
+          tags: ['上课', '学习', '知识'],
+        },
+        {
+          id: 'lab',
+          name: '实验室',
+          description: '充满探索精神的实验室，各种奇妙的实验在这里进行',
+          icon: '🔬',
+          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+          color: '#9B89B3',
+          x: 'calc(50% - 80rpx)',
+          y: '62%',
+          tags: ['实验', '探索', '科学'],
+        },
+        {
+          id: 'playground',
+          name: '操场',
+          description: '宽阔的操场，适合运动和放松',
+          icon: '⚽',
+          gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
+          color: '#7BC8A4',
+          x: 'calc(65% - 80rpx)',
+          y: '8%',
+          tags: ['运动', '放松', '活力'],
+        },
+        {
+          id: 'cafeteria',
+          name: '食堂',
+          description: '热闹的食堂，各种美食应有尽有',
+          icon: '🍜',
+          gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+          color: '#FF6B6B',
+          x: 'calc(28% - 80rpx)',
+          y: '32%',
+          tags: ['美食', '社交', '休息'],
+        },
+      ],
+      dream_house: [
+        {
+          id: 'bedroom',
+          name: '卧室',
+          description: '温馨舒适的卧室，柔软的床铺和温暖的灯光',
+          icon: '🛏️',
+          gradient: 'linear-gradient(135deg, #FF8E8E, #FFB6C1)',
+          color: '#FF8E8E',
+          x: 'calc(72% - 80rpx)',
+          y: '32%',
+          tags: ['睡眠', '温馨', '舒适'],
+        },
+        {
+          id: 'study_room',
+          name: '书房',
+          description: '摆满书籍的书房，是阅读和思考的好地方',
+          icon: '📖',
+          gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
+          color: '#8B4513',
+          x: 'calc(35% - 80rpx)',
+          y: '8%',
+          tags: ['阅读', '思考', '安静'],
+        },
+        {
+          id: 'kitchen',
+          name: '厨房',
+          description: '充满香气的厨房，可以制作各种美味的食物',
+          icon: '🍳',
+          gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
+          color: '#FFD93D',
+          x: 'calc(50% - 80rpx)',
+          y: '62%',
+          tags: ['烹饪', '美食', '温馨'],
+        },
+        {
+          id: 'garden',
+          name: '花园',
+          description: '种满鲜花的小花园，有蝴蝶和小鸟来访',
+          icon: '🌸',
+          gradient: 'linear-gradient(135deg, #FF69B4, #FFB6C1)',
+          color: '#FF69B4',
+          x: 'calc(65% - 80rpx)',
+          y: '8%',
+          tags: ['花园', '鲜花', '自然'],
+        },
+        {
+          id: 'attic',
+          name: '阁楼',
+          description: '神秘的阁楼，存放着旧物和美好的回忆',
+          icon: '🏠',
+          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
+          color: '#9B89B3',
+          x: 'calc(28% - 80rpx)',
+          y: '32%',
+          tags: ['回忆', '神秘', '旧物'],
+        },
+      ],
+    },
   },
 
   // 状态定时器
@@ -326,16 +640,26 @@ Page({
     return Math.round(newValue);
   },
 
+  // 获取所有可选场景（一级+二级）
+  getAllScenes() {
+    const { scenes, secondaryScenes } = this.data;
+    let allScenes = [...scenes];
+    Object.values(secondaryScenes).forEach((list) => {
+      allScenes = allScenes.concat(list);
+    });
+    return allScenes;
+  },
+
   // 心宠切换场景
   switchPetScene() {
-    const { scenes, petSceneId } = this.data;
-    const unlockedScenes = scenes.filter((s) => s.unlocked);
-    if (unlockedScenes.length <= 1) return;
+    const allScenes = this.getAllScenes();
+    const { petSceneId } = this.data;
+    if (allScenes.length <= 1) return;
 
     // 随机选择一个不同于当前的场景
     let newScene;
     do {
-      newScene = unlockedScenes[Math.floor(Math.random() * unlockedScenes.length)];
+      newScene = allScenes[Math.floor(Math.random() * allScenes.length)];
     } while (newScene.id === petSceneId);
 
     // 随机选择一个活动
@@ -345,12 +669,14 @@ Page({
       petSceneId: newScene.id,
       petSceneName: newScene.name,
       petActivity: newActivity,
-      petMarkerStyle: `left: ${newScene.x}; top: ${newScene.y};`,
     });
 
+    // 更新标记位置（根据当前地图级别）
+    this.updatePetMarker();
+
     // 如果心宠切换到了当前场景，显示提示
-    const currentSceneObj = scenes.find((s) => s.current);
-    if (currentSceneObj && currentSceneObj.id === newScene.id) {
+    const { currentSceneId } = this.data;
+    if (newScene.id === currentSceneId) {
       wx.showToast({
         title: '心宠回来了！',
         icon: 'none',
@@ -359,14 +685,65 @@ Page({
   },
 
   // 更新地图中心宠标记位置
+  // 两个独立图标：一级地图显示父级场景位置，二级地图只显示在当前查看的二级地图里
   updatePetMarker() {
-    const { scenes, petSceneId } = this.data;
-    const scene = scenes.find((s) => s.id === petSceneId);
-    if (scene) {
-      this.setData({
-        petMarkerStyle: `left: ${scene.x}; top: ${scene.y};`,
+    const { scenes, secondaryScenes, petSceneId, activePrimarySceneId } = this.data;
+
+    // 先查找是否在一级场景中
+    let scene = scenes.find((s) => s.id === petSceneId);
+    let parentScene = null;
+    let parentId = null;
+
+    // 如果不在一级场景中，在二级场景中查找
+    if (!scene) {
+      Object.entries(secondaryScenes).forEach(([pid, list]) => {
+        const found = list.find((s) => s.id === petSceneId);
+        if (found) {
+          scene = found;
+          parentId = pid;
+          parentScene = scenes.find((s) => s.id === pid);
+        }
       });
     }
+
+    if (!scene) return;
+
+    // 一级地图图标：始终显示在父级（或当前一级）场景位置
+    const primaryScene = parentScene || scene;
+    const primaryStyle = `left: ${primaryScene.x}; top: ${primaryScene.y};`;
+
+    // 二级地图图标：只有当心宠属于当前正在查看的二级地图时才显示
+    let secondaryStyle = '';
+    if (activePrimarySceneId && parentId === activePrimarySceneId) {
+      // 心宠在当前查看的二级地图里，显示在具体的二级场景位置
+      secondaryStyle = `left: ${scene.x}; top: ${scene.y};`;
+    }
+    // 否则 secondaryStyle 为空字符串，二级图标隐藏
+
+    this.setData({
+      petMarkerPrimaryStyle: primaryStyle,
+      petMarkerSecondaryStyle: secondaryStyle,
+    });
+  },
+
+  // 点击进入二级场景
+  enterSecondaryScene(sceneId) {
+    this.setData({
+      activePrimarySceneId: sceneId,
+      mapLevel: 'secondary',
+    });
+    // 进入二级后更新标记位置（显示具体二级场景位置）
+    this.updatePetMarker();
+  },
+
+  // 返回一级场景
+  backToPrimary() {
+    this.setData({
+      mapLevel: 'primary',
+      activePrimarySceneId: '',
+    });
+    // 返回一级后更新标记位置（显示父级一级场景位置）
+    this.updatePetMarker();
   },
 
   // 点击设置
@@ -379,13 +756,53 @@ Page({
 
   // ========== 世界地图 ==========
 
-  // 点击地块
+  // 点击地块（一级场景）
   onSceneTap(e) {
     const { scene } = e.currentTarget.dataset;
-    this.setData({
-      selectedScene: scene,
-      showSceneModal: true,
+    // 所有一级场景都有二级场景，直接打开二级视图
+    this.enterSecondaryScene(scene.id);
+  },
+
+  // 点击二级场景地块
+  onSecondarySceneTap(e) {
+    const { scene } = e.currentTarget.dataset;
+    wx.showModal({
+      title: '切换场景',
+      content: `确定要进入「${scene.name}」吗？`,
+      confirmText: '进入',
+      confirmColor: '#6B5B95',
+      success: (res) => {
+        if (res.confirm) {
+          this.enterSecondarySceneDetail(scene);
+        }
+      },
     });
+  },
+
+  // 进入二级场景详情（真正进入该场景）
+  enterSecondarySceneDetail(scene) {
+    // 清空所有一级场景的 current 标记
+    const scenes = this.data.scenes.map((s) => ({
+      ...s,
+      current: false,
+    }));
+
+    // 更新当前场景为二级场景
+    this.setData({
+      scenes,
+      currentScene: scene.name,
+      currentSceneId: scene.id,
+      currentSceneIcon: scene.icon || '🌲',
+    });
+
+    wx.showToast({
+      title: `已进入${scene.name}`,
+      icon: 'success',
+    });
+
+    // 返回游戏视图
+    this.backToGame();
+    this.backToPrimary();
   },
 
   // 关闭场景详情弹窗
@@ -415,7 +832,7 @@ Page({
       confirmColor: '#6B5B95',
       success: (res) => {
         if (res.confirm) {
-          // 更新当前场景
+          // 更新当前场景（一级场景）
           const scenes = this.data.scenes.map((scene) => ({
             ...scene,
             current: scene.id === selectedScene.id,
