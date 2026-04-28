@@ -162,30 +162,20 @@
   overflow: hidden;
 }
 
-/* 背景渐变 */
-.game-background {
+/* 背景图片 */
+.game-bg-image {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #98D8C8 0%, #7BC8A4 60%, #5BA88F 100%);
-}
-
-/* 地面 */
-.game-ground {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  background: #6BB896;
+  z-index: 0;
 }
 
 /* 装饰层 */
 .game-decorations {
   position: absolute;
-  bottom: 80px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100px;
@@ -237,7 +227,7 @@
 /* 虚拟宠物 */
 .virtual-pets {
   position: absolute;
-  bottom: 80px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 120px;

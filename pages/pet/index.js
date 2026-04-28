@@ -36,6 +36,8 @@ Page({
     // 心宠精灵位置
     petSpriteX: 0,
     petSpriteY: 0,
+    // 心宠移动动画
+    petAnimation: {},
 
     // ========== 世界地图 ==========
     showSceneModal: false,
@@ -212,32 +214,56 @@ Page({
   // 初始化游戏视图
   initGameView() {
     const { windowWidth, windowHeight } = wx.getSystemInfoSync();
-    const centerX = windowWidth / 2;
-    const centerY = windowHeight / 2 - 100;
 
-    this.setData({
-      petSpriteX: centerX,
-      petSpriteY: centerY,
+    // 计算心宠移动边界（限制在底部草地区域，即截图红框内）
+    // 状态栏+标题约占顶部 22%，按钮面板在底部约 18%
+    // 红框草地区域大约在屏幕高度的 55% ~ 80% 之间
+    this.boundary = {
+      minX: 50,
+      maxX: windowWidth - 50,
+      minY: windowHeight * 0.4,
+      maxY: windowHeight * 0.55,
+    };
+
+    const startX = windowWidth / 2;
+    const startY = (this.boundary.minY + this.boundary.maxY) / 2;
+
+    // 创建平滑移动动画实例
+    this.petAnim = wx.createAnimation({
+      duration: 1500,
+      timingFunction: 'ease-in-out',
     });
 
-    // 心宠随机移动定时器
+    this.setData({
+      petSpriteX: startX,
+      petSpriteY: startY,
+      petAnimation: this.petAnim.export(),
+    });
+
+    // 心宠随机移动定时器：每3秒有40%概率移动
     this.moveTimer = setInterval(() => {
-      if (Math.random() < 0.3) {
-        this.setRandomTarget(windowWidth, windowHeight);
+      if (Math.random() < 0.4) {
+        this.movePetSmoothly();
       }
-    }, 2000);
+    }, 3000);
   },
 
-  // 设置随机目标位置
-  setRandomTarget(windowWidth, windowHeight) {
-    const margin = 80;
-    const centerY = windowHeight / 2 - 100;
-    const newX = margin + Math.random() * (windowWidth - margin * 2);
-    const newY = centerY + Math.random() * 100;
+  // 平滑移动心宠到随机位置（带边界限制）
+  movePetSmoothly() {
+    if (!this.boundary) return;
+
+    const { minX, maxX, minY, maxY } = this.boundary;
+
+    const targetX = minX + Math.random() * (maxX - minX);
+    const targetY = minY + Math.random() * (maxY - minY);
+
+    // 使用动画平滑移动到目标位置
+    this.petAnim.left(targetX).top(targetY).step();
 
     this.setData({
-      petSpriteX: newX,
-      petSpriteY: newY,
+      petAnimation: this.petAnim.export(),
+      petSpriteX: targetX,
+      petSpriteY: targetY,
     });
   },
 

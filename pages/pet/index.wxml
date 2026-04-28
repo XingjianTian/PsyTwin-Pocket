@@ -44,11 +44,8 @@
     <!-- ========== 游戏视图 ========== -->
     <block wx:if="{{currentView === 'game'}}">
       <view class="game-view">
-        <!-- 背景渐变层 -->
-        <view class="game-background"></view>
-
-        <!-- 地面层 -->
-        <view class="game-ground"></view>
+        <!-- 背景图片层 -->
+        <image class="game-bg-image" src="/static/pet/scenes/BackGround1.png" mode="aspectFill"></image>
 
         <!-- 装饰层：树 -->
         <view class="game-decorations">
@@ -74,7 +71,7 @@
         </view>
 
         <!-- 心宠精灵层 -->
-        <view class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;">
+        <view class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
           <view class="pet-body">
             <view class="pet-face">
               <view class="pet-eye pet-eye-left"></view>
