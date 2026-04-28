@@ -56,6 +56,10 @@ Page({
     diarySelectedDate: '',
     diaryLoading: true,
 
+    // ========== 帮助事件 ==========
+    helpEvents: [],
+    helpLoading: true,
+
     // 场景数据
     scenes: [
       {
@@ -199,6 +203,7 @@ Page({
     this._initWebSocket();
     this.initBagData();
     this.initDiaryData();
+    this.initHelpData();
   },
 
   onUnload() {
@@ -370,17 +375,7 @@ Page({
 
   // 点击帮助
   onHelpTap() {
-    const { hasEvent, eventCount } = this.data;
-    if (hasEvent && eventCount > 0) {
-      wx.navigateTo({
-        url: '/pages/pet/events/index',
-      });
-    } else {
-      wx.showToast({
-        title: '暂无求助',
-        icon: 'none',
-      });
-    }
+    this.switchView('help');
   },
 
   // ========== 视图切换控制 ==========
@@ -592,5 +587,83 @@ Page({
       SOCIAL: '社交',
     };
     return labels[type] || type;
+  },
+
+  // ========== 帮助事件 ==========
+
+  // 初始化帮助数据
+  initHelpData() {
+    const mockEvents = [
+      {
+        id: 'evt_001',
+        type: 'large',
+        category: 'emotion',
+        title: '考试失利',
+        description: '今天数学考试没考好，心情很差，需要你的鼓励',
+        status: 'pending',
+        deadline: Date.now() + 24 * 60 * 60 * 1000,
+        options: [
+          { id: 'opt_1', text: '安慰鼓励', hint: '温柔的鼓励能让心宠重拾信心', impact: { mood: 15, energy: 5 } },
+          { id: 'opt_2', text: '分析原因', hint: '帮助心宠找到问题所在', impact: { mood: 5, energy: -5 } },
+          { id: 'opt_3', text: '陪伴散步', hint: '换个环境，放松心情', impact: { mood: 10, energy: -10 } },
+          { id: 'opt_4', text: '制定计划', hint: '一起制定学习计划', impact: { mood: 8, energy: 5 } },
+        ],
+      },
+    ];
+
+    this.setData({
+      helpEvents: mockEvents,
+      helpLoading: false,
+    });
+  },
+
+  // 选择帮助选项
+  onHelpOptionSelect(e) {
+    const { eventId, optionId } = e.currentTarget.dataset;
+    const event = this.data.helpEvents.find((ev) => ev.id === eventId);
+    const option = event && event.options.find((opt) => opt.id === optionId);
+
+    if (!event || !option) return;
+
+    wx.showModal({
+      title: '确认选择',
+      content: `确定要"${option.text}"吗？\n${option.hint}`,
+      success: (res) => {
+        if (res.confirm) {
+          this.resolveHelpEvent(eventId, optionId);
+        }
+      },
+    });
+  },
+
+  // 解决帮助事件
+  resolveHelpEvent(eventId, optionId) {
+    wx.showLoading({ title: '处理中...' });
+
+    setTimeout(() => {
+      wx.hideLoading();
+
+      const event = this.data.helpEvents.find((ev) => ev.id === eventId);
+      const option = event && event.options.find((opt) => opt.id === optionId);
+
+      const helpEvents = this.data.helpEvents.map((ev) => {
+        if (ev.id === eventId) {
+          return {
+            ...ev,
+            status: 'resolved',
+            resolvedOptionId: optionId,
+            resolvedOptionText: option ? option.text : '未知选项',
+          };
+        }
+        return ev;
+      });
+
+      this.setData({ helpEvents });
+
+      wx.showToast({
+        title: '事件已解决',
+        icon: 'success',
+      });
+    }, 1000);
   },
 });

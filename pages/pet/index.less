@@ -1234,3 +1234,147 @@
     }
   }
 }
+
+/* ========== 帮助视图 ========== */
+.help-view {
+  background: #fafafa;
+  padding: 20rpx;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.event-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  border: 2rpx solid #f0f0f0;
+  transition: all 0.3s ease;
+
+  &.resolved {
+    opacity: 0.7;
+    background: #f9f9f9;
+
+    .event-title,
+    .event-desc {
+      text-decoration: line-through;
+      color: @text-secondary;
+    }
+
+    .options-list {
+      display: none;
+    }
+  }
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.event-type {
+  font-size: 22rpx;
+  color: @primary-500;
+  background: @primary-50;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.event-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+
+  &.pending {
+    color: @mood-low;
+    background: #fff0f0;
+  }
+
+  &.resolved {
+    color: @energy-high;
+    background: #f0fff5;
+  }
+}
+
+.event-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: @text-primary;
+  margin-bottom: 12rpx;
+}
+
+.event-desc {
+  font-size: 26rpx;
+  color: @text-secondary;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.option-item {
+  background: #fafafa;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  border: 2rpx solid #f0f0f0;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: @primary-50;
+    border-color: @primary-500;
+    transform: scale(0.98);
+  }
+}
+
+.option-text {
+  font-size: 28rpx;
+  color: @text-primary;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.option-hint {
+  font-size: 24rpx;
+  color: @text-secondary;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.option-impact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+
+  text {
+    font-size: 22rpx;
+    color: @primary-500;
+    background: @primary-50;
+    padding: 6rpx 14rpx;
+    border-radius: 10rpx;
+  }
+}
+
+.resolved-info {
+  background: @primary-50;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  text-align: center;
+
+  text {
+    font-size: 26rpx;
+    color: @primary-500;
+  }
+}

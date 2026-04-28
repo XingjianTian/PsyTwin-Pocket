@@ -264,6 +264,64 @@
       </scroll-view>
     </block>
 
+    <!-- ========== 帮助视图 ========== -->
+    <block wx:if="{{currentView === 'help'}}">
+      <view class="view-header">
+        <text class="view-title">{{hasEvent ? '需要帮助' : '暂无求助'}}</text>
+      </view>
+      <scroll-view class="view-content help-view" scroll-y>
+        <view wx:if="{{helpLoading}}" class="view-loading">
+          <text>加载中...</text>
+        </view>
+        <view wx:elif="{{!hasEvent || helpEvents.length === 0}}" class="view-empty">
+          <text class="empty-icon">🌟</text>
+          <text class="empty-text">暂无求助事件</text>
+          <text class="empty-subtext">心宠一切安好，继续保持关注哦~</text>
+        </view>
+        <view wx:else class="event-list">
+          <view
+            class="event-card {{item.status === 'resolved' ? 'resolved' : ''}}"
+            wx:for="{{helpEvents}}"
+            wx:key="id"
+          >
+            <view class="event-header">
+              <text class="event-type">{{item.type === 'large' ? '大型事件' : '日常事件'}}</text>
+              <text class="event-status {{item.status}}">{{item.status === 'pending' ? '待处理' : '已解决'}}</text>
+            </view>
+
+            <view class="event-title">{{item.title}}</view>
+            <view class="event-desc">{{item.description}}</view>
+
+            <!-- 选项列表 -->
+            <view wx:if="{{item.status === 'pending'}}" class="options-list">
+              <view
+                class="option-item"
+                wx:for="{{item.options}}"
+                wx:for-item="option"
+                wx:key="id"
+                data-event-id="{{item.id}}"
+                data-option-id="{{option.id}}"
+                bindtap="onHelpOptionSelect"
+              >
+                <text class="option-text">{{option.text}}</text>
+                <text class="option-hint">{{option.hint}}</text>
+                <view class="option-impact">
+                  <text wx:if="{{option.impact.mood}}">心情{{option.impact.mood > 0 ? '+' : ''}}{{option.impact.mood}}</text>
+                  <text wx:if="{{option.impact.energy}}">能量{{option.impact.energy > 0 ? '+' : ''}}{{option.impact.energy}}</text>
+                  <text wx:if="{{option.impact.sociability}}">社交{{option.impact.sociability > 0 ? '+' : ''}}{{option.impact.sociability}}</text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 已解决显示结果 -->
+            <view wx:if="{{item.status === 'resolved'}}" class="resolved-info">
+              <text>已选择：{{item.resolvedOptionText}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </block>
+
   </view>
 
   <!-- 按钮面板 - 悬浮在游戏区域上方 -->
@@ -272,7 +330,7 @@
       <view class="btn-icon">🗺️</view>
       <text class="btn-label">世界地图</text>
     </view>
-    <view class="btn-item {{hasEvent ? 'has-event' : ''}}" bindtap="onHelpTap">
+    <view class="btn-item {{currentView === 'help' ? 'active' : ''}} {{hasEvent ? 'has-event' : ''}}" bindtap="onHelpTap">
       <view class="btn-icon">🤝</view>
       <text class="btn-label">{{hasEvent ? '需要帮助' : '暂无求助'}}</text>
       <view wx:if="{{hasEvent}}" class="event-badge">{{eventCount}}</view>
