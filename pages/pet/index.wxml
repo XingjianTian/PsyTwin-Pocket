@@ -1,4 +1,4 @@
-<view class="pet-container">
+<view class="pet-container {{isFullscreen ? 'fullscreen' : ''}}">
   <!-- 状态栏 -->
   <view class="status-bar">
     <view class="status-content">
@@ -36,6 +36,14 @@
     <!-- 设置按钮 / 返回按钮 -->
     <view class="settings-btn" bindtap="{{currentView === 'game' ? 'onSettingsTap' : 'backToGame'}}">
       {{currentView === 'game' ? '⚙️' : '✕'}}
+    </view>
+    <!-- 全屏按钮（仅在游戏视图显示） -->
+    <view wx:if="{{currentView === 'game' && !isFullscreen}}" class="fullscreen-btn" bindtap="toggleFullscreen">
+      ⛶
+    </view>
+    <!-- 退出全屏按钮（仅在全屏时显示） -->
+    <view wx:if="{{isFullscreen}}" class="exit-fullscreen-btn" bindtap="toggleFullscreen">
+      ⛶
     </view>
   </view>
 
@@ -325,7 +333,7 @@
   </view>
 
   <!-- 按钮面板 - 悬浮在游戏区域上方 -->
-  <view class="button-panel">
+  <view class="button-panel" style="bottom: {{isFullscreen ? '10rpx' : '80rpx'}};">
     <view class="btn-item {{currentView === 'map' ? 'active' : ''}}" bindtap="onMapTap">
       <view class="btn-icon">🗺️</view>
       <text class="btn-label">世界地图</text>

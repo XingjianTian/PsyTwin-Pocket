@@ -6,6 +6,7 @@ Component({
     unreadNum: 0,
     role: '',
     list: [],
+    hidden: false,
   },
 
   lifetimes: {
@@ -23,6 +24,10 @@ Component({
       app.eventBus.on('role-change', (newRole) => {
         this.setData({ role: newRole });
         this.initTabList(newRole);
+      });
+
+      app.eventBus.on('tabbar-toggle', (hidden) => {
+        this.setData({ hidden });
       });
     },
   },

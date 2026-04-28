@@ -38,6 +38,8 @@ Page({
     petSpriteY: 0,
     // 心宠移动动画
     petAnimation: {},
+    // 全屏模式
+    isFullscreen: false,
 
     // ========== 世界地图 ==========
     showSceneModal: false,
@@ -55,6 +57,7 @@ Page({
     diaryDates: [],
     diarySelectedDate: '',
     diaryLoading: true,
+    diaryDataMap: {},
 
     // ========== 帮助事件 ==========
     helpEvents: [],
@@ -206,6 +209,11 @@ Page({
     this.initHelpData();
   },
 
+  onHide() {
+    const app = getApp();
+    app.eventBus.emit('tabbar-toggle', false);
+  },
+
   onUnload() {
     if (this.statusTimer) {
       clearInterval(this.statusTimer);
@@ -214,6 +222,8 @@ Page({
       clearInterval(this.moveTimer);
     }
     this._destroyWebSocket();
+    const app = getApp();
+    app.eventBus.emit('tabbar-toggle', false);
   },
 
   // 初始化游戏视图
@@ -380,6 +390,14 @@ Page({
 
   // ========== 视图切换控制 ==========
 
+  // 切换全屏模式
+  toggleFullscreen() {
+    const { isFullscreen } = this.data;
+    const app = getApp();
+    app.eventBus.emit('tabbar-toggle', !isFullscreen);
+    this.setData({ isFullscreen: !isFullscreen });
+  },
+
   // 切换到指定视图
   switchView(view) {
     if (this.data.currentView === view) {
@@ -490,11 +508,143 @@ Page({
 
   // ========== 心情日记 ==========
 
+  // 生成某天的日记条目
+  generateDiaryEntries(dateStr) {
+    const templates = [
+      {
+        time: '08:00',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '起床，精神满满', mood: 5, energy: 5, social: 0 },
+          { text: '睡了个懒觉，心情不错', mood: 8, energy: -3, social: 0 },
+          { text: '早起做了瑜伽', mood: 10, energy: -5, social: 0 },
+        ],
+      },
+      {
+        time: '10:00',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '认真上课，学到了新知识', mood: 3, energy: -8, social: 2 },
+          { text: '课间和朋友聊天', mood: 5, energy: 0, social: 8 },
+          { text: '专注完成了作业', mood: 8, energy: -5, social: 0 },
+        ],
+      },
+      {
+        time: '12:30',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '午餐吃了喜欢的食物', mood: 8, energy: 10, social: 3 },
+          { text: '和朋友一起吃饭', mood: 5, energy: 8, social: 10 },
+          { text: '午休了一会儿', mood: 3, energy: 10, social: 0 },
+        ],
+      },
+      {
+        time: '14:30',
+        type: 'EVENT',
+        contents: [
+          { text: '考试没考好，心情低落', mood: -20, energy: -10, social: -5 },
+          { text: '被老师表扬了，很开心', mood: 15, energy: 5, social: 0 },
+          { text: '体育课跑得很快', mood: 10, energy: -15, social: 5 },
+          { text: '小组讨论很顺利', mood: 8, energy: -5, social: 10 },
+        ],
+      },
+      {
+        time: '16:00',
+        type: 'ITEM_FOUND',
+        contents: [
+          { text: '在森林探险时发现了幸运四叶草', mood: 10, energy: -5, social: 0 },
+          { text: '捡到了一颗漂亮的石头', mood: 5, energy: 0, social: 0 },
+          { text: '发现了隐藏的宝箱', mood: 15, energy: -3, social: 0 },
+        ],
+      },
+      {
+        time: '18:00',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '放学回家，感觉轻松', mood: 5, energy: 5, social: 0 },
+          { text: '参加社团活动', mood: 8, energy: -10, social: 15 },
+          { text: '去图书馆借了几本书', mood: 5, energy: -3, social: 0 },
+        ],
+      },
+      {
+        time: '20:00',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '和朋友一起玩耍', mood: 10, energy: -10, social: 15 },
+          { text: '看了一集喜欢的动画', mood: 8, energy: -3, social: 0 },
+          { text: '和家人一起吃饭', mood: 10, energy: 5, social: 10 },
+          { text: '做了一会儿手工', mood: 8, energy: -5, social: 0 },
+        ],
+      },
+      {
+        time: '22:00',
+        type: 'ACTIVITY',
+        contents: [
+          { text: '准备睡觉，今天很充实', mood: 5, energy: 10, social: 0 },
+          { text: '听了一会儿音乐', mood: 8, energy: 5, social: 0 },
+          { text: '读了一会儿书', mood: 5, energy: 3, social: 0 },
+        ],
+      },
+    ];
+
+    // 使用日期字符串作为种子来生成确定性的随机数
+    let seed = 0;
+    for (let i = 0; i < dateStr.length; i++) {
+      seed += dateStr.charCodeAt(i);
+    }
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+
+    // 随机选择 2-4 个条目
+    const numEntries = 2 + Math.floor(random() * 3);
+    const entries = [];
+    const usedTemplates = new Set();
+
+    for (let i = 0; i < numEntries; i++) {
+      let templateIndex;
+      do {
+        templateIndex = Math.floor(random() * templates.length);
+      } while (usedTemplates.has(templateIndex));
+      usedTemplates.add(templateIndex);
+
+      const template = templates[templateIndex];
+      const contentIndex = Math.floor(random() * template.contents.length);
+      const content = template.contents[contentIndex];
+
+      // 生成随机的基础值
+      const baseMood = 40 + Math.floor(random() * 30);
+      const baseEnergy = 40 + Math.floor(random() * 30);
+      const baseSocial = 30 + Math.floor(random() * 30);
+
+      entries.push({
+        id: `de_${dateStr}_${i}`,
+        time: template.time,
+        type: template.type,
+        content: content.text,
+        moodBefore: baseMood,
+        moodAfter: Math.max(10, Math.min(100, baseMood + content.mood)),
+        energyBefore: baseEnergy,
+        energyAfter: Math.max(10, Math.min(100, baseEnergy + content.energy)),
+        socialBefore: baseSocial,
+        socialAfter: Math.max(10, Math.min(100, baseSocial + content.social)),
+      });
+    }
+
+    // 按时间排序
+    entries.sort((a, b) => a.time.localeCompare(b.time));
+
+    return entries;
+  },
+
   // 初始化日记数据
   initDiaryData() {
     const today = new Date().toISOString().split('T')[0];
     const dates = [];
     const now = new Date();
+    const diaryDataMap = {};
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
@@ -506,51 +656,16 @@ Page({
         weekDay: dayNames[date.getDay()],
         isToday: i === 0,
       });
-    }
 
-    const mockEntries = [
-      {
-        id: 'de_001',
-        time: '08:00',
-        type: 'ACTIVITY',
-        content: '起床，精神满满 (+5能量)',
-        moodBefore: 55, moodAfter: 60,
-        energyBefore: 70, energyAfter: 75,
-        socialBefore: 40, socialAfter: 40,
-      },
-      {
-        id: 'de_002',
-        time: '14:30',
-        type: 'EVENT',
-        content: '考试没考好，心情低落',
-        moodBefore: 60, moodAfter: 40,
-        energyBefore: 75, energyAfter: 65,
-        socialBefore: 40, socialAfter: 35,
-      },
-      {
-        id: 'de_003',
-        time: '16:00',
-        type: 'ITEM_FOUND',
-        content: '在森林探险时发现了幸运四叶草',
-        moodBefore: 40, moodAfter: 45,
-        energyBefore: 65, energyAfter: 60,
-        socialBefore: 35, socialAfter: 35,
-      },
-      {
-        id: 'de_004',
-        time: '20:00',
-        type: 'ACTIVITY',
-        content: '和朋友一起玩耍 (+10社交)',
-        moodBefore: 45, moodAfter: 50,
-        energyBefore: 60, energyAfter: 50,
-        socialBefore: 35, socialAfter: 45,
-      },
-    ];
+      // 为每一天生成日记数据
+      diaryDataMap[dateStr] = this.generateDiaryEntries(dateStr);
+    }
 
     this.setData({
       diarySelectedDate: today,
       diaryDates: dates,
-      diaryEntries: mockEntries,
+      diaryDataMap,
+      diaryEntries: diaryDataMap[today],
       diaryLoading: false,
     });
   },
@@ -563,8 +678,12 @@ Page({
   // 选择日记日期
   onDiaryDateSelect(e) {
     const { date } = e.currentTarget.dataset;
-    this.setData({ diarySelectedDate: date });
-    // 实际应根据日期加载对应数据
+    const { diaryDataMap } = this.data;
+    const entries = diaryDataMap[date] || [];
+    this.setData({
+      diarySelectedDate: date,
+      diaryEntries: entries,
+    });
   },
 
   // 获取日记类型颜色

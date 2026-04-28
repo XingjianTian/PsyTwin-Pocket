@@ -22,6 +22,11 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  transition: height 0.3s ease;
+
+  &.fullscreen {
+    height: 100vh;
+  }
 }
 
 /* 状态栏 */
@@ -142,6 +147,48 @@
   }
 }
 
+/* 全屏按钮 */
+.fullscreen-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  margin-left: 12rpx;
+  transition: background 0.2s ease;
+  margin-top: 4rpx;
+  color: #fff;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+/* 退出全屏按钮 */
+.exit-fullscreen-btn {
+  position: fixed;
+  top: 20rpx;
+  right: 20rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #fff;
+  z-index: 999;
+  backdrop-filter: blur(10rpx);
+
+  &:active {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
 /* 中间区域容器 */
 /* 主游戏区域 */
 .main-area {
@@ -160,6 +207,11 @@
   bottom: 65rpx;
   z-index: 1;
   overflow: hidden;
+}
+
+/* 全屏模式下游戏视图延伸到更底部 */
+.fullscreen .game-view {
+  bottom: 10rpx;
 }
 
 /* 背景图片 */
@@ -452,6 +504,7 @@
 /* ========== 世界地图视图 ========== */
 .map-view {
   background: linear-gradient(180deg, #f5f0e8 0%, #ede5d8 100%);
+  top: 0rpx; /* 地图没有标题栏 */
 }
 
 /* 云朵装饰 */
@@ -753,6 +806,7 @@
 .bag-view {
   background: #fafafa;
   padding: 20rpx;
+  top: 160rpx; /* 为标题和容量条留出空间 */
 }
 
 .capacity-bar {
@@ -842,6 +896,7 @@
 .diary-view {
   background: #fafafa;
   padding: 0 20rpx 20rpx;
+  top: 180rpx; /* 为日期选择器留出空间 */
 }
 
 .date-selector {
@@ -1239,6 +1294,7 @@
 .help-view {
   background: #fafafa;
   padding: 20rpx;
+  top: 80rpx; /* 为标题留出空间 */
 }
 
 .event-list {
