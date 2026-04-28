@@ -122,6 +122,11 @@
 
         <!-- 地块区域 -->
         <view class="territories">
+          <!-- 心宠位置标记（独立元素，平滑移动） -->
+          <view class="pet-marker-map" style="{{petMarkerStyle}}">
+            <view class="pet-marker-body">🎀</view>
+            <view class="pet-marker-glow"></view>
+          </view>
           <view
             class="territory {{item.current ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
             wx:for="{{scenes}}"
@@ -151,17 +156,6 @@
           </view>
         </view>
 
-        <!-- 图例 -->
-        <view class="map-legend">
-          <view class="legend-item">
-            <view class="legend-dot" style="background: #6B5B95;"></view>
-            <text>当前位置</text>
-          </view>
-          <view class="legend-item">
-            <view class="legend-dot" style="background: #7BC8A4;"></view>
-            <text>已解锁</text>
-          </view>
-        </view>
       </scroll-view>
     </block>
 

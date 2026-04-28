@@ -779,6 +779,53 @@
   border-radius: 0 0 3rpx 3rpx;
 }
 
+/* 地图中心宠位置标记（独立元素，平滑移动） */
+.pet-marker-map {
+  position: absolute;
+  z-index: 20;
+  transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+}
+
+.pet-marker-map .pet-marker-body {
+  width: 48rpx;
+  height: 48rpx;
+  background: linear-gradient(135deg, #FFB6C1 0%, #FF8E8E 100%);
+  border-radius: 50%;
+  border: 3rpx solid #FF6B6B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 107, 0.5);
+  position: relative;
+  z-index: 2;
+  animation: pet-marker-bounce 2s ease-in-out infinite;
+}
+
+@keyframes pet-marker-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8rpx); }
+}
+
+.pet-marker-map .pet-marker-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72rpx;
+  height: 72rpx;
+  background: radial-gradient(circle, rgba(255, 182, 193, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: 1;
+  animation: pet-marker-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes pet-marker-glow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.3; }
+}
+
 /* 当前位置标记 */
 .current-marker {
   position: absolute;
@@ -822,33 +869,6 @@
   font-size: 48rpx;
   z-index: 10;
   opacity: 0.8;
-}
-
-/* 图例 */
-.map-legend {
-  position: absolute;
-  bottom: 150rpx;
-  left: 30rpx;
-  display: flex;
-  gap: 20rpx;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 16rpx 24rpx;
-  border-radius: 16rpx;
-  backdrop-filter: blur(10rpx);
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
-  z-index: 10;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.legend-dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
 }
 
 /* ========== 背包视图 ========== */

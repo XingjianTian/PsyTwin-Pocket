@@ -44,6 +44,8 @@ Page({
     petSceneId: 'fantasy_space',
     petSceneName: '奇幻空间',
     petActivity: '在森林里悠闲地散步',
+    // 地图中心宠标记位置
+    petMarkerStyle: 'left: calc(50% - 80rpx); top: 8%;',
     // 全屏模式
     isFullscreen: false,
 
@@ -213,6 +215,7 @@ Page({
     this.initBagData();
     this.initDiaryData();
     this.initHelpData();
+    this.updatePetMarker();
   },
 
   onHide() {
@@ -342,6 +345,7 @@ Page({
       petSceneId: newScene.id,
       petSceneName: newScene.name,
       petActivity: newActivity,
+      petMarkerStyle: `left: ${newScene.x}; top: ${newScene.y};`,
     });
 
     // 如果心宠切换到了当前场景，显示提示
@@ -350,6 +354,17 @@ Page({
       wx.showToast({
         title: '心宠回来了！',
         icon: 'none',
+      });
+    }
+  },
+
+  // 更新地图中心宠标记位置
+  updatePetMarker() {
+    const { scenes, petSceneId } = this.data;
+    const scene = scenes.find((s) => s.id === petSceneId);
+    if (scene) {
+      this.setData({
+        petMarkerStyle: `left: ${scene.x}; top: ${scene.y};`,
       });
     }
   },
