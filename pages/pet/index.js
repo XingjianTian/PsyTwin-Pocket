@@ -77,6 +77,11 @@ Page({
     mapLevel: 'primary',
     activePrimarySceneId: '',
 
+    // ========== 地图编辑模式 ==========
+    isEditMode: false,
+    editDragStart: null,
+    editingSceneId: '',
+
     // 场景数据（五角星形状排列）
     scenes: [
       {
@@ -156,7 +161,7 @@ Page({
       },
     ],
 
-    // 二级场景数据（五角星形状排列，所有一级场景都有二级场景）
+    // 二级场景数据（分散分布，每个一级场景有不同数量的二级场景）
     secondaryScenes: {
       fantasy_space: [
         {
@@ -166,8 +171,8 @@ Page({
           icon: '🌳',
           gradient: 'linear-gradient(135deg, #2E8B57, #3CB371)',
           color: '#2E8B57',
-          x: 'calc(72% - 80rpx)',
-          y: '32%',
+          x: '8%',
+          y: '12%',
           tags: ['魔法', '探索', '自然'],
         },
         {
@@ -177,7 +182,7 @@ Page({
           icon: '💎',
           gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
           color: '#4A90E2',
-          x: 'calc(35% - 80rpx)',
+          x: '72%',
           y: '8%',
           tags: ['水晶', '神秘', '能量'],
         },
@@ -188,8 +193,8 @@ Page({
           icon: '🍄',
           gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
           color: '#FF6B6B',
-          x: 'calc(50% - 80rpx)',
-          y: '62%',
+          x: '15%',
+          y: '65%',
           tags: ['精灵', '村落', '温馨'],
         },
         {
@@ -199,8 +204,8 @@ Page({
           icon: '🧚',
           gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
           color: '#87CEEB',
-          x: 'calc(65% - 80rpx)',
-          y: '8%',
+          x: '68%',
+          y: '58%',
           tags: ['湖泊', '精灵', '宁静'],
         },
         {
@@ -210,8 +215,8 @@ Page({
           icon: '⭐',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: 'calc(28% - 80rpx)',
-          y: '32%',
+          x: '42%',
+          y: '85%',
           tags: ['星空', '草地', '浪漫'],
         },
       ],
@@ -223,8 +228,8 @@ Page({
           icon: '🛋️',
           gradient: 'linear-gradient(135deg, #8B7355, #A08060)',
           color: '#8B7355',
-          x: 'calc(72% - 80rpx)',
-          y: '32%',
+          x: '10%',
+          y: '15%',
           tags: ['咨询', '舒适', '安全'],
         },
         {
@@ -234,8 +239,8 @@ Page({
           icon: '📚',
           gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
           color: '#4A90E2',
-          x: 'calc(35% - 80rpx)',
-          y: '8%',
+          x: '75%',
+          y: '10%',
           tags: ['阅读', '安静', '知识'],
         },
         {
@@ -245,7 +250,7 @@ Page({
           icon: '🧘',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: 'calc(50% - 80rpx)',
+          x: '18%',
           y: '62%',
           tags: ['冥想', '放松', '平静'],
         },
@@ -256,20 +261,9 @@ Page({
           icon: '🏖️',
           gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
           color: '#FFD93D',
-          x: 'calc(65% - 80rpx)',
-          y: '8%',
+          x: '70%',
+          y: '55%',
           tags: ['沙盘', '游戏', '表达'],
-        },
-        {
-          id: 'relaxation_area',
-          name: '放松区',
-          description: '配备按摩椅和轻音乐的放松区域，释放压力的最佳去处',
-          icon: '🎵',
-          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
-          color: '#9B89B3',
-          x: 'calc(28% - 80rpx)',
-          y: '32%',
-          tags: ['放松', '音乐', '舒适'],
         },
       ],
       open_wilderness: [
@@ -280,8 +274,8 @@ Page({
           icon: '🔥',
           gradient: 'linear-gradient(135deg, #FF8C42, #FF6B6B)',
           color: '#FF8C42',
-          x: 'calc(72% - 80rpx)',
-          y: '32%',
+          x: '8%',
+          y: '10%',
           tags: ['篝火', '温暖', '社交'],
         },
         {
@@ -291,8 +285,8 @@ Page({
           icon: '🧺',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: 'calc(35% - 80rpx)',
-          y: '8%',
+          x: '78%',
+          y: '12%',
           tags: ['野餐', '草坪', '阳光'],
         },
         {
@@ -302,8 +296,8 @@ Page({
           icon: '🛏️',
           gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
           color: '#A8E6CF',
-          x: 'calc(50% - 80rpx)',
-          y: '62%',
+          x: '12%',
+          y: '60%',
           tags: ['吊床', '休息', '慵懒'],
         },
         {
@@ -313,8 +307,8 @@ Page({
           icon: '💧',
           gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
           color: '#87CEEB',
-          x: 'calc(65% - 80rpx)',
-          y: '8%',
+          x: '72%',
+          y: '55%',
           tags: ['溪流', '自然', '宁静'],
         },
         {
@@ -324,8 +318,8 @@ Page({
           icon: '🔭',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: 'calc(28% - 80rpx)',
-          y: '32%',
+          x: '45%',
+          y: '82%',
           tags: ['观景', '高地', '美景'],
         },
       ],
@@ -337,8 +331,8 @@ Page({
           icon: '📚',
           gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
           color: '#8B4513',
-          x: 'calc(72% - 80rpx)',
-          y: '32%',
+          x: '6%',
+          y: '12%',
           tags: ['阅读', '学习', '安静'],
         },
         {
@@ -348,7 +342,7 @@ Page({
           icon: '🏫',
           gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
           color: '#4A90E2',
-          x: 'calc(35% - 80rpx)',
+          x: '74%',
           y: '8%',
           tags: ['上课', '学习', '知识'],
         },
@@ -359,8 +353,8 @@ Page({
           icon: '🔬',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: 'calc(50% - 80rpx)',
-          y: '62%',
+          x: '14%',
+          y: '58%',
           tags: ['实验', '探索', '科学'],
         },
         {
@@ -370,8 +364,8 @@ Page({
           icon: '⚽',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: 'calc(65% - 80rpx)',
-          y: '8%',
+          x: '76%',
+          y: '52%',
           tags: ['运动', '放松', '活力'],
         },
         {
@@ -381,9 +375,20 @@ Page({
           icon: '🍜',
           gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
           color: '#FF6B6B',
-          x: 'calc(28% - 80rpx)',
-          y: '32%',
+          x: '42%',
+          y: '82%',
           tags: ['美食', '社交', '休息'],
+        },
+        {
+          id: 'psychological_room',
+          name: '心理咨询室',
+          description: '温馨私密的心理咨询空间，专业咨询师为你解忧',
+          icon: '💬',
+          gradient: 'linear-gradient(135deg, #E6A8D7, #D490C5)',
+          color: '#E6A8D7',
+          x: '48%',
+          y: '38%',
+          tags: ['咨询', '私密', '关怀'],
         },
       ],
       dream_house: [
@@ -394,8 +399,8 @@ Page({
           icon: '🛏️',
           gradient: 'linear-gradient(135deg, #FF8E8E, #FFB6C1)',
           color: '#FF8E8E',
-          x: 'calc(72% - 80rpx)',
-          y: '32%',
+          x: '10%',
+          y: '15%',
           tags: ['睡眠', '温馨', '舒适'],
         },
         {
@@ -405,8 +410,8 @@ Page({
           icon: '📖',
           gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
           color: '#8B4513',
-          x: 'calc(35% - 80rpx)',
-          y: '8%',
+          x: '75%',
+          y: '10%',
           tags: ['阅读', '思考', '安静'],
         },
         {
@@ -416,8 +421,8 @@ Page({
           icon: '🍳',
           gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
           color: '#FFD93D',
-          x: 'calc(50% - 80rpx)',
-          y: '62%',
+          x: '18%',
+          y: '58%',
           tags: ['烹饪', '美食', '温馨'],
         },
         {
@@ -427,20 +432,9 @@ Page({
           icon: '🌸',
           gradient: 'linear-gradient(135deg, #FF69B4, #FFB6C1)',
           color: '#FF69B4',
-          x: 'calc(65% - 80rpx)',
-          y: '8%',
+          x: '72%',
+          y: '52%',
           tags: ['花园', '鲜花', '自然'],
-        },
-        {
-          id: 'attic',
-          name: '阁楼',
-          description: '神秘的阁楼，存放着旧物和美好的回忆',
-          icon: '🏠',
-          gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
-          color: '#9B89B3',
-          x: 'calc(28% - 80rpx)',
-          y: '32%',
-          tags: ['回忆', '神秘', '旧物'],
         },
       ],
     },
@@ -640,10 +634,10 @@ Page({
     return Math.round(newValue);
   },
 
-  // 获取所有可选场景（一级+二级）
+  // 获取所有可选场景（仅二级场景，心宠不能进入一级场景）
   getAllScenes() {
-    const { scenes, secondaryScenes } = this.data;
-    let allScenes = [...scenes];
+    const { secondaryScenes } = this.data;
+    let allScenes = [];
     Object.values(secondaryScenes).forEach((list) => {
       allScenes = allScenes.concat(list);
     });
@@ -825,6 +819,14 @@ Page({
       return;
     }
 
+    // 禁止进入一级场景
+    const primarySceneIds = this.data.scenes.map((s) => s.id);
+    if (primarySceneIds.includes(selectedScene.id)) {
+      wx.showToast({ title: '一级场景不能直接进入，请选择二级场景', icon: 'none' });
+      this.closeSceneModal();
+      return;
+    }
+
     wx.showModal({
       title: '切换场景',
       content: `确定要进入「${selectedScene.name}」吗？`,
@@ -832,10 +834,10 @@ Page({
       confirmColor: '#6B5B95',
       success: (res) => {
         if (res.confirm) {
-          // 更新当前场景（一级场景）
+          // 更新当前场景
           const scenes = this.data.scenes.map((scene) => ({
             ...scene,
-            current: scene.id === selectedScene.id,
+            current: false,
           }));
 
           this.setData({
@@ -894,6 +896,112 @@ Page({
   // 点击世界地图
   onMapTap() {
     this.switchView('map');
+  },
+
+  // ========== 地图编辑模式 ==========
+
+  // 切换编辑模式
+  toggleEditMode() {
+    const { isEditMode } = this.data;
+    this.setData({ isEditMode: !isEditMode });
+    if (!isEditMode) {
+      wx.showToast({ title: '进入编辑模式，可拖拽场景', icon: 'none' });
+    } else {
+      wx.showToast({ title: '退出编辑模式', icon: 'none' });
+    }
+  },
+
+  // 场景触摸开始（编辑模式）
+  onSceneTouchStart(e) {
+    if (!this.data.isEditMode) return;
+    const { scene } = e.currentTarget.dataset;
+    const touch = e.touches[0];
+    this.setData({
+      editDragStart: {
+        sceneId: scene.id,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        origX: parseFloat(scene.x),
+        origY: parseFloat(scene.y),
+      },
+      editingSceneId: scene.id,
+    });
+  },
+
+  // 场景触摸移动（编辑模式）
+  onSceneTouchMove(e) {
+    if (!this.data.isEditMode || !this.data.editDragStart) return;
+    const touch = e.touches[0];
+    const dragStart = this.data.editDragStart;
+    const { windowWidth, windowHeight } = wx.getSystemInfoSync();
+
+    // 计算移动距离（转换为百分比）
+    const deltaX = ((touch.clientX - dragStart.startX) / windowWidth) * 100;
+    const deltaY = ((touch.clientY - dragStart.startY) / windowHeight) * 100;
+
+    let newX = dragStart.origX + deltaX;
+    let newY = dragStart.origY + deltaY;
+
+    // 限制在 5% - 85% 范围内
+    newX = Math.max(5, Math.min(85, newX));
+    newY = Math.max(5, Math.min(85, newY));
+
+    // 更新场景位置
+    const { secondaryScenes, activePrimarySceneId } = this.data;
+    const scenes = secondaryScenes[activePrimarySceneId].map((s) => {
+      if (s.id === dragStart.sceneId) {
+        return { ...s, x: `${newX.toFixed(1)}%`, y: `${newY.toFixed(1)}%` };
+      }
+      return s;
+    });
+
+    this.setData({
+      [`secondaryScenes.${activePrimarySceneId}`]: scenes,
+    });
+  },
+
+  // 场景触摸结束
+  onSceneTouchEnd() {
+    if (!this.data.isEditMode) return;
+    this.setData({
+      editDragStart: null,
+      editingSceneId: '',
+    });
+  },
+
+  // 导出场景配置
+  exportSceneConfig() {
+    const { secondaryScenes } = this.data;
+    let config = '';
+
+    Object.keys(secondaryScenes).forEach((key) => {
+      config += `      ${key}: [\n`;
+      secondaryScenes[key].forEach((scene) => {
+        config += `        {\n`;
+        config += `          id: '${scene.id}',\n`;
+        config += `          name: '${scene.name}',\n`;
+        config += `          description: '${scene.description}',\n`;
+        config += `          icon: '${scene.icon}',\n`;
+        config += `          gradient: '${scene.gradient}',\n`;
+        config += `          color: '${scene.color}',\n`;
+        config += `          x: '${scene.x}',\n`;
+        config += `          y: '${scene.y}',\n`;
+        config += `          tags: [${scene.tags.map((t) => `'${t}'`).join(', ')}],\n`;
+        config += `        },\n`;
+      });
+      config += `      ],\n`;
+    });
+
+    wx.setClipboardData({
+      data: config,
+      success() {
+        wx.showModal({
+          title: '配置已复制',
+          content: '场景坐标配置已复制到剪贴板，请粘贴发给开发者',
+          showCancel: false,
+        });
+      },
+    });
   },
 
   // ========== 心宠背包 ==========

@@ -105,7 +105,7 @@
 
     <!-- ========== 世界地图视图 ========== -->
     <block wx:if="{{currentView === 'map'}}">
-      <scroll-view class="view-content map-view" scroll-y style="height: 100%;">
+      <scroll-view class="view-content map-view {{isEditMode ? 'edit-mode' : ''}}" scroll-y="{{!isEditMode}}" style="height: 100%;">
         <view class="map-scroll-content">
           <!-- 装饰：云朵 -->
           <view class="cloud cloud-1">☁️</view>
@@ -114,9 +114,17 @@
           <!-- 装饰：指南针 -->
           <view class="compass">🧭</view>
 
-          <!-- 返回按钮（二级场景时显示） -->
-          <view wx:if="{{mapLevel === 'secondary'}}" class="back-btn-secondary" bindtap="backToPrimary">
-            ← 返回
+          <!-- 返回按钮和编辑按钮（二级场景时显示） -->
+          <view wx:if="{{mapLevel === 'secondary'}}" class="map-actions-bar">
+            <view wx:if="{{!isEditMode}}" class="back-btn-secondary" bindtap="backToPrimary">
+              ← 返回
+            </view>
+            <view class="edit-btn {{isEditMode ? 'active' : ''}}" bindtap="toggleEditMode">
+              {{isEditMode ? '✓ 完成' : '✏️ 编辑'}}
+            </view>
+            <view wx:if="{{isEditMode}}" class="edit-btn export-btn" bindtap="exportSceneConfig">
+              📋 导出
+            </view>
           </view>
 
           <!-- 一级场景 -->
@@ -166,12 +174,15 @@
               <view class="pet-marker-glow"></view>
             </view>
             <view
-              class="territory {{currentSceneId === item.id ? 'current' : ''}}"
+              class="territory {{currentSceneId === item.id ? 'current' : ''}} {{isEditMode ? 'editable' : ''}} {{editingSceneId === item.id ? 'dragging' : ''}}"
               wx:for="{{secondaryScenes[activePrimarySceneId]}}"
               wx:key="id"
               style="left: {{item.x}}; top: {{item.y}};"
               data-scene="{{item}}"
-              bindtap="onSecondarySceneTap"
+              bindtap="{{isEditMode ? '' : 'onSecondarySceneTap'}}"
+              bindtouchstart="onSceneTouchStart"
+              bindtouchmove="onSceneTouchMove"
+              bindtouchend="onSceneTouchEnd"
             >
               <view class="territory-body" style="background: {{item.gradient}};">
                 <view class="terrain-texture"></view>
@@ -186,6 +197,10 @@
               <view class="current-marker" wx:if="{{currentSceneId === item.id}}">
                 <view class="marker-dot"></view>
                 <view class="marker-pulse"></view>
+              </view>
+              <!-- 编辑模式显示坐标 -->
+              <view wx:if="{{isEditMode}}" class="coord-label">
+                {{item.x}}, {{item.y}}
               </view>
             </view>
           </view>

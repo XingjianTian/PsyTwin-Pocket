@@ -813,11 +813,18 @@
   border: 2rpx solid #fff;
 }
 
-/* 返回按钮 */
-.back-btn-secondary {
+/* 地图操作按钮栏 */
+.map-actions-bar {
   position: absolute;
   top: 30rpx;
   left: 30rpx;
+  display: flex;
+  gap: 16rpx;
+  z-index: 100;
+}
+
+/* 返回按钮 */
+.back-btn-secondary {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20rpx);
   padding: 16rpx 32rpx;
@@ -826,12 +833,39 @@
   color: @text-primary;
   font-weight: 500;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
-  z-index: 100;
   transition: all 0.3s ease;
 
   &:active {
     transform: scale(0.95);
     background: rgba(255, 255, 255, 1);
+  }
+}
+
+/* 编辑按钮（与返回按钮相同样式） */
+.edit-btn {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20rpx);
+  padding: 16rpx 32rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  color: @text-primary;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 1);
+  }
+
+  &.active {
+    background: @primary-500;
+    color: #fff;
+  }
+
+  &.export-btn {
+    background: #52c41a;
+    color: #fff;
   }
 }
 
@@ -1602,4 +1636,45 @@
     font-size: 26rpx;
     color: @primary-500;
   }
+}
+
+/* ========== 地图编辑模式样式 ========== */
+.map-view.edit-mode {
+  /* 编辑模式下不需要额外padding，按钮在左上角 */
+}
+
+.territory.editable {
+  cursor: move;
+
+  &:active {
+    transform: scale(1.1);
+    z-index: 50;
+  }
+
+  .territory-body {
+    box-shadow: 0 0 0 4rpx rgba(255, 255, 255, 0.5), 0 8rpx 32rpx rgba(0, 0, 0, 0.3);
+  }
+}
+
+.territory.dragging {
+  opacity: 0.8;
+  z-index: 100;
+
+  .territory-body {
+    box-shadow: 0 0 0 6rpx @primary-500, 0 12rpx 40rpx rgba(0, 0, 0, 0.4);
+  }
+}
+
+.coord-label {
+  position: absolute;
+  top: -30rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 18rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  white-space: nowrap;
+  z-index: 60;
 }
