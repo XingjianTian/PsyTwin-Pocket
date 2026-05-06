@@ -1,3 +1,30 @@
+// 其他心宠名字列表
+const PET_NAMES = [
+  '小白', '小黄', '小黑', '小红', '小蓝',
+  '小绿', '小紫', '小橙', '小粉', '小青',
+  '圆圆', '方方', '星星', '月月', '花花',
+  '草草', '乐乐', '笑笑', '泡泡', '糖糖',
+];
+
+// 对话内容池
+const DIALOGUES = [
+  ['嗨！你好呀！', '你好！今天天气不错呢！'],
+  ['你去哪里呀？', '我在随便逛逛，你呢？'],
+  ['最近过得怎么样？', '挺好的，就是有点忙！'],
+  ['你也来这个场景玩吗？', '对呀，这里很漂亮！'],
+  ['你好可爱呀！', '谢谢，你也很可爱！'],
+  ['要一起去探险吗？', '好呀，我正好无聊呢！'],
+  ['你今天吃了什么好吃的？', '食堂的麻辣烫，超好吃！'],
+  ['最近有什么好玩的事吗？', '我发现了一个秘密基地！'],
+  ['你觉得这个场景怎么样？', '挺喜欢的，很安静！'],
+  ['我们交个朋友吧！', '好呀，以后一起玩！'],
+  ['你在做什么呢？', '我在看风景，好美呀！'],
+  ['要不要一起学习？', '好呀，正好有道题不会！'],
+  ['你今天心情怎么样？', '超级开心！见到你了！'],
+  ['这个场景你常来吗？', '偶尔来，放松一下心情'],
+  ['最近有什么新发现吗？', '发现了一片美丽的花海！'],
+];
+
 // 色彩系统
 const COLORS = {
   sceneForest: '#7BC8A4',
@@ -9,19 +36,266 @@ const COLORS = {
   socialLow: '#9B89B3',
 };
 
-// 活动列表
-const ACTIVITIES = [
-  '在森林里悠闲地散步',
-  '和其他小动物玩耍',
-  '静静地冥想休息',
-  '探索新发现的洞穴',
-  '收集森林里的能量',
+// 活动列表（按场景分类）
+const SCENE_ACTIVITIES = {
+  // 宿舍相关
+  bedroom: [
+    '在温暖的被窝里睡懒觉',
+    '躺在床上刷手机',
+    '趴在书桌前写作业',
+    '坐在电脑前打游戏',
+    '躺在床上发呆思考人生',
+    '整理床铺和桌面',
+    '躺着看天花板',
+    '熬夜追剧',
+  ],
+  dormitory: [
+    '在宿舍里整理东西',
+    '坐在桌前学习',
+    '和室友聊天',
+    '躺在床上休息',
+    '在宿舍里打游戏',
+  ],
+  // 教学楼
+  teaching_building: [
+    '认真听讲做笔记',
+    '在教室里上课',
+    '和同学讨论问题',
+    '偷偷在课上走神',
+    '积极回答老师提问',
+  ],
+  // 图书馆
+  library: [
+    '在书架间寻找资料',
+    '安静地阅读书籍',
+    '认真复习功课',
+    '在自习区写作业',
+    '查阅参考书籍',
+  ],
+  // 食堂
+  cafeteria: [
+    '挑选喜欢的菜品',
+    '享受美味的午餐',
+    '和朋友一起吃饭聊天',
+    '品尝新出的菜品',
+    '慢慢享受晚餐',
+  ],
+  // 操场
+  playground: [
+    '在操场上跑步锻炼',
+    '打篮球挥洒汗水',
+    '坐在草坪上休息',
+    '和朋友一起运动',
+    '做着拉伸运动',
+  ],
+  // 奇幻空间
+  deep_forest: [
+    '在魔法森林中探险',
+    '采集发光的魔法草药',
+    '追踪神秘的森林精灵',
+    '寻找隐藏的宝藏',
+    '观察会说话的树木',
+  ],
+  crystal_cave: [
+    '探索水晶洞穴的深处',
+    '收集七彩的水晶碎片',
+    '感受水晶的魔法能量',
+    '在水晶丛中冥想',
+    '寻找传说中的魔法石',
+  ],
+  mushroom_village: [
+    '和蘑菇精灵打招呼',
+    '在蘑菇村落里散步',
+    '品尝精灵特制的蘑菇汤',
+    '帮助小精灵采蘑菇',
+    '参观蘑菇小屋',
+  ],
+  fairy_lake: [
+    '在湖边欣赏水莲花',
+    '和水精灵一起玩耍',
+    '收集湖中的星光水滴',
+    '坐在湖边静静地冥想',
+    '观察湖中的神奇生物',
+  ],
+  star_meadow: [
+    '躺在草地上看星星',
+    '收集草地上的星光露珠',
+    '在星空下许愿',
+    '和萤火虫一起跳舞',
+    '欣赏美丽的星空',
+  ],
+  // 自由旷野
+  bonfire_area: [
+    '围坐在篝火旁取暖',
+    '烤棉花糖吃',
+    '和朋友围炉夜话',
+    '看着篝火发呆',
+    '听 firewood 噼啪声',
+  ],
+  picnic_lawn: [
+    '在草坪上野餐',
+    '铺开野餐垫享受阳光',
+    '品尝美味的三明治',
+    '躺在草坪上晒太阳',
+    '和朋友分享零食',
+  ],
+  hammock_area: [
+    '在吊床上悠闲地摇晃',
+    '躺在吊上午睡',
+    '坐在吊床上看书',
+    '享受慵懒的午后时光',
+    '在吊床上发呆',
+  ],
+  stream_side: [
+    '在溪边听流水声',
+    '用小手拨弄清澈的溪水',
+    '在溪边寻找漂亮的石头',
+    '看着溪水发呆',
+    '听鸟鸣和流水声',
+  ],
+  viewing_platform: [
+    '站在观景台俯瞰美景',
+    '欣赏远处的山峦',
+    '吹着风看风景',
+    '拍照记录美好瞬间',
+    '深呼吸感受大自然',
+  ],
+  // 治愈山谷（原心灵港湾）
+  hot_spring: [
+    '在温泉池里放松身心',
+    '享受着温暖的水流',
+    '泡在温泉里冥想',
+    '感受温泉的治愈力量',
+    '闭上眼睛享受宁静',
+  ],
+  crystal_grotto: [
+    '在水晶洞里冥想',
+    '感受水晶的净化能量',
+    '坐在水晶丛中休息',
+    '聆听水晶的微妙声音',
+    '收集散落在地上的小水晶',
+  ],
+  cloud_terrace: [
+    '在云顶上做瑜伽',
+    '望着云海深呼吸',
+    '在云间漫步',
+    '感受云朵的柔软',
+    '在云上看日落',
+  ],
+  flower_garden: [
+    '在花丛中散步',
+    '闻着花香放松心情',
+    '和蝴蝶一起玩耍',
+    '采集花瓣做花环',
+    '坐在花丛中冥想',
+  ],
+  // 梦境小屋
+  study_room: [
+    '在书房里阅读书籍',
+    '在书桌前写日记',
+    '翻阅有趣的绘本',
+    '整理书架上的书',
+    '坐在窗边看书',
+  ],
+  kitchen: [
+    '在厨房里做饭',
+    '烘焙香甜的小饼干',
+    '尝试新的食谱',
+    '煮一杯热茶',
+    '准备美味的点心',
+  ],
+  garden: [
+    '在花园里浇花',
+    '和蝴蝶追逐嬉戏',
+    '采摘新鲜的鲜花',
+    '躺在花丛中晒太阳',
+    '种植新的花苗',
+  ],
+  // 心理咨询室
+  psychological_room: [
+    '在咨询室里倾诉烦恼',
+    '和咨询师聊天',
+    '在舒适的沙发上休息',
+    '整理自己的情绪',
+    '做放松训练',
+  ],
+};
+
+// 时间调度配置（基于现实时间）
+// 工作日（周一到周五）日程
+const WEEKDAY_SCHEDULE = [
+  { hour: 0, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'dormitory', weight: 30 }] },
+  { hour: 1, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
+  { hour: 2, scenes: [{ id: 'bedroom', weight: 90 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 3, scenes: [{ id: 'bedroom', weight: 95 }, { id: 'dormitory', weight: 5 }] },
+  { hour: 4, scenes: [{ id: 'bedroom', weight: 95 }, { id: 'dormitory', weight: 5 }] },
+  { hour: 5, scenes: [{ id: 'bedroom', weight: 90 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 6, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
+  { hour: 7, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'dormitory', weight: 30 }] },
+  { hour: 8, scenes: [{ id: 'teaching_building', weight: 85 }, { id: 'library', weight: 10 }, { id: 'bedroom', weight: 5 }] },
+  { hour: 9, scenes: [{ id: 'teaching_building', weight: 85 }, { id: 'library', weight: 10 }, { id: 'bedroom', weight: 5 }] },
+  { hour: 10, scenes: [{ id: 'teaching_building', weight: 80 }, { id: 'library', weight: 15 }, { id: 'bedroom', weight: 5 }] },
+  { hour: 11, scenes: [{ id: 'teaching_building', weight: 75 }, { id: 'library', weight: 15 }, { id: 'bedroom', weight: 10 }] },
+  { hour: 12, scenes: [{ id: 'cafeteria', weight: 70 }, { id: 'picnic_lawn', weight: 20 }, { id: 'mushroom_village', weight: 10 }] },
+  { hour: 13, scenes: [{ id: 'library', weight: 50 }, { id: 'teaching_building', weight: 30 }, { id: 'hammock_area', weight: 20 }] },
+  { hour: 14, scenes: [{ id: 'library', weight: 55 }, { id: 'teaching_building', weight: 35 }, { id: 'bedroom', weight: 10 }] },
+  { hour: 15, scenes: [{ id: 'library', weight: 50 }, { id: 'teaching_building', weight: 30 }, { id: 'playground', weight: 20 }] },
+  { hour: 16, scenes: [{ id: 'library', weight: 45 }, { id: 'playground', weight: 35 }, { id: 'teaching_building', weight: 20 }] },
+  { hour: 17, scenes: [{ id: 'playground', weight: 40 }, { id: 'picnic_lawn', weight: 30 }, { id: 'stream_side', weight: 20 }, { id: 'bedroom', weight: 10 }] },
+  { hour: 18, scenes: [{ id: 'cafeteria', weight: 60 }, { id: 'picnic_lawn', weight: 25 }, { id: 'bonfire_area', weight: 15 }] },
+  { hour: 19, scenes: [{ id: 'library', weight: 45 }, { id: 'bedroom', weight: 35 }, { id: 'teaching_building', weight: 20 }] },
+  { hour: 20, scenes: [{ id: 'bedroom', weight: 50 }, { id: 'library', weight: 30 }, { id: 'teaching_building', weight: 20 }] },
+  { hour: 21, scenes: [{ id: 'bedroom', weight: 60 }, { id: 'library', weight: 25 }, { id: 'star_meadow', weight: 15 }] },
+  { hour: 22, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'star_meadow', weight: 20 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 23, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
 ];
+
+// 周末（周六到周日）日程
+const WEEKEND_SCHEDULE = [
+  { hour: 0, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'dormitory', weight: 30 }] },
+  { hour: 1, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
+  { hour: 2, scenes: [{ id: 'bedroom', weight: 90 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 3, scenes: [{ id: 'bedroom', weight: 95 }, { id: 'dormitory', weight: 5 }] },
+  { hour: 4, scenes: [{ id: 'bedroom', weight: 95 }, { id: 'dormitory', weight: 5 }] },
+  { hour: 5, scenes: [{ id: 'bedroom', weight: 90 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 6, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
+  { hour: 7, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'dormitory', weight: 30 }] },
+  { hour: 8, scenes: [{ id: 'bedroom', weight: 60 }, { id: 'picnic_lawn', weight: 25 }, { id: 'deep_forest', weight: 15 }] },
+  { hour: 9, scenes: [{ id: 'picnic_lawn', weight: 40 }, { id: 'deep_forest', weight: 35 }, { id: 'bedroom', weight: 25 }] },
+  { hour: 10, scenes: [{ id: 'deep_forest', weight: 45 }, { id: 'crystal_cave', weight: 30 }, { id: 'picnic_lawn', weight: 25 }] },
+  { hour: 11, scenes: [{ id: 'crystal_cave', weight: 40 }, { id: 'mushroom_village', weight: 35 }, { id: 'picnic_lawn', weight: 25 }] },
+  { hour: 12, scenes: [{ id: 'cafeteria', weight: 50 }, { id: 'mushroom_village', weight: 35 }, { id: 'picnic_lawn', weight: 15 }] },
+  { hour: 13, scenes: [{ id: 'mushroom_village', weight: 40 }, { id: 'fairy_lake', weight: 35 }, { id: 'hammock_area', weight: 25 }] },
+  { hour: 14, scenes: [{ id: 'fairy_lake', weight: 45 }, { id: 'deep_forest', weight: 30 }, { id: 'crystal_cave', weight: 25 }] },
+  { hour: 15, scenes: [{ id: 'star_meadow', weight: 40 }, { id: 'viewing_platform', weight: 35 }, { id: 'stream_side', weight: 25 }] },
+  { hour: 16, scenes: [{ id: 'viewing_platform', weight: 40 }, { id: 'stream_side', weight: 35 }, { id: 'bonfire_area', weight: 25 }] },
+  { hour: 17, scenes: [{ id: 'bonfire_area', weight: 40 }, { id: 'hot_spring', weight: 35 }, { id: 'cloud_terrace', weight: 25 }] },
+  { hour: 18, scenes: [{ id: 'hot_spring', weight: 40 }, { id: 'cafeteria', weight: 35 }, { id: 'bonfire_area', weight: 25 }] },
+  { hour: 19, scenes: [{ id: 'cloud_terrace', weight: 40 }, { id: 'flower_garden', weight: 35 }, { id: 'bedroom', weight: 25 }] },
+  { hour: 20, scenes: [{ id: 'bedroom', weight: 50 }, { id: 'crystal_grotto', weight: 30 }, { id: 'flower_garden', weight: 20 }] },
+  { hour: 21, scenes: [{ id: 'bedroom', weight: 60 }, { id: 'star_meadow', weight: 25 }, { id: 'dormitory', weight: 15 }] },
+  { hour: 22, scenes: [{ id: 'bedroom', weight: 70 }, { id: 'star_meadow', weight: 20 }, { id: 'dormitory', weight: 10 }] },
+  { hour: 23, scenes: [{ id: 'bedroom', weight: 80 }, { id: 'dormitory', weight: 20 }] },
+];
+
+// 随机事件概率配置
+const RANDOM_EVENTS = {
+  skipClass: { probability: 0.08, scenes: ['deep_forest', 'crystal_cave', 'mushroom_village', 'fairy_lake'], description: '逃课去探险了' },
+  stayUpGaming: { probability: 0.15, scenes: ['bedroom', 'dormitory'], description: '熬夜打游戏' },
+  earlyAdventure: { probability: 0.12, scenes: ['deep_forest', 'crystal_cave'], description: '早起去探险' },
+  suddenMeditation: { probability: 0.1, scenes: ['hot_spring', 'cloud_terrace', 'crystal_grotto'], description: '突发奇想去冥想' },
+  midnightSnack: { probability: 0.08, scenes: ['cafeteria', 'kitchen'], description: '半夜起来觅食' },
+  stargazing: { probability: 0.15, scenes: ['star_meadow', 'viewing_platform'], description: '去看星星' },
+};
 
 Page({
   data: {
     // 当前视图: game | map | bag | diary
     currentView: 'game',
+
+    // 时间显示
+    currentTime: '00:00',
+    currentDateLabel: '周一 00:00',
 
     // 状态值
     mood: 60,
@@ -35,6 +309,10 @@ Page({
     // 事件
     hasEvent: false,
     eventCount: 0,
+    // 其他心宠列表
+    otherPets: [],
+    // 当前显示的对话
+    activeDialog: null,
     // 心宠精灵位置
     petSpriteX: 0,
     petSpriteY: 0,
@@ -100,18 +378,18 @@ Page({
         hasSecondary: true,
       },
       {
-        id: 'soul_harbor',
-        name: '心灵港湾',
-        description: '温馨舒适的心理咨询室，有柔软沙发、绿植和书架，是倾诉烦恼的安全港湾',
-        icon: '🛋️',
+        id: 'healing_valley',
+        name: '治愈山谷',
+        description: '云雾缭绕的神秘山谷，有天然温泉、水晶洞和云顶露台，是放松心灵的世外桃源',
+        icon: '🏔️',
         gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
         color: '#87CEEB',
-        deco: '📚',
+        deco: '💨',
         unlocked: true,
         current: false,
         x: 'calc(78% - 80rpx)',
         y: '26%',
-        tags: ['安全', '舒适', '倾诉'],
+        tags: ['治愈', '放松', '自然'],
         hasSecondary: true,
       },
       {
@@ -220,50 +498,50 @@ Page({
           tags: ['星空', '草地', '浪漫'],
         },
       ],
-      soul_harbor: [
+      healing_valley: [
         {
-          id: 'consulting_room',
-          name: '咨询室',
-          description: '温馨舒适的咨询空间，有柔软的沙发和温暖的灯光',
-          icon: '🛋️',
-          gradient: 'linear-gradient(135deg, #8B7355, #A08060)',
-          color: '#8B7355',
+          id: 'hot_spring',
+          name: '温泉池',
+          description: '云雾缭绕的天然温泉，水质清澈温暖，泡在池中可以治愈身心疲惫',
+          icon: '♨️',
+          gradient: 'linear-gradient(135deg, #87CEEB, #5BA3F5)',
+          color: '#87CEEB',
           x: '10%',
           y: '15%',
-          tags: ['咨询', '舒适', '安全'],
+          tags: ['温泉', '治愈', '放松'],
         },
         {
-          id: 'reading_corner',
-          name: '阅读角',
-          description: '安静的阅读角落，书架上摆满了心理学和文学书籍',
-          icon: '📚',
-          gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
-          color: '#4A90E2',
+          id: 'crystal_grotto',
+          name: '水晶洞',
+          description: '洞内布满发光水晶，散发着净化心灵的能量，适合冥想和静思',
+          icon: '💎',
+          gradient: 'linear-gradient(135deg, #9B89B3, #B8A8D8)',
+          color: '#9B89B3',
           x: '75%',
           y: '10%',
-          tags: ['阅读', '安静', '知识'],
+          tags: ['水晶', '冥想', '净化'],
         },
         {
-          id: 'meditation_room',
-          name: '冥想室',
-          description: '充满禅意的冥想空间，有助放松身心、平静情绪',
-          icon: '🧘',
-          gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
-          color: '#7BC8A4',
+          id: 'cloud_terrace',
+          name: '云顶露台',
+          description: '建在云端的观景台，四周云海翻腾，可以俯瞰整个山谷美景',
+          icon: '☁️',
+          gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
+          color: '#A8E6CF',
           x: '18%',
           y: '62%',
-          tags: ['冥想', '放松', '平静'],
+          tags: ['云顶', '观景', '瑜伽'],
         },
         {
-          id: 'sandplay_room',
-          name: '沙盘室',
-          description: '摆放着各种沙盘道具的治疗室，通过游戏表达内心',
-          icon: '🏖️',
-          gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
-          color: '#FFD93D',
+          id: 'flower_garden',
+          name: '花语园',
+          description: '四季花开不断的神奇花园，每种花都有独特的治愈香气',
+          icon: '🌸',
+          gradient: 'linear-gradient(135deg, #FF69B4, #FFB6C1)',
+          color: '#FF69B4',
           x: '70%',
           y: '55%',
-          tags: ['沙盘', '游戏', '表达'],
+          tags: ['花园', '花香', '治愈'],
         },
       ],
       open_wilderness: [
@@ -347,15 +625,15 @@ Page({
           tags: ['上课', '学习', '知识'],
         },
         {
-          id: 'lab',
-          name: '实验室',
-          description: '充满探索精神的实验室，各种奇妙的实验在这里进行',
-          icon: '🔬',
+          id: 'dormitory',
+          name: '宿舍',
+          description: '温馨舒适的宿舍，有书桌、小床和一台游戏电脑，是休息和放松的小天地',
+          icon: '🏠',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
           x: '14%',
           y: '58%',
-          tags: ['实验', '探索', '科学'],
+          tags: ['休息', '游戏', '温馨'],
         },
         {
           id: 'playground',
@@ -518,6 +796,10 @@ Page({
 
   onLoad() {
     this.initGameView();
+    // 初始化时间显示
+    this.updateTimeDisplay();
+    // 根据当前时间初始化心宠位置
+    this.forceUpdateSceneByTime();
     this.startStatusAnimation();
     this._initWebSocket();
     this.initBagData();
@@ -537,6 +819,9 @@ Page({
     }
     if (this.moveTimer) {
       clearInterval(this.moveTimer);
+    }
+    if (this.otherPetTimer) {
+      clearInterval(this.otherPetTimer);
     }
     this._destroyWebSocket();
     const app = getApp();
@@ -578,6 +863,227 @@ Page({
         this.movePetSmoothly();
       }
     }, 3000);
+
+    // 初始化其他心宠
+    this.initOtherPets();
+  },
+
+  // 初始化其他心宠
+  initOtherPets() {
+    const allScenes = this.getAllScenes();
+    const otherPets = [];
+
+    for (let i = 0; i < 20; i++) {
+      // 随机分配一个场景
+      const randomScene = allScenes[Math.floor(Math.random() * allScenes.length)];
+      
+      // 随机初始位置
+      const x = this.boundary.minX + Math.random() * (this.boundary.maxX - this.boundary.minX);
+      const y = this.boundary.minY + Math.random() * (this.boundary.maxY - this.boundary.minY);
+
+      otherPets.push({
+        id: `other-pet-${i}`,
+        name: PET_NAMES[i],
+        sceneId: randomScene.id,
+        sceneName: randomScene.name,
+        x: x,
+        y: y,
+        targetX: x,
+        targetY: y,
+        isMoving: false,
+        isTalking: false,
+        isInConversation: false,
+        dialogText: '',
+        dialogPartner: null,
+        lastCheckedHour: -1,
+      });
+    }
+
+    this.setData({ otherPets });
+
+    // 启动其他心宠的移动循环
+    this.startOtherPetsMovement();
+  },
+
+  // 启动其他心宠的移动
+  startOtherPetsMovement() {
+    // 每5秒更新一次其他心宠（包括对话）
+    this.otherPetTimer = setInterval(() => {
+      this.updateOtherPets();
+    }, 5000);
+  },
+
+  // 更新所有其他心宠的状态
+  updateOtherPets() {
+    const { otherPets, petSceneId, petSpriteX, petSpriteY } = this.data;
+    const updatedPets = [...otherPets];
+    let hasDialogChange = false;
+    const currentHour = new Date().getHours();
+
+    updatedPets.forEach((pet, index) => {
+      // 如果正在对话，不移动
+      if (pet.isTalking) return;
+
+      // 每个心宠独立的时间调度（整点时切换场景）
+      if (pet.lastCheckedHour !== currentHour) {
+        pet.lastCheckedHour = currentHour;
+        // 20%概率切换场景
+        if (Math.random() < 0.2) {
+          const newSceneId = this.getSceneBySchedule();
+          if (newSceneId !== pet.sceneId) {
+            const newScene = this.getSceneInfo(newSceneId);
+            if (newScene) {
+              pet.sceneId = newSceneId;
+              pet.sceneName = newScene.name;
+              // 切换场景后随机新位置
+              const { minX, maxX, minY, maxY } = this.boundary;
+              pet.x = minX + Math.random() * (maxX - minX);
+              pet.y = minY + Math.random() * (maxY - minY);
+            }
+          }
+        }
+      }
+
+      // 30%概率移动（如果不在对话中）
+      if (Math.random() < 0.3 && !pet.isTalking && !pet.isInConversation) {
+        this.moveOtherPet(pet);
+      }
+    });
+
+    // 检查对话：同一场景一次只触发一对
+    const scenesWithDialog = new Set();
+    
+    for (let i = 0; i < updatedPets.length; i++) {
+      const pet = updatedPets[i];
+      if (pet.isTalking || pet.isInConversation) continue;
+      
+      // 检查与主心宠的碰撞
+      if (pet.sceneId === petSceneId && !scenesWithDialog.has(pet.sceneId)) {
+        const distance = this.getDistance(pet.x, pet.y, petSpriteX, petSpriteY);
+        if (distance < 60) {
+          this.startDialogBetweenPets(pet, {
+            id: 'main-pet',
+            name: '心宠',
+            x: petSpriteX,
+            y: petSpriteY,
+          }, i);
+          scenesWithDialog.add(pet.sceneId);
+          hasDialogChange = true;
+          break; // 一次只触发一对
+        }
+      }
+      
+      // 检查与其他心宠的碰撞
+      for (let j = i + 1; j < updatedPets.length; j++) {
+        const otherPet = updatedPets[j];
+        if (otherPet.isTalking || otherPet.isInConversation) continue;
+        
+        if (pet.sceneId === otherPet.sceneId && !scenesWithDialog.has(pet.sceneId)) {
+          const distance = this.getDistance(pet.x, pet.y, otherPet.x, otherPet.y);
+          if (distance < 60) {
+            this.startDialogBetweenPets(pet, otherPet, i, j);
+            scenesWithDialog.add(pet.sceneId);
+            hasDialogChange = true;
+            break; // 一次只触发一对
+          }
+        }
+      }
+      
+      if (hasDialogChange) break; // 已经触发了一对，跳出
+    }
+
+    this.setData({ otherPets: updatedPets });
+  },
+
+  // 计算两点距离
+  getDistance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  },
+
+  // 移动其他心宠
+  moveOtherPet(pet) {
+    const { minX, maxX, minY, maxY } = this.boundary;
+    
+    // 随机选择目标位置
+    const targetX = minX + Math.random() * (maxX - minX);
+    const targetY = minY + Math.random() * (maxY - minY);
+    
+    // 直接更新位置（CSS transition会处理动画）
+    pet.x = targetX;
+    pet.y = targetY;
+    pet.isMoving = false;
+  },
+
+  // 开始两个心宠之间的对话（轮流显示）
+  startDialogBetweenPets(pet1, pet2, index1, index2) {
+    // 检查当前场景是否已有对话在进行
+    const { otherPets } = this.data;
+    const currentSceneId = pet1.sceneId;
+    
+    // 检查同场景是否有其他心宠在对话
+    const hasActiveDialog = otherPets.some(p => 
+      p.sceneId === currentSceneId && (p.isTalking || p.isInConversation)
+    );
+    
+    if (hasActiveDialog) {
+      return; // 如果已有对话，跳过
+    }
+    
+    // 随机选择一组对话
+    const dialoguePair = DIALOGUES[Math.floor(Math.random() * DIALOGUES.length)];
+    
+    // 第一阶段：第一个宠物说话（持续3秒）
+    const updatedPets = [...otherPets];
+    
+    if (pet1.id !== 'main-pet') {
+      updatedPets[index1].isTalking = true;
+      updatedPets[index1].dialogText = dialoguePair[0];
+      updatedPets[index1].dialogPartner = pet2.name;
+    }
+
+    // 第二个宠物标记为正在对话
+    if (index2 !== undefined && updatedPets[index2]) {
+      updatedPets[index2].isInConversation = true;
+      updatedPets[index2].dialogPartner = pet1.name;
+    }
+
+    this.setData({ otherPets: updatedPets });
+
+    // 第二阶段：3秒后，第一个宠物说完，第二个宠物回答
+    setTimeout(() => {
+      const currentPets = [...this.data.otherPets];
+      
+      // 第一个宠物停止说话
+      if (pet1.id !== 'main-pet' && currentPets[index1]) {
+        currentPets[index1].isTalking = false;
+        currentPets[index1].dialogText = '';
+      }
+      
+      // 第二个宠物开始说话（如果存在）
+      if (index2 !== undefined && currentPets[index2]) {
+        currentPets[index2].isTalking = true;
+        currentPets[index2].dialogText = dialoguePair[1];
+        currentPets[index2].isInConversation = false;
+      }
+      
+      this.setData({ otherPets: currentPets });
+    }, 3000);
+
+    // 第三阶段：6秒后，对话完全结束
+    setTimeout(() => {
+      const finalPets = [...this.data.otherPets];
+      if (pet1.id !== 'main-pet' && finalPets[index1]) {
+        finalPets[index1].isTalking = false;
+        finalPets[index1].dialogText = '';
+        finalPets[index1].dialogPartner = null;
+      }
+      if (index2 !== undefined && finalPets[index2]) {
+        finalPets[index2].isTalking = false;
+        finalPets[index2].dialogText = '';
+        finalPets[index2].dialogPartner = null;
+      }
+      this.setData({ otherPets: finalPets });
+    }, 6000);
   },
 
   // 平滑移动心宠到随机位置（带边界限制）
@@ -601,17 +1107,31 @@ Page({
 
   // 状态动画
   startStatusAnimation() {
-    // 状态值波动
+    let lastCheckedHour = -1;
+    let lastCheckedMinute = -1;
+
+    // 状态值波动和场景调度检查
     this.statusTimer = setInterval(() => {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+
+      // 每分钟更新一次时间显示
+      if (minute !== lastCheckedMinute) {
+        lastCheckedMinute = minute;
+        this.updateTimeDisplay();
+      }
+
+      // 每5秒波动一次状态值
       this.setData({
         mood: this.fluctuateValue(this.data.mood, 15, 90),
         energy: this.fluctuateValue(this.data.energy, 20, 95),
         social: this.fluctuateValue(this.data.social, 10, 85),
-        currentActivity: ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)],
       });
 
-      // 心宠随机切换场景（每15秒有30%概率切换）
-      if (Math.random() < 0.3) {
+      // 每小时检查一次时间调度（整点切换场景）
+      if (hour !== lastCheckedHour) {
+        lastCheckedHour = hour;
         this.switchPetScene();
       }
 
@@ -634,6 +1154,82 @@ Page({
     return Math.round(newValue);
   },
 
+  // ========== 时间调度系统 ==========
+
+  // 获取当前时间信息
+  getCurrentTimeInfo() {
+    const now = new Date();
+    return {
+      hour: now.getHours(),
+      dayOfWeek: now.getDay(), // 0=周日, 1=周一, ..., 6=周六
+      isWeekend: now.getDay() === 0 || now.getDay() === 6,
+    };
+  },
+
+  // 根据权重随机选择场景
+  weightedRandomScene(sceneWeights) {
+    const totalWeight = sceneWeights.reduce((sum, item) => sum + item.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const item of sceneWeights) {
+      random -= item.weight;
+      if (random <= 0) {
+        return item.id;
+      }
+    }
+    return sceneWeights[0].id;
+  },
+
+  // 根据时间获取场景调度配置
+  getSceneBySchedule() {
+    const { hour, isWeekend } = this.getCurrentTimeInfo();
+    const schedule = isWeekend ? WEEKEND_SCHEDULE : WEEKDAY_SCHEDULE;
+    const hourConfig = schedule.find((item) => item.hour === hour);
+
+    if (!hourConfig || !hourConfig.scenes || hourConfig.scenes.length === 0) {
+      return 'bedroom'; // 默认回宿舍
+    }
+
+    return this.weightedRandomScene(hourConfig.scenes);
+  },
+
+  // 根据场景ID获取场景信息
+  getSceneInfo(sceneId) {
+    const allScenes = this.getAllScenes();
+    return allScenes.find((s) => s.id === sceneId);
+  },
+
+  // 根据场景获取活动描述
+  getActivityByScene(sceneId) {
+    const activities = SCENE_ACTIVITIES[sceneId];
+    if (activities && activities.length > 0) {
+      return activities[Math.floor(Math.random() * activities.length)];
+    }
+    return '在探索这个神秘的地方';
+  },
+
+  // 检查是否触发随机事件
+  checkRandomEvent() {
+    const { hour, isWeekend } = this.getCurrentTimeInfo();
+    const { petSceneId } = this.data;
+
+    // 遍历所有随机事件
+    for (const [eventKey, eventConfig] of Object.entries(RANDOM_EVENTS)) {
+      if (Math.random() < eventConfig.probability) {
+        // 检查当前场景是否在允许列表中
+        if (eventConfig.scenes.includes(petSceneId)) {
+          return {
+            triggered: true,
+            description: eventConfig.description,
+            sceneId: petSceneId,
+          };
+        }
+      }
+    }
+
+    return { triggered: false };
+  },
+
   // 获取所有可选场景（仅二级场景，心宠不能进入一级场景）
   getAllScenes() {
     const { secondaryScenes } = this.data;
@@ -644,37 +1240,88 @@ Page({
     return allScenes;
   },
 
-  // 心宠切换场景
+  // 心宠切换场景（基于时间调度）
   switchPetScene() {
-    const allScenes = this.getAllScenes();
     const { petSceneId } = this.data;
-    if (allScenes.length <= 1) return;
 
-    // 随机选择一个不同于当前的场景
-    let newScene;
-    do {
-      newScene = allScenes[Math.floor(Math.random() * allScenes.length)];
-    } while (newScene.id === petSceneId);
+    // 1. 根据时间获取应该去的场景
+    let targetSceneId = this.getSceneBySchedule();
 
-    // 随机选择一个活动
-    const newActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
+    // 2. 检查是否触发随机事件（偏离日程）
+    const randomEvent = this.checkRandomEvent();
+    if (randomEvent.triggered) {
+      targetSceneId = randomEvent.sceneId;
+    }
 
+    // 3. 如果目标场景和当前场景相同，不切换
+    if (targetSceneId === petSceneId) {
+      // 只更新活动描述
+      const newActivity = this.getActivityByScene(petSceneId);
+      this.setData({
+        petActivity: newActivity,
+      });
+      return;
+    }
+
+    // 4. 获取目标场景信息
+    const newScene = this.getSceneInfo(targetSceneId);
+    if (!newScene) {
+      console.warn('[Pet] Scene not found:', targetSceneId);
+      return;
+    }
+
+    // 5. 获取新场景的活动描述
+    const newActivity = this.getActivityByScene(targetSceneId);
+
+    // 6. 更新数据
     this.setData({
       petSceneId: newScene.id,
       petSceneName: newScene.name,
       petActivity: newActivity,
     });
 
-    // 更新标记位置（根据当前地图级别）
+    // 7. 更新标记位置（根据当前地图级别）
     this.updatePetMarker();
 
-    // 如果心宠切换到了当前场景，显示提示
+    // 8. 如果心宠切换到了当前场景，显示提示
     const { currentSceneId } = this.data;
     if (newScene.id === currentSceneId) {
       wx.showToast({
-        title: '心宠回来了！',
+        title: randomEvent.triggered ? `心宠${randomEvent.description}回来了！` : '心宠回来了！',
         icon: 'none',
       });
+    }
+  },
+
+  // 更新时间显示
+  updateTimeDisplay() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const weekDay = weekDays[now.getDay()];
+    
+    this.setData({
+      currentTime: `${hours}:${minutes}`,
+      currentDateLabel: `${weekDay} ${hours}:${minutes}`,
+    });
+  },
+
+  // 强制根据当前时间更新场景（用于初始化或整点切换）
+  forceUpdateSceneByTime() {
+    const { hour, isWeekend } = this.getCurrentTimeInfo();
+    const targetSceneId = this.getSceneBySchedule();
+    const newScene = this.getSceneInfo(targetSceneId);
+
+    if (newScene) {
+      const newActivity = this.getActivityByScene(targetSceneId);
+      this.setData({
+        petSceneId: newScene.id,
+        petSceneName: newScene.name,
+        petActivity: newActivity,
+      });
+      this.updatePetMarker();
     }
   },
 

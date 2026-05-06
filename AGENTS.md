@@ -133,6 +133,283 @@ PsyTwin-Pocket 是基于 TDesign 框架开发的微信小程序。项目采用 J
 - 不要在 WXML 文件中使用内联样式
 - 提交代码前必须运行 lint 检查
 
+### 静态资源与图片使用规范（重要）
+
+**微信小程序背景图限制**：
+微信小程序的 CSS **不支持**使用 `background-image` 引用本地图片文件（jpg/png），仅支持网络图片（https://）或 base64。因此，所有需要背景图的场景必须使用 `<image>` 标签实现。
+
+**正确做法（必须使用）**：
+
+1. **WXML 结构**：使用 `<image>` 标签作为背景层
+```xml
+<view class="container">
+  <image class="bg-image" src="/static/xxx.png" mode="scaleToFill"></image>
+  <!-- 内容层 -->
+</view>
+```
+
+2. **LESS 样式**：
+```less
+.container {
+  position: relative;
+  overflow: hidden;  // 关键：实现圆角裁剪
+  border-radius: 20rpx;
+}
+
+.bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;  // 置于内容层下方
+}
+```
+
+3. **图片显示模式**：
+   - `mode="scaleToFill"`：强制拉伸填满容器（无白边，可能变形）
+   - `mode="aspectFill"`：保持比例裁剪填满（可能裁切内容）
+   - **推荐**：根据设计需求选择，UI 背景图优先使用 `scaleToFill`
+
+4. **图片格式建议**：
+   - 需要透明背景：使用 **PNG** 格式
+   - 不需要透明：使用 **JPG** 格式（体积更小）
+   - 图标类：使用 **PNG** 或 **SVG**（如支持）
+
+5. **文件存放位置**：
+   - 所有静态资源必须放在 `static/` 目录下
+   - 按功能分子目录：`static/home/`、`static/pet/`、`static/icons/` 等
+   - 命名规范：`功能_描述.格式`，如 `b1.png`、`bg_navbar.png`
+
+**错误做法（严禁）**：
+```less
+// ❌ 错误：微信小程序不支持本地 background-image
+.container {
+  background-image: url('/static/xxx.png');  // 无效！
+}
+```
+
+---
+
+### 背景图替换标准操作流程（SOP）
+
+> **适用场景**：需要为页面/组件/面板替换AI生成的背景图
+
+#### 步骤 1：测量实际UI尺寸比例
+
+**不要假设设计稿尺寸**，必须查看实际代码：
+
+```bash
+# 查看目标容器的实际尺寸（WXML + LESS）
+# 重点关注：
+# - 容器宽度（通常由 left/right 或 width 决定）
+# - 容器高度（由 padding + 内容撑开，或固定 height）
+```
+
+**实际比例计算公式**：
+```
+实际比例 = 容器宽度 / 容器实际高度
+```
+
+**常见误区**：
+- ❌ 设计稿写 180rpx，不等于实际高度就是 180rpx
+- ✅ 必须查看 LESS 中 padding、line-height、font-size 等撑开的实际高度
+
+**心宠按钮面板实际比例示例**：
+```
+宽度 = 750rpx - 24rpx - 24rpx = 702rpx
+高度 ≈ 112rpx (由 padding + 图标 + 文字撑开)
+实际比例 = 702 : 112 ≈ 6.3 : 1
+```
+
+---
+
+#### 步骤 2：AI生图比例转换（16:9 → 实际比例）
+
+**问题**：多数AI生图工具只支持 16:9 比例
+
+**解决方案**：在 16:9 画布内生成居中的UI元素，上下留透明边
+
+**计算方法**：
+```javascript
+// 计算UI在16:9画布中的高度占比
+const canvasRatio = 16/9;      // 1.78
+const targetRatio = 6.3/1;     // 实际UI比例（示例）
+const uiHeightPercent = (9/16) / (1/targetRatio) * 100;  // 28.2%
+const marginPercent = (100 - uiHeightPercent) / 2;        // 35.9%
+```
+
+**结果**：
+| 画布尺寸 (16:9) | UI目标尺寸 | UI占高度 | 上下留白 |
+|---|---|---|---|
+| 1024×576 | 1024×163 | **28.2%** | 35.9% each |
+| 1920×1080 | 1920×305 | **28.2%** | 35.9% each |
+
+---
+
+#### 步骤 3：AI生图Prompt模板
+
+```
+CRITICAL: The UI element must be extremely wide and flat.
+Aspect ratio is 6.3:1 (width:height).
+
+The canvas is 16:9, but the actual UI content occupies only
+the center 28% of the total height.
+
+LAYOUT STRUCTURE:
+- Total canvas: 16:9 ratio (e.g., 1920x1080)
+- Active UI zone: Center horizontal strip, height = 28% of canvas
+- Top margin: 36% (transparent or simple fade)
+- Bottom margin: 36% (transparent or simple fade)
+- All visual elements MUST stay within the center 28% zone
+
+UI DESIGN:
+- Shape: Rounded rectangle with 28px corner radius
+- Background: Linear gradient #667eea to #764ba2 at 135 degrees
+- Shadow: 0px 8px 32px rgba(102, 126, 234, 0.25)
+- Border: 2px inner border rgba(255, 255, 255, 0.3)
+
+DECORATIONS (within center strip only):
+- Top-left: Semi-transparent white star (24px, rotated 15°)
+- Top-right: Two white dots (12px and 8px diameter)
+- Bottom: Thin wavy line (1px)
+
+TRANSPARENCY:
+- Areas outside the rounded rectangle must be transparent (alpha=0)
+- Top and bottom margins must be transparent
+
+Export as PNG with transparency.
+```
+
+---
+
+#### 步骤 4：图片裁剪（去除上下透明边）
+
+**Python脚本（自动裁剪）**：
+```python
+from PIL import Image
+
+def crop_16_9_to_target(input_path, output_path, target_ratio=6.3):
+    """
+    从16:9图片中裁剪出目标比例的UI
+    target_ratio: 宽/高比例（如 6.3 表示 6.3:1）
+    """
+    img = Image.open(input_path)
+    width, height = img.size
+    
+    # 计算目标高度
+    target_height = int(width / target_ratio)
+    top = (height - target_height) // 2
+    
+    # 裁剪中间区域
+    cropped = img.crop((0, top, width, top + target_height))
+    cropped.save(output_path)
+    print(f"✓ Cropped to {width}x{target_height} ({target_ratio}:1)")
+
+# 使用示例
+crop_16_9_to_target("ai_generated_16_9.png", "final_ui_bg.png", target_ratio=6.3)
+```
+
+**在线工具替代**：
+- Photopea（免费在线PS）：裁剪工具 + 固定比例
+- Remove.bg：上传后调整画布尺寸
+- Mac Preview：工具 → 裁剪 → 选择区域
+
+---
+
+#### 步骤 5：代码实现（替换背景）
+
+**WXML 结构**：
+```xml
+<!-- 按钮面板 -->
+<view class="button-panel">
+  <!-- 背景图 -->
+  <image class="button-panel-bg" src="/static/b1.png" mode="scaleToFill"></image>
+  
+  <!-- 内容层（按钮等） -->
+  <view class="btn-item">...</view>
+  <view class="btn-item">...</view>
+</view>
+```
+
+**LESS 样式**：
+```less
+.button-panel {
+  position: absolute;      // 或 relative/fixed，根据需求
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 80rpx;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;     // 垂直居中内容
+  padding: 10rpx 16rpx;
+  border-radius: 20rpx;    // 圆角
+  overflow: hidden;        // 关键：裁剪背景图圆角
+  z-index: 100;
+}
+
+.button-panel-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;             // 置于内容层下方
+}
+```
+
+**关键要点**：
+- ✅ 使用 `<image>` 标签，不要用 CSS `background-image`
+- ✅ `mode="scaleToFill"` 强制填满（无白边）
+- ✅ 外层容器 `overflow: hidden` 实现圆角裁剪
+- ✅ 背景图 `z-index: -1` 置于最底层
+- ✅ 内容层默认 z-index 高于背景图
+
+---
+
+#### 步骤 6：验证清单
+
+- [ ] 图片已放入 `static/` 目录
+- [ ] 图片格式为 PNG（需要透明）或 JPG（不透明）
+- [ ] WXML 中使用 `<image>` 标签
+- [ ] LESS 中不使用 `background-image`
+- [ ] 容器有 `overflow: hidden` 和 `border-radius`
+- [ ] 背景图有 `position: absolute` 和 `z-index: -1`
+- [ ] 编译后无白边/透明边
+- [ ] 文字在背景图上清晰可读
+
+---
+
+#### 常见问题排查
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| 背景图不显示 | 使用了 CSS `background-image` | 改用 `<image>` 标签 |
+| 图片两侧有白边 | `mode="aspectFill"` 保留比例 | 改用 `mode="scaleToFill"` |
+| 圆角外有图片溢出 | 容器缺少 `overflow: hidden` | 添加 `overflow: hidden` |
+| 文字被背景图覆盖 | z-index 层级错误 | 背景图 `z-index: -1` |
+| 图片拉伸变形 | 原始比例与容器差异过大 | 重新生成合适比例的图片 |
+| AI生成的图片比例不对 | Prompt 未指定留白比例 | 按步骤2计算并明确指定 |
+
+---
+
+#### 实际案例：心宠按钮面板背景替换
+
+**背景**：为心宠页面底部四个按钮（世界地图、需要帮助、心宠背包、心情日记）替换AI生成的蓝紫渐变背景。
+
+**执行过程**：
+1. **测量**：实际容器宽度 702rpx，高度约 112rpx，比例 **6.3:1**
+2. **计算**：16:9 画布中 UI 只占中间 **28%** 高度，上下各留 **36%**
+3. **生图**：使用修正后的 Prompt，要求AI在16:9画布内生成居中的扁平UI
+4. **裁剪**：使用 Python 脚本从 1920×1080 裁剪出 1920×305（6.3:1）
+5. **替换**：将 `b1.png` 放入 `static/` 目录
+6. **代码**：
+   - WXML 添加 `<image class="button-panel-bg" src="/static/b1.png" mode="scaleToFill">`
+   - LESS 添加 `.button-panel-bg { position: absolute; z-index: -1; }`
+7. **验证**：编译后背景正确显示，文字清晰，无白边
+
+**成果**：成功替换背景，所有后续UI背景替换均遵循此SOP。
+
 ---
 
 ## 命令

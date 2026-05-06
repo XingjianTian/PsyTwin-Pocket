@@ -218,7 +218,73 @@ PsyTwin 是一套完整的**校园心理健康数字孪生解决方案**，由�
 
 ---
 
-### 2. 多模态数据流 (Multimodal Data Flow)
+### 2. 心宠系统 (Pet)
+
+<p align="center">
+  <b>「有生命力的虚拟心理伴侣」</b>
+</p>
+
+#### 功能架构
+
+```
+心宠模块 (pages/pet/)
+├── 游戏视图 (game)
+│   ├── 三维状态栏（心情/能量/社交）
+│   ├── CSS 精灵动画（弹跳、移动）
+│   └── 场景背景与装饰
+├── 世界地图 (map)
+│   ├── 5 个一级场景（奇幻空间/梦境小屋/自由旷野/心灵港湾/学校）
+│   └── 24 个二级场景（每个一级场景下 3-6 个，分散分布）
+├── 帮助事件 (help)
+│   ├── 大型事件触发（模拟/WebSocket）
+│   └── 4 选项决策影响三维状态
+├── 心宠背包 (bag)
+│   └── 物品查看（食物/玩具/装饰/礼物）
+└── 心情日记 (diary)
+    └── 7 天时间线记录
+```
+
+#### 核心交互
+
+**三维状态系统**：
+- 心情（0-100）、能量（0-100）、社交（0-100）
+- 每 5 秒随机波动 ±3，边界限制保护
+- 低值警告（< 30%）：图标抖动 + 文字脉冲 + 进度条变色
+
+**心宠精灵**：
+- 纯 CSS 绘制：粉色圆形身体 + 眼睛 + 腮红 + 微笑 + 💕 耳朵
+- 持续弹跳动画 + 平滑移动（每 3 秒 40% 概率随机移动）
+- 边界限制在底部草地区域
+
+**场景系统**：
+- 5 个一级场景，24 个二级场景（分散坐标布局）
+- 心宠只能进入二级场景，一级场景仅作入口
+- 用户主动切换 / 心宠自主切换（15 秒 30% 概率）
+- 场景编辑模式：支持拖拽调整二级场景位置，导出配置
+
+**帮助事件**：
+- 触发方式：模拟触发（30 秒 10% 概率）/ WebSocket 推送
+- 事件类型：大型/中型/小型，影响情绪/学习/社交
+- 4 选项决策，影响三维状态，解决后记录日记
+
+#### 技术实现
+
+- **状态波动**：`fluctuateValue(value, min, max)` 随机算法
+- **自主移动**：`wx.createAnimation` 平滑过渡（1.5 秒 ease-in-out）
+- **场景切换**：一级场景点击 → 二级场景弹窗确认 → 更新 currentSceneId
+- **WebSocket**：`utils/petWebSocket.js` 实时状态同步、事件触发
+- **动画系统**：10+ 种 CSS 动画（弹跳、抖动、脉冲、浮动、弹入等）
+
+#### 文件位置
+
+- `pages/pet/index.js` - 心宠主逻辑（~1260 行，含状态/场景/背包/日记/事件/编辑模式）
+- `pages/pet/index.wxml` - 五视图切换（game/map/bag/diary/help）
+- `pages/pet/index.less` - 精灵绘制、动画、场景布局、编辑模式样式
+- `utils/petWebSocket.js` - WebSocket 客户端（自动重连、心跳、认证）
+
+---
+
+### 3. 多模态数据流 (Multimodal Data Flow)
 
 <p align="center">
   <b>「构建数字孪生心理画像」</b>
@@ -324,7 +390,7 @@ Pocket (展示画像)
 
 ---
 
-### 3. OpenClaw AI 心理咨询
+### 4. OpenClaw AI 心理咨询
 
 <p align="center">
   <b>「7×24 小时 AI 心理治疗师」</b>
@@ -442,7 +508,7 @@ export async function sendToTherapist(message) {
 
 ---
 
-### 4. 学生心理画像
+### 5. 学生心理画像
 
 <p align="center">
   <b>「数字孪生核心：心理状态的数字化映射」</b>
@@ -554,7 +620,7 @@ GET /student/my/info
 
 ---
 
-### 5. 线上预约系统
+### 6. 线上预约系统
 
 <p align="center">
   <b>「线下心理服务的在线预约入口」</b>
@@ -711,52 +777,88 @@ const RoomStatus = {
 | Analyst 子代理 | 心理画像分析 |
 | NLP | 文本情感分析 |
 
+### 实时通信技术栈
+
+| 技术 | 用途 |
+|------|------|
+| WebSocket | 心宠实时状态同步、事件推送 |
+| 心跳机制 | 30 秒间隔保活 |
+| 自动重连 | 指数退避重连策略（最多 5 次）|
+
 ---
 
 ## 📂 项目结构
 
 ```
 PsyTwin-Pocket/
-├── 📁 api/                          # HTTP 请求层
-│   ├── ai.js                        # OpenClaw AI 接口
-│   ├── notification.js              # 消息通知接口
-│   ├── post.js                      # 帖子相关接口
-│   ├── request.js                   # 请求封装
+├── 📁 api/                               # HTTP 请求层
+│   ├── ai.js                             # OpenClaw AI 接口
+│   ├── notification.js                   # 消息通知接口
+│   ├── post.js                           # 帖子相关接口
+│   ├── request.js                        # 请求封装 + Mock 数据
 │   └── ...
 │
-├── 📁 pages/                        # 页面目录
-│   ├── 📁 home/                     # 首页 - 心墙瀑布流
-│   │   ├── index.js                 # 瀑布流算法实现
-│   │   └── index.less               # 瀑布流样式
+├── 📁 pages/                             # 页面目录
+│   ├── 📁 home/                          # 首页 - 心墙瀑布流
+│   │   ├── index.js                      # 瀑布流算法实现
+│   │   └── index.less                    # 瀑布流样式
 │   │
-│   ├── 📁 message/                  # 消息 - 会话列表
-│   ├── 📁 chat/                     # 聊天 - AI 对话窗口
-│   ├── 📁 appointment/              # 预约 - 服务预约
-│   ├── 📁 my/                       # 我的 - 个人中心
-│   │   └── index.js                 # 心理画像展示
+│   ├── 📁 pet/                           # 心宠 - 虚拟心理伴侣
+│   │   ├── index.js                      # 心宠主逻辑（状态/场景/背包/日记/事件/编辑模式）
+│   │   ├── index.wxml                    # 五视图切换（game/map/bag/diary/help）
+│   │   ├── index.less                    # 精灵绘制、动画、场景布局、编辑模式样式
+│   │   ├── map/                          # 子页面：独立地图（备用路由）
+│   │   ├── bag/                          # 子页面：独立背包
+│   │   ├── diary/                        # 子页面：独立日记
+│   │   └── events/                       # 子页面：独立事件
 │   │
-│   ├── 📁 assessment/               # 心理测评
-│   ├── 📁 vr-record/                # VR 记录
-│   ├── 📁 notification/             # 消息通知
+│   ├── 📁 message/                       # 消息 - AI 入口
+│   ├── 📁 chat/                          # 聊天 - AI 对话窗口
+│   ├── 📁 appointment/                   # 预约 - 服务预约
+│   ├── 📁 my/                            # 我的 - 个人中心
+│   │   └── index.js                      # 心理画像展示
 │   │
-│   └── 📁 teacher/                  # 教师端页面（分包）
-│       ├── warning-list/            # 预警列表
-│       ├── appointment-manage/      # 预约管理
-│       └── student-list/            # 学生管理
+│   ├── 📁 dataCenter/                    # 教师工作台
+│   ├── 📁 assessment/                    # 心理测评
+│   ├── 📁 vr-record/                     # VR 记录
+│   ├── 📁 notification/                  # 消息通知
+│   ├── 📁 login/                         # 登录
+│   ├── 📁 setting/                       # 设置
+│   ├── 📁 release/                       # 发布动态
+│   ├── 📁 post-detail/                   # 帖子详情
+│   ├── 📁 search/                        # 搜索
+│   └── 📁 teacher/                       # 教师端页面（分包）
+│       ├── warning-list/                 # 预警列表
+│       ├── appointment-manage/           # 预约管理
+│       └── student-list/                 # 学生管理
 │
-├── 📁 components/                   # 可复用组件
-│   └── card/                        # 心墙卡片组件
+├── 📁 components/                        # 可复用组件
+│   ├── card/                             # 心墙卡片组件
+│   └── nav/                              # 导航栏组件
 │
-├── 📁 mock/                         # Mock 数据
-│   ├── student/                     # 学生端数据
-│   └── teacher/                     # 教师端数据
+├── 📁 utils/                             # 工具函数
+│   ├── eventBus.js                       # 全局事件总线
+│   ├── util.js                           # 通用工具
+│   └── petWebSocket.js                   # 心宠 WebSocket 客户端
 │
-├── 📁 docs/                         # 项目文档
-│   ├── api_contract.md              # API 契约文档
-│   ├── PRD_STUDENT.md               # 学生端 PRD
-│   └── PRD_TEACHER.md               # 教师端 PRD
+├── 📁 behaviors/                         # 共享逻辑
+│   └── useToast.js                       # Toast 行为
 │
-└── 📄 config/index.js               # 全局配置
+├── 📁 mock/                              # Mock 数据系统
+│   ├── index.js                          # Mock 注册入口
+│   ├── WxMock.js                         # Mock 引擎
+│   ├── student/                          # 学生端数据
+│   └── teacher/                          # 教师端数据
+│
+├── 📁 docs/                              # 项目文档
+│   ├── pet-interaction-analysis.md       # 心宠交互逻辑分析
+│   ├── api_contract.md                   # API 契约文档
+│   ├── PRD_STUDENT.md                    # 学生端 PRD
+│   └── PRD_TEACHER.md                    # 教师端 PRD
+│
+├── 📁 custom-tab-bar/                    # 自定义 TabBar
+│
+└── 📄 config/index.js                    # 全局配置
 ```
 
 ---
@@ -798,6 +900,21 @@ npm run lint
 npm run lint:fix
 ```
 
+### 心宠模块开发
+
+心宠模块支持地图编辑模式，可在二级地图中拖拽调整场景位置：
+
+1. 进入心宠 → 世界地图 → 点击一级场景进入二级
+2. 点击左上角"✏️ 编辑"按钮进入编辑模式
+3. 拖拽场景调整位置（实时显示坐标）
+4. 点击"📋 导出"复制配置到剪贴板
+5. 将配置发给开发者定死到代码中
+
+**编辑模式限制**：
+- 心宠只能进入二级场景，一级场景仅作入口
+- 二级场景坐标限制在 5%-85% 范围内
+- 每个一级场景的二级场景数量不同（3-6 个）
+
 ---
 
 ## 📝 核心功能状态
@@ -805,6 +922,7 @@ npm run lint:fix
 | 功能模块 | 状态 | 说明 |
 |---------|------|------|
 | 心墙瀑布流 | ✅ | 双列瀑布流、下拉刷新、NLP 风险评估 |
+| **心宠系统** | **✅** | **虚拟宠物、三维状态、场景探索、背包日记、帮助事件** |
 | AI 心理咨询 | ✅ | OpenClaw Therapist 集成、7×24 小时服务 |
 | 心理画像 | ✅ | 多模态数据融合、四维度评分 |
 | 线上预约 | ✅ | 实时状态、时段选择、预约管理 |

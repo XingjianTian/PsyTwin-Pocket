@@ -52,16 +52,9 @@
     <!-- ========== 游戏视图 ========== -->
     <block wx:if="{{currentView === 'game'}}">
       <view class="game-view">
-        <!-- 背景图片层 -->
-        <image class="game-bg-image" src="/static/pet/scenes/BackGround1.png" mode="aspectFill"></image>
-
-        <!-- 场景信息卡片（左上角） -->
+        <!-- 场景位置信息 -->
         <view class="scene-info-card">
-          <view class="scene-info-icon">{{currentSceneIcon}}</view>
-          <view class="scene-info-content">
-            <text class="scene-info-label">当前场景</text>
-            <text class="scene-info-name">{{currentScene}}</text>
-          </view>
+          <text class="scene-location-text">{{currentScene}}</text>
         </view>
 
         <!-- 装饰层：树 -->
@@ -89,16 +82,36 @@
           </view>
         </view>
 
+        <!-- 其他心宠层（仅在同一场景时显示） -->
+        <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet">
+          <view wx:if="{{otherPet.sceneId === currentSceneId}}" class="other-pet" style="left: {{otherPet.x}}px; top: {{otherPet.y}}px; transition: all 2s ease-in-out;">
+            <view class="other-pet-body"></view>
+            <view class="other-pet-name">{{otherPet.name}}</view>
+            
+            <!-- 对话气泡 -->
+            <view wx:if="{{otherPet.isTalking}}" class="dialog-bubble {{otherPet.x > 200 ? 'dialog-left' : 'dialog-right'}}">
+              <text class="dialog-text">{{otherPet.dialogText}}</text>
+              <view class="dialog-arrow"></view>
+            </view>
+          </view>
+        </view>
+
         <!-- 状态浮层 -->
         <view class="activity-overlay">
-          <block wx:if="{{petSceneId === currentSceneId}}">
-            <text class="activity-text">心宠在这里</text>
-            <text class="scene-name">{{petActivity}}</text>
-          </block>
-          <block wx:else>
-            <text class="activity-text">心宠正在 {{petSceneName}}</text>
-            <text class="scene-name">{{petActivity}}</text>
-          </block>
+          <view class="activity-info">
+            <block wx:if="{{petSceneId === currentSceneId}}">
+              <text class="activity-text">心宠在这里</text>
+              <text class="scene-name">{{petActivity}}</text>
+            </block>
+            <block wx:else>
+              <text class="activity-text">心宠正在 {{petSceneName}}</text>
+              <text class="scene-name">{{petActivity}}</text>
+            </block>
+          </view>
+          <view class="time-info">
+            <text class="time-text">{{currentTime}}</text>
+            <text class="time-label">{{currentDateLabel}}</text>
+          </view>
         </view>
       </view>
     </block>
@@ -380,6 +393,7 @@
 
   <!-- 按钮面板 - 悬浮在游戏区域上方 -->
   <view class="button-panel" style="bottom: {{isFullscreen ? '10rpx' : '80rpx'}};">
+    <image class="button-panel-bg" src="/static/b1.png" mode="scaleToFill"></image>
     <view class="btn-item {{currentView === 'map' ? 'active' : ''}}" bindtap="onMapTap">
       <view class="btn-icon">🗺️</view>
       <text class="btn-label">世界地图</text>
