@@ -1,49 +1,61 @@
 <view class="pet-container {{isFullscreen ? 'fullscreen' : ''}}">
   <!-- 状态栏 -->
   <view class="status-bar">
-    <view class="status-content">
+    <view class="status-card">
       <!-- 心情 -->
       <view class="status-item">
-        <view class="status-icon {{mood < 30 ? 'warning' : ''}}">❤️</view>
-        <view class="status-label">心情</view>
-        <view class="progress-bar">
-          <view class="progress-fill mood-fill" style="width: {{mood}}%"></view>
+        <view class="status-icon-wrapper">
+          <text class="status-icon {{mood < 30 ? 'warning' : ''}}">❤️</text>
         </view>
-        <view class="status-value {{mood < 30 ? 'warning-text' : ''}}">{{mood}}</view>
+        <text class="status-label">心情</text>
+        <view class="progress-wrapper">
+          <view class="progress-track">
+            <view class="progress-fill mood-fill" style="width: {{mood}}%"></view>
+          </view>
+        </view>
+        <text class="status-value {{mood < 30 ? 'warning-text' : ''}}">{{mood}}</text>
       </view>
 
       <!-- 能量 -->
       <view class="status-item">
-        <view class="status-icon {{energy < 30 ? 'warning' : ''}}">⚡</view>
-        <view class="status-label">能量</view>
-        <view class="progress-bar">
-          <view class="progress-fill energy-fill" style="width: {{energy}}%"></view>
+        <view class="status-icon-wrapper">
+          <text class="status-icon {{energy < 30 ? 'warning' : ''}}">⚡</text>
         </view>
-        <view class="status-value {{energy < 30 ? 'warning-text' : ''}}">{{energy}}</view>
+        <text class="status-label">能量</text>
+        <view class="progress-wrapper">
+          <view class="progress-track">
+            <view class="progress-fill energy-fill" style="width: {{energy}}%"></view>
+          </view>
+        </view>
+        <text class="status-value {{energy < 30 ? 'warning-text' : ''}}">{{energy}}</text>
       </view>
 
       <!-- 社交 -->
       <view class="status-item">
-        <view class="status-icon {{social < 30 ? 'warning' : ''}}">👥</view>
-        <view class="status-label">社交</view>
-        <view class="progress-bar">
-          <view class="progress-fill social-fill" style="width: {{social}}%"></view>
+        <view class="status-icon-wrapper">
+          <text class="status-icon {{social < 30 ? 'warning' : ''}}">👥</text>
         </view>
-        <view class="status-value {{social < 30 ? 'warning-text' : ''}}">{{social}}</view>
+        <text class="status-label">社交</text>
+        <view class="progress-wrapper">
+          <view class="progress-track">
+            <view class="progress-fill social-fill" style="width: {{social}}%"></view>
+          </view>
+        </view>
+        <text class="status-value {{social < 30 ? 'warning-text' : ''}}">{{social}}</text>
       </view>
     </view>
 
-    <!-- 设置按钮 / 返回按钮 -->
-    <view class="settings-btn" bindtap="{{currentView === 'game' ? 'onSettingsTap' : 'backToGame'}}">
-      {{currentView === 'game' ? '⚙️' : '✕'}}
-    </view>
-    <!-- 全屏按钮（仅在游戏视图且非全屏时显示） -->
-    <view wx:if="{{currentView === 'game' && !isFullscreen}}" class="fullscreen-btn" bindtap="toggleFullscreen">
-      ⛶
-    </view>
-    <!-- 退出全屏按钮（仅在全屏时显示） -->
-    <view wx:if="{{isFullscreen}}" class="exit-fullscreen-btn" bindtap="toggleFullscreen">
-      ⛶
+    <!-- 右侧按钮组 -->
+    <view class="status-actions">
+      <view class="action-btn settings-btn" bindtap="{{currentView === 'game' ? 'onSettingsTap' : 'backToGame'}}">
+        <text class="action-icon">{{currentView === 'game' ? '⚙️' : '✕'}}</text>
+      </view>
+      <view wx:if="{{currentView === 'game' && !isFullscreen}}" class="action-btn fullscreen-btn" bindtap="toggleFullscreen">
+        <text class="action-icon">⛶</text>
+      </view>
+      <view wx:if="{{isFullscreen}}" class="action-btn exit-fullscreen-btn" bindtap="toggleFullscreen">
+        <text class="action-icon">⛶</text>
+      </view>
     </view>
   </view>
 

@@ -31,37 +31,47 @@
 
 /* 状态栏 */
 .status-bar {
-  background: linear-gradient(135deg, @primary-500 0%, darken(@primary-500, 15%) 100%);
-  padding: 12rpx 24rpx;
+  padding: 12rpx 20rpx;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  border-radius: 0;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.3);
+  align-items: center;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
 }
 
-.status-content {
+/* 状态卡片 */
+.status-card {
   flex: 1;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  padding: 16rpx 20rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15), inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
 }
 
 .status-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6rpx;
+  margin-bottom: 12rpx;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
-.status-item:last-child {
-  margin-bottom: 0;
+.status-icon-wrapper {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
 }
 
 .status-icon {
   font-size: 28rpx;
-  margin-right: 10rpx;
-  width: 36rpx;
-  text-align: center;
   transition: transform 0.3s ease;
 
   &.warning {
@@ -76,116 +86,126 @@
 }
 
 .status-label {
-  color: #fff;
-  font-size: 22rpx;
-  width: 56rpx;
-  margin-right: 10rpx;
+  color: @text-primary;
+  font-size: 24rpx;
+  font-weight: 500;
+  width: 60rpx;
+  margin-right: 16rpx;
 }
 
-.progress-bar {
+.progress-wrapper {
   flex: 1;
-  height: @progress-height;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: @progress-radius;
+  margin-right: 16rpx;
+}
+
+.progress-track {
+  height: 16rpx;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8rpx;
   overflow: hidden;
-  margin-right: 10rpx;
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: @progress-radius;
+  border-radius: 8rpx;
   transition: width 600ms ease-out;
-}
+  position: relative;
 
-.mood-fill {
-  background: linear-gradient(90deg, @mood-low 0%, @mood-high 100%);
-}
-
-.energy-fill {
-  background: linear-gradient(90deg, @energy-low 0%, @energy-high 100%);
-}
-
-.social-fill {
-  background: linear-gradient(90deg, @social-low 0%, @social-high 100%);
-}
-
-.status-value {
-  color: #fff;
-  font-size: 22rpx;
-  font-weight: bold;
-  width: 48rpx;
-  text-align: right;
-
-  &.warning-text {
-    color: @mood-high;
-    animation: text-pulse 0.5s ease-in-out infinite;
+  /* 光泽效果 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+    border-radius: 8rpx 8rpx 0 0;
   }
 }
 
-@keyframes text-pulse {
+.mood-fill {
+  background: linear-gradient(90deg, #FFB6C1 0%, #FF69B4 100%);
+}
+
+.energy-fill {
+  background: linear-gradient(90deg, #FFE066 0%, #A8E6CF 100%);
+}
+
+.social-fill {
+  background: linear-gradient(90deg, #B8A8E8 0%, #87CEEB 100%);
+}
+
+.status-value {
+  color: #333;
+  font-size: 26rpx;
+  font-weight: bold;
+  width: 50rpx;
+  text-align: right;
+
+  &.warning-text {
+    color: @mood-low;
+    animation: value-pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes value-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
 
-/* 设置/返回按钮 */
-.settings-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 12rpx;
-  width: 56rpx;
-  height: 56rpx;
+/* 右侧按钮组 */
+.status-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
+  flex-direction: column;
+  gap: 16rpx;
   margin-left: 16rpx;
-  transition: background 0.2s ease;
-  margin-top: 4rpx;
-  color: #fff;
-
-  &:active {
-    background: rgba(255, 255, 255, 0.25);
-  }
+  position: relative; /* 为子元素绝对定位提供参考点 */
 }
 
-/* 全屏按钮 */
-.fullscreen-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 12rpx;
-  width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  margin-left: 12rpx;
-  transition: background 0.2s ease;
-  margin-top: 4rpx;
-  color: #fff;
-
-  &:active {
-    background: rgba(255, 255, 255, 0.25);
-  }
-}
-
-/* 退出全屏按钮 */
-.exit-fullscreen-btn {
-  position: absolute;
-  top: 80rpx;
-  right: 20rpx;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
+.action-btn {
   width: 64rpx;
   height: 64rpx;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20rpx);
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1), inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.action-icon {
+  font-size: 32rpx;
+}
+
+/* 退出全屏按钮 - 与全屏按钮共用同一位置，通过条件渲染切换 */
+.exit-fullscreen-btn {
+  /* 使用 .action-btn 相同样式，保持在按钮组内 */
+  width: 64rpx;
+  height: 64rpx;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
   font-size: 32rpx;
   color: #fff;
-  z-index: 999;
-  backdrop-filter: blur(10rpx);
+  transition: all 0.2s ease;
 
   &:active {
     background: rgba(0, 0, 0, 0.7);
+    transform: scale(0.95);
   }
 }
 
