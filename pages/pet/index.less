@@ -1,6 +1,6 @@
 // 色彩系统
-@primary-500: #6B5B95;
-@primary-50: #F2EEFA;
+@primary-500: #8B7355;
+@primary-50: #F5ECD8;
 @mood-high: #FF8E8E;
 @mood-low: #FF6B6B;
 @energy-high: #A8E6CF;
@@ -218,8 +218,8 @@
   background: @scene-forest;
 }
 
-/* 游戏视图 */
-.game-view {
+/* 游戏背景 - 始终显示 */
+.game-background {
   position: absolute;
   top: 0;
   left: 0;
@@ -230,8 +230,20 @@
   background-color: #E8F5E9; /* 临时绿色纯色背景，方便AI生图 */
 }
 
+/* 游戏视图 */
+.game-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 65rpx;
+  z-index: 1;
+  overflow: hidden;
+}
+
 /* 全屏模式下游戏视图延伸到更底部 */
-.fullscreen .game-view {
+.fullscreen .game-view,
+.fullscreen .game-background {
   bottom: 10rpx;
 }
 
@@ -559,19 +571,124 @@
   }
 }
 
-/* 状态浮层 - 紧贴在状态栏下方 */
-.activity-overlay {
+/* ========== 主心宠特殊对话气泡 ========== */
+.main-pet-dialog-bubble {
   position: absolute;
-  top: 0rpx;            /* 状态栏高度约130rpx，放在状态栏下方 */
+  bottom: 70rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  animation: mainDialogPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 240rpx;
+  max-width: 400rpx;
+}
+
+.main-pet-dialog-content {
+  background: linear-gradient(135deg, #FFB6C1 0%, #FF8E8E 100%);
+  padding: 20rpx 28rpx;
+  border-radius: 24rpx;
+  box-shadow: 
+    0 8rpx 32rpx rgba(255, 107, 107, 0.3),
+    0 0 60rpx rgba(255, 182, 193, 0.2),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.4);
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 光泽效果 */
+.main-pet-dialog-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  background: rgba(128, 128, 128, 0.8);
-  padding: 20rpx 24rpx 16rpx;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+  border-radius: 24rpx 24rpx 0 0;
+  pointer-events: none;
+}
+
+.main-pet-dialog-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.5;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* 小箭头 */
+.main-pet-dialog-arrow {
+  position: absolute;
+  bottom: -16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 16rpx solid transparent;
+  border-right: 16rpx solid transparent;
+  border-top: 16rpx solid #FF8E8E;
+  filter: drop-shadow(0 4rpx 8rpx rgba(255, 107, 107, 0.3));
+}
+
+/* 发光效果 */
+.main-pet-dialog-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(255, 182, 193, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  animation: dialogGlow 2s ease-in-out infinite;
+}
+
+@keyframes mainDialogPop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5) translateY(20rpx);
+  }
+  70% {
+    transform: translateX(-50%) scale(1.05) translateY(-5rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+@keyframes dialogGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* 状态浮层 - 浅米色卡片风格 */
+.activity-overlay {
+  position: absolute;
+  top: 0rpx;
+  left: 24rpx;
+  right: 24rpx;
+  background: linear-gradient(135deg, #FDF6E3 0%, #F5ECD8 100%);
+  padding: 20rpx 24rpx;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   z-index: 5;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(139, 115, 85, 0.15), inset 0 1rpx 0 rgba(255, 255, 255, 0.5);
+  border: 2rpx solid rgba(210, 180, 140, 0.3);
 }
 
 .activity-info {
@@ -580,55 +697,93 @@
   flex: 1;
 }
 
-.activity-text {
-  color: #fff;
+.activity-main-text {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  margin-bottom: 6rpx;
+}
+
+.activity-prefix {
+  color: #8B7355;
   font-size: 28rpx;
   font-weight: 500;
-  margin-bottom: 4rpx;
 }
 
-.scene-name {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 22rpx;
+.activity-scene {
+  color: #5C4033;
+  font-size: 32rpx;
+  font-weight: bold;
 }
 
-.time-info {
+.activity-subtext {
+  color: #A09080;
+  font-size: 24rpx;
+}
+
+/* 时间卡片 - 白色圆角带叶子装饰 */
+.time-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: #fff;
+  padding: 12rpx 16rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(139, 115, 85, 0.1);
+  border: 2rpx solid rgba(210, 180, 140, 0.2);
+}
+
+.time-leaf {
+  font-size: 24rpx;
+  opacity: 0.7;
+}
+
+.left-leaf {
+  margin-right: 8rpx;
+}
+
+.right-leaf {
+  margin-left: 8rpx;
+}
+
+.time-content {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10rpx);
-  padding: 12rpx 20rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  align-items: center;
 }
 
 .time-text {
-  color: #fff;
-  font-size: 32rpx;
+  color: #5C4033;
+  font-size: 36rpx;
   font-weight: bold;
   line-height: 1.2;
 }
 
 .time-label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 18rpx;
+  color: #A09080;
+  font-size: 20rpx;
   margin-top: 2rpx;
 }
 
 /* ========== 视图通用样式 ========== */
 .view-header {
-  background: linear-gradient(135deg, @primary-500 0%, darken(@primary-500, 15%) 100%);
-  padding: 20rpx;
+  background: rgba(253, 246, 227, 0.92);
+  backdrop-filter: blur(10rpx);
+  padding: 24rpx;
   text-align: center;
   flex-shrink: 0;
+  border-radius: 0 0 24rpx 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(139, 115, 85, 0.15), inset 0 1rpx 0 rgba(255, 255, 255, 0.5);
+  border-bottom: 2rpx solid rgba(210, 180, 140, 0.3);
+  margin: 0 24rpx;
+  position: relative;
+  z-index: 10;
 }
 
 .view-title {
-  color: #fff;
+  color: #5C4033;
   font-size: 32rpx;
   font-weight: bold;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .view-content {
@@ -639,16 +794,21 @@
   bottom: 65rpx;
   overflow: hidden;
   z-index: 10;
+  background: transparent;
 }
 
 .view-loading,
-.view-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80rpx 40rpx;
-}
+ .view-empty {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding: 80rpx 40rpx;
+   background: rgba(253, 246, 227, 0.9);
+   backdrop-filter: blur(10rpx);
+   border-radius: 20rpx;
+   margin: 20rpx 40rpx;
+ }
 
 .empty-icon {
   font-size: 80rpx;
@@ -1123,15 +1283,17 @@
 
 /* ========== 背包视图 ========== */
 .bag-view {
-  background: #fafafa;
+  background: transparent;
   padding: 20rpx;
   top: 160rpx; /* 为标题和容量条留出空间 */
+  z-index: 10;
 }
 
 .capacity-bar {
   padding: 20rpx 30rpx;
-  background: #fff;
-  border-bottom: 2rpx solid #f0f0f0;
+  background: rgba(245, 236, 216, 0.9);
+  backdrop-filter: blur(10rpx);
+  border-bottom: 2rpx solid rgba(232, 220, 200, 0.5);
   flex-shrink: 0;
 }
 
@@ -1174,19 +1336,20 @@
 }
 
 .bag-card {
-  background: #fff;
+  background: rgba(253, 246, 227, 0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 20rpx;
   padding: 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-  border: 2rpx solid #f0f0f0;
+  box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.15);
+  border: 2rpx solid rgba(210, 180, 140, 0.3);
   transition: all 0.2s ease;
 
   &:active {
     transform: scale(0.95);
-    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2rpx 8rpx rgba(139, 115, 85, 0.2);
   }
 }
 
@@ -1206,68 +1369,173 @@
   font-size: 24rpx;
   color: @primary-500;
   font-weight: bold;
-  background: #F2EEFA;
+  background: rgba(245, 236, 216, 0.9);
+  backdrop-filter: blur(10rpx);
   padding: 4rpx 16rpx;
   border-radius: 12rpx;
 }
 
 /* ========== 日记视图 ========== */
 .diary-view {
-  background: #fafafa;
-  padding: 0 20rpx 20rpx;
-  top: 180rpx; /* 为日期选择器留出空间 */
+  background: transparent;
+  padding: 0;
+  top: 120rpx; /* 标题栏下方 */
+  z-index: 10;
 }
 
-.date-selector {
-  display: flex;
-  justify-content: space-around;
-  padding: 16rpx;
-  background: #fff;
-  border-bottom: 2rpx solid #f0f0f0;
-  flex-shrink: 0;
-}
+/* ========== 日历组件 ========== */
+ .calendar-container {
+   background: rgba(253, 246, 227, 0.92);
+   backdrop-filter: blur(10rpx);
+   border-radius: 20rpx;
+   margin: 0 20rpx 20rpx;
+   padding: 20rpx;
+   box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.1);
+   border: 2rpx solid rgba(210, 180, 140, 0.25);
+ }
 
-.date-item {
+.calendar-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  padding: 10rpx 14rpx;
-  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.calendar-nav-btn {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 236, 216, 0.8);
+  border-radius: 50%;
   transition: all 0.2s ease;
 
-  &.active {
-    background: @primary-500;
-
-    .date-weekday,
-    .date-day {
-      color: #fff;
-    }
-  }
-
-  &.today:not(.active) {
-    background: #F2EEFA;
-
-    .date-weekday,
-    .date-day {
-      color: @primary-500;
-    }
+  &:active {
+    background: rgba(210, 180, 140, 0.3);
+    transform: scale(0.95);
   }
 }
 
-.date-weekday {
-  font-size: 20rpx;
-  color: @text-secondary;
-  margin-bottom: 4rpx;
+.calendar-nav-icon {
+  font-size: 36rpx;
+  color: @primary-500;
+  font-weight: bold;
 }
 
-.date-day {
-  font-size: 28rpx;
+.calendar-month {
+  font-size: 32rpx;
   color: @text-primary;
   font-weight: bold;
 }
 
+.calendar-weekdays {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid rgba(210, 180, 140, 0.2);
+}
+
+.calendar-weekday {
+  font-size: 24rpx;
+  color: @text-secondary;
+  width: 60rpx;
+  text-align: center;
+}
+
+ .calendar-days {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: flex-start;
+   padding: 0 8rpx;
+ }
+
+.calendar-day {
+  width: calc(100% / 7 - 8rpx);
+  height: 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 4rpx;
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &.other-month {
+    opacity: 0.4;
+  }
+
+  &.today {
+    background: rgba(245, 236, 216, 0.8);
+
+    .calendar-day-num {
+      color: @primary-500;
+      font-weight: bold;
+    }
+  }
+
+  &.selected {
+    background: @primary-500;
+
+    .calendar-day-num {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    &.has-entry .calendar-day-dot {
+      background: #fff;
+    }
+  }
+
+  &.has-entry:not(.selected) {
+    .calendar-day-dot {
+      background: @primary-500;
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(210, 180, 140, 0.2);
+  }
+}
+
+.calendar-day-num {
+  font-size: 28rpx;
+  color: @text-primary;
+}
+
+.calendar-day-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  margin-top: 4rpx;
+  background: transparent;
+}
+
+/* 日记日期标题 */
+.diary-date-title {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 20rpx;
+  padding: 0 40rpx;
+}
+
+.diary-date-text {
+  font-size: 32rpx;
+  color: @text-primary;
+  font-weight: bold;
+  margin-right: 16rpx;
+}
+
+.diary-date-weekday {
+  font-size: 26rpx;
+  color: @text-secondary;
+}
+
 .timeline {
-  padding: 10rpx 0;
+  padding: 10rpx 40rpx 120rpx;
 }
 
 .timeline-item {
@@ -1310,11 +1578,12 @@
 }
 
 .timeline-card {
-  background: #fff;
+  background: rgba(253, 246, 227, 0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 16rpx;
   padding: 20rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
-  border: 2rpx solid #f5f5f5;
+  box-shadow: 0 4rpx 12rpx rgba(139, 115, 85, 0.12);
+  border: 2rpx solid rgba(210, 180, 140, 0.25);
 }
 
 .timeline-badge {
@@ -1343,7 +1612,8 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: #fafafa;
+  background: rgba(245, 236, 216, 0.9);
+  backdrop-filter: blur(10rpx);
   padding: 6rpx 14rpx;
   border-radius: 8rpx;
 }
@@ -1575,7 +1845,7 @@
 }
 
 .scene-modal .modal-tag {
-  background: #F2EEFA;
+  background: #F5ECD8;
   color: @primary-500;
   font-size: 24rpx;
   padding: 8rpx 20rpx;
@@ -1625,9 +1895,10 @@
 
 /* ========== 帮助视图 ========== */
 .help-view {
-  background: #fafafa;
+  background: transparent;
   padding: 20rpx;
   top: 80rpx; /* 为标题留出空间 */
+  z-index: 10;
 }
 
 .event-list {
@@ -1637,16 +1908,17 @@
 }
 
 .event-card {
-  background: #fff;
+  background: rgba(253, 246, 227, 0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 20rpx;
   padding: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-  border: 2rpx solid #f0f0f0;
+  box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.15);
+  border: 2rpx solid rgba(210, 180, 140, 0.3);
   transition: all 0.3s ease;
 
   &.resolved {
     opacity: 0.7;
-    background: #f9f9f9;
+    background: #F5ECD8;
 
     .event-title,
     .event-desc {
@@ -1714,14 +1986,15 @@
 }
 
 .option-item {
-  background: #fafafa;
+  background: rgba(253, 246, 227, 0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 16rpx;
   padding: 20rpx;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx solid rgba(210, 180, 140, 0.3);
   transition: all 0.2s ease;
 
   &:active {
-    background: @primary-50;
+    background: rgba(245, 236, 216, 0.95);
     border-color: @primary-500;
     transform: scale(0.98);
   }
@@ -1757,7 +2030,8 @@
 }
 
 .resolved-info {
-  background: @primary-50;
+  background: rgba(245, 236, 216, 0.9);
+  backdrop-filter: blur(10rpx);
   border-radius: 16rpx;
   padding: 20rpx;
   text-align: center;

@@ -61,72 +61,88 @@
 
   <!-- 主游戏区域 -->
   <view class="main-area">
-    <!-- ========== 游戏视图 ========== -->
-    <block wx:if="{{currentView === 'game'}}">
-      <view class="game-view">
-        <!-- 场景位置信息 -->
-        <view class="scene-info-card">
-          <text class="scene-location-text">{{currentScene}}</text>
-        </view>
+    <!-- 游戏背景层 - 始终显示 -->
+    <view class="game-background">
+      <view class="scene-info-card" wx:if="{{currentView === 'game'}}">
+        <text class="scene-location-text">{{currentScene}}</text>
+      </view>
 
-        <!-- 装饰层：树 -->
-        <view class="game-decorations">
-          <text class="deco-tree">🌲</text>
-          <text class="deco-tree deco-tree-2">🌲</text>
-          <text class="deco-tree deco-tree-3">🌲</text>
-          <text class="deco-grass">🌿</text>
-          <text class="deco-grass deco-grass-2">🌿</text>
-          <text class="deco-flower">🌸</text>
-        </view>
+      <!-- 装饰层：树 -->
+      <view class="game-decorations" wx:if="{{currentView === 'game'}}">
+        <text class="deco-tree">🌲</text>
+        <text class="deco-tree deco-tree-2">🌲</text>
+        <text class="deco-tree deco-tree-3">🌲</text>
+        <text class="deco-grass">🌿</text>
+        <text class="deco-grass deco-grass-2">🌿</text>
+        <text class="deco-flower">🌸</text>
+      </view>
 
-        <!-- 心宠精灵层（仅当在当前场景时显示） -->
-        <view wx:if="{{petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
-          <view class="pet-body">
-            <view class="pet-face">
-              <view class="pet-eye pet-eye-left"></view>
-              <view class="pet-eye pet-eye-right"></view>
-              <view class="pet-blush pet-blush-left"></view>
-              <view class="pet-blush pet-blush-right"></view>
-              <view class="pet-mouth"></view>
-            </view>
-            <view class="pet-ear pet-ear-left">💕</view>
-            <view class="pet-ear pet-ear-right">💕</view>
+      <!-- 心宠精灵层（仅当在当前场景时显示） -->
+      <view wx:if="{{currentView === 'game' && petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
+        <view class="pet-body">
+          <view class="pet-face">
+            <view class="pet-eye pet-eye-left"></view>
+            <view class="pet-eye pet-eye-right"></view>
+            <view class="pet-blush pet-blush-left"></view>
+            <view class="pet-blush pet-blush-right"></view>
+            <view class="pet-mouth"></view>
           </view>
+          <view class="pet-ear pet-ear-left">💕</view>
+          <view class="pet-ear pet-ear-right">💕</view>
         </view>
-
-        <!-- 其他心宠层（仅在同一场景时显示） -->
-        <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet">
-          <view wx:if="{{otherPet.sceneId === currentSceneId}}" class="other-pet" style="left: {{otherPet.x}}px; top: {{otherPet.y}}px; transition: all 2s ease-in-out;">
-            <view class="other-pet-body"></view>
-            <view class="other-pet-name">{{otherPet.name}}</view>
-            
-            <!-- 对话气泡 -->
-            <view wx:if="{{otherPet.isTalking}}" class="dialog-bubble {{otherPet.x > 200 ? 'dialog-left' : 'dialog-right'}}">
-              <text class="dialog-text">{{otherPet.dialogText}}</text>
-              <view class="dialog-arrow"></view>
-            </view>
+        
+        <!-- 主心宠对话气泡（特殊样式） -->
+        <view wx:if="{{mainPetTalking}}" class="main-pet-dialog-bubble">
+          <view class="main-pet-dialog-content">
+            <text class="main-pet-dialog-text">{{mainPetDialogText}}</text>
           </view>
+          <view class="main-pet-dialog-arrow"></view>
+          <view class="main-pet-dialog-glow"></view>
         </view>
+      </view>
 
-        <!-- 状态浮层 -->
-        <view class="activity-overlay">
-          <view class="activity-info">
-            <block wx:if="{{petSceneId === currentSceneId}}">
-              <text class="activity-text">心宠在这里</text>
-              <text class="scene-name">{{petActivity}}</text>
-            </block>
-            <block wx:else>
-              <text class="activity-text">心宠正在 {{petSceneName}}</text>
-              <text class="scene-name">{{petActivity}}</text>
-            </block>
-          </view>
-          <view class="time-info">
-            <text class="time-text">{{currentTime}}</text>
-            <text class="time-label">{{currentDateLabel}}</text>
+      <!-- 其他心宠层（仅在同一场景时显示） -->
+      <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet" wx:if="{{currentView === 'game'}}">
+        <view wx:if="{{otherPet.sceneId === currentSceneId}}" class="other-pet" style="left: {{otherPet.x}}px; top: {{otherPet.y}}px; transition: all 2s ease-in-out;">
+          <view class="other-pet-body"></view>
+          <view class="other-pet-name">{{otherPet.name}}</view>
+          
+          <!-- 对话气泡 -->
+          <view wx:if="{{otherPet.isTalking}}" class="dialog-bubble {{otherPet.x > 200 ? 'dialog-left' : 'dialog-right'}}">
+            <text class="dialog-text">{{otherPet.dialogText}}</text>
+            <view class="dialog-arrow"></view>
           </view>
         </view>
       </view>
-    </block>
+
+      <!-- 状态浮层 -->
+      <view class="activity-overlay" wx:if="{{currentView === 'game'}}">
+        <view class="activity-info">
+          <block wx:if="{{petSceneId === currentSceneId}}">
+            <view class="activity-main-text">
+              <text class="activity-prefix">心宠正在 </text>
+              <text class="activity-scene">{{petSceneName}}</text>
+            </view>
+            <text class="activity-subtext">{{petActivity}}</text>
+          </block>
+          <block wx:else>
+            <view class="activity-main-text">
+              <text class="activity-prefix">心宠正在 </text>
+              <text class="activity-scene">{{petSceneName}}</text>
+            </view>
+            <text class="activity-subtext">{{petActivity}}</text>
+          </block>
+        </view>
+        <view class="time-card">
+          <text class="time-leaf left-leaf">🌿</text>
+          <view class="time-content">
+            <text class="time-text">{{currentTime}}</text>
+            <text class="time-label">{{currentDateLabel}}</text>
+          </view>
+          <text class="time-leaf right-leaf">🌿</text>
+        </view>
+      </view>
+    </view>
 
     <!-- ========== 世界地图视图 ========== -->
     <block wx:if="{{currentView === 'map'}}">
@@ -280,28 +296,49 @@
       <view class="view-header">
         <text class="view-title">心情日记</text>
       </view>
-      <!-- 日期选择器 -->
-      <view class="date-selector">
-        <view
-          class="date-item {{item.date === diarySelectedDate ? 'active' : ''}} {{item.isToday ? 'today' : ''}}"
-          wx:for="{{diaryDates}}"
-          wx:key="date"
-          data-date="{{item.date}}"
-          bindtap="onDiaryDateSelect"
-        >
-          <text class="date-weekday">{{item.weekDay}}</text>
-          <text class="date-day">{{item.day}}</text>
-        </view>
-      </view>
-      <!-- 时间线 -->
+      <!-- 选中日期的日记内容 -->
       <scroll-view class="view-content diary-view" scroll-y>
+        <!-- 日历 -->
+        <view class="calendar-container">
+          <!-- 月份导航 -->
+          <view class="calendar-header">
+            <view class="calendar-nav-btn" bindtap="onPrevMonth">
+              <text class="calendar-nav-icon">‹</text>
+            </view>
+            <text class="calendar-month">{{currentYear}}年{{currentMonth}}月</text>
+            <view class="calendar-nav-btn" bindtap="onNextMonth">
+              <text class="calendar-nav-icon">›</text>
+            </view>
+          </view>
+          <!-- 星期标题 -->
+          <view class="calendar-weekdays">
+            <text wx:for="{{['日', '一', '二', '三', '四', '五', '六']}}" wx:key="*this" class="calendar-weekday">{{item}}</text>
+          </view>
+          <!-- 日期网格 -->
+          <view class="calendar-days">
+            <view
+              wx:for="{{calendarDays}}"
+              wx:key="date"
+              class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.date === diarySelectedDate ? 'selected' : ''}} {{item.hasEntry ? 'has-entry' : ''}}"
+              data-date="{{item.date}}"
+              bindtap="onDiaryDateSelect"
+            >
+              <text class="calendar-day-num">{{item.day}}</text>
+              <view wx:if="{{item.hasEntry}}" class="calendar-day-dot"></view>
+            </view>
+          </view>
+        </view>
+        <view class="diary-date-title">
+          <text class="diary-date-text">{{selectedDateText}}</text>
+          <text class="diary-date-weekday">{{selectedDateWeekday}}</text>
+        </view>
         <view wx:if="{{diaryLoading}}" class="view-loading">
           <text>加载中...</text>
         </view>
         <view wx:elif="{{diaryEntries.length === 0}}" class="view-empty">
           <text class="empty-icon">📖</text>
-          <text class="empty-text">今天还没有记录</text>
-          <text class="empty-subtext">心宠的一天即将开始~</text>
+          <text class="empty-text">这一天还没有记录</text>
+          <text class="empty-subtext">点击其他日期查看心宠的故事~</text>
         </view>
         <view wx:else class="timeline">
           <view class="timeline-item" wx:for="{{diaryEntries}}" wx:key="id">

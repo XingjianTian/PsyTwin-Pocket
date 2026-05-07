@@ -1,29 +1,588 @@
-// 其他心宠名字列表
+// 其他心宠名字列表（60个）
 const PET_NAMES = [
   '小白', '小黄', '小黑', '小红', '小蓝',
   '小绿', '小紫', '小橙', '小粉', '小青',
   '圆圆', '方方', '星星', '月月', '花花',
   '草草', '乐乐', '笑笑', '泡泡', '糖糖',
+  '豆豆', '球球', '毛毛', '妞妞', '仔仔',
+  '贝贝', '可可', '诺诺', '阳阳', '雪儿',
+  '樱桃', '布丁', '奶盖', '糯米', '芝麻',
+  '柠檬', '芒果', '草莓', '蓝莓', '桃子',
+  '奶茶', '咖啡', '可乐', '雪碧', '橙汁',
+  '饼干', '蛋糕', '面包', '馒头', '汤圆',
+  '豆豆', '团团', '暖暖', '软软', '乖乖',
+  '悠悠', '静静', '安安', '心心', '甜甜',
 ];
 
-// 对话内容池
-const DIALOGUES = [
-  ['嗨！你好呀！', '你好！今天天气不错呢！'],
-  ['你去哪里呀？', '我在随便逛逛，你呢？'],
-  ['最近过得怎么样？', '挺好的，就是有点忙！'],
-  ['你也来这个场景玩吗？', '对呀，这里很漂亮！'],
-  ['你好可爱呀！', '谢谢，你也很可爱！'],
-  ['要一起去探险吗？', '好呀，我正好无聊呢！'],
-  ['你今天吃了什么好吃的？', '食堂的麻辣烫，超好吃！'],
-  ['最近有什么好玩的事吗？', '我发现了一个秘密基地！'],
-  ['你觉得这个场景怎么样？', '挺喜欢的，很安静！'],
-  ['我们交个朋友吧！', '好呀，以后一起玩！'],
-  ['你在做什么呢？', '我在看风景，好美呀！'],
-  ['要不要一起学习？', '好呀，正好有道题不会！'],
-  ['你今天心情怎么样？', '超级开心！见到你了！'],
-  ['这个场景你常来吗？', '偶尔来，放松一下心情'],
-  ['最近有什么新发现吗？', '发现了一片美丽的花海！'],
-];
+// 每个场景最多容纳的心宠数量
+const MAX_PETS_PER_SCENE = 8;
+
+// 场景对话内容池（按场景分类，每个场景至少20组对话）
+const SCENE_DIALOGUES = {
+  // ========== 宿舍场景 ==========
+  bedroom: [
+    ['你昨晚几点睡的？', '我凌晨一点才睡，困死了！'],
+    ['你的床好软啊！', '是啊，我特意换了新床垫！'],
+    ['今天要早起吗？', '不用，今天没早八！'],
+    ['你被子好暖和！', '这是我妈给我寄的新被子！'],
+    ['能借我一下充电器吗？', '在床头，你自己拿！'],
+    ['你在看什么剧？', '《三体》，超级好看！'],
+    ['要不要一起点个外卖？', '好呀，我想吃炸鸡！'],
+    ['你的枕头舒服吗？', '特别软，像云朵一样！'],
+    ['下午有课吗？', '没有，可以睡到自然醒！'],
+    ['你今天心情怎么样？', '挺好的，睡了个懒觉！'],
+    ['晚上去图书馆吗？', '去吧，明天要考试了！'],
+    ['你的房间好香啊！', '我点了薰衣草香薰！'],
+    ['借我一下耳机好吗？', '在床底下，你自己找！'],
+    ['你在刷什么视频？', '小猫视频，太可爱了！'],
+    ['你醒了吗？', '醒了，但还想赖床！'],
+    ['要不要一起打游戏？', '来呀，我正好无聊！'],
+    ['你的闹钟响了吗？', '响了三次我才起来！'],
+    ['晚上吃什么？', '不知道，可能煮泡面吧！'],
+    ['你能帮我拿一下书吗？', '在桌子上，自己拿！'],
+    ['周末打算干嘛？', '想睡一整天！'],
+  ],
+  dormitory: [
+    ['室友都去哪了？', '一个去图书馆，一个去食堂了！'],
+    ['能帮我带个饭吗？', '好啊，你想吃什么？'],
+    ['晚上要熄灯了！', '我知道，我再玩五分钟手机！'],
+    ['你作业写完了吗？', '还没呢，明天要交了！'],
+    ['借我一下洗衣液！', '在阳台，自己去拿！'],
+    ['空调开低点吧！', '我已经调到16度了！'],
+    ['有人在敲门吗？', '可能是隔壁来借东西的！'],
+    ['明天早上几点起？', '七点吧，有早八！'],
+    ['你的零食给我吃一点！', '在柜子里，自己拿！'],
+    ['晚上一起看电影吗？', '好啊，看什么？'],
+    ['谁在打呼噜？', '是下铺的兄弟！'],
+    ['能帮我把衣服收了吗？', '等会儿，我正在忙！'],
+    ['wifi好卡啊！', '是啊，大家都在用！'],
+    ['明天有考试吗？', '有！高数，我还没复习！'],
+    ['你的床帘遮光真好！', '是啊，早上都感觉不到天亮！'],
+    ['楼下在喊什么？', '可能是外卖到了！'],
+    ['帮我递一下水杯！', '在桌子上，够不到！'],
+    ['今天谁打扫卫生？', '轮到我了，唉！'],
+    ['晚上一起去操场散步吗？', '好啊，正好消消食！'],
+    ['你的台灯借我用一下！', '在抽屉里，自己拿！'],
+  ],
+
+  // ========== 学校场景 ==========
+  teaching_building: [
+    ['这题你会做吗？', '不会，老师讲的太快了！'],
+    ['下节课是什么？', '线性代数，在302教室！'],
+    ['笔记能借我抄一下吗？', '可以，但字有点潦草！'],
+    ['老师刚才说什么了？', '他说下节课要测验！'],
+    ['你有带笔吗？', '有，这支给你！'],
+    ['这节课好无聊啊！', '是啊，我想睡觉！'],
+    ['中午去哪个食堂？', '去二食堂吧，人少！'],
+    ['作业什么时候交？', '周五之前，我还没写！'],
+    ['你知道考试范围吗？', '老师说考前三章！'],
+    ['能帮我占个座位吗？', '好啊，你想坐哪？'],
+    ['这道题答案是什么？', '我算出来是B，你呢？'],
+    ['老师点名了吗？', '点了，我帮你答到了！'],
+    ['下午有实验课吗？', '有，在理科楼！'],
+    ['你的课本借我看一下！', '在第38页，讲微积分！'],
+    ['这节课重要吗？', '重要，考试占30分！'],
+    ['能加个微信吗？', '好啊，有问题可以问我！'],
+    ['你复习到哪里了？', '我才看到第二章！'],
+    ['明天要交的报告你写了吗？', '还没，今晚熬夜写！'],
+    ['这个公式怎么推导的？', '我也不太懂，问老师吧！'],
+    ['下课一起去图书馆吗？', '好啊，正好有题要问！'],
+  ],
+  library: [
+    ['嘘，小声点！', '对不起，我会注意的！'],
+    ['这本书好看吗？', '好看，推荐你也看看！'],
+    ['这里有空位吗？', '有，对面没人！'],
+    ['你能帮我占个座吗？', '好啊，我坐靠窗的位置！'],
+    ['借我一下橡皮好吗？', '在笔袋里，你自己拿！'],
+    ['你复习到哪里了？', '第三章，进度有点慢！'],
+    ['你常来图书馆吗？', '是啊，每周至少三次！'],
+    ['这本书能借我看看吗？', '可以，我已经看完了！'],
+    ['你在这里待多久了？', '才来一会儿，准备学到闭馆！'],
+    ['去喝杯咖啡吗？', '好啊，正好困了！'],
+    ['这个位置有人吗？', '没人，请坐！'],
+    ['你知道这本书在哪吗？', '在第三排，文学类！'],
+    ['今天图书馆人好多！', '是啊，期末考试周！'],
+    ['你的笔记好整齐啊！', '谢谢，我习惯用不同颜色！'],
+    ['能帮我查个资料吗？', '好啊，我们一起找！'],
+    ['你也在准备考研吗？', '是啊，压力好大！'],
+    ['这个座位有插座吗？', '有，在桌子下面！'],
+    ['一起去吃饭吗？', '再等十分钟，我把这章看完！'],
+    ['图书馆好安静啊！', '是啊，适合学习！'],
+    ['能借我一下校园卡吗？', '在钱包里，等会儿！'],
+  ],
+  cafeteria: [
+    ['今天有什么好吃的？', '有红烧肉，看起来不错！'],
+    ['这队要排多久啊？', '大概十分钟吧！'],
+    ['你能帮我占个座吗？', '好啊，坐靠窗那边！'],
+    ['这个菜辣吗？', '有点辣，你能吃辣吗？'],
+    ['一起拼个桌吧！', '好啊，这里没人！'],
+    ['今天的汤好喝吗？', '好喝，是排骨汤！'],
+    ['你要不要尝尝我这个？', '好啊，看起来很好吃！'],
+    ['二食堂和一食堂哪个好？', '我觉得二食堂好吃！'],
+    ['吃完去哪？', '去图书馆吧！'],
+    ['这个米饭不够吃啊！', '去打饭的窗口可以加！'],
+    ['今天有免费的汤吗？', '有，在出口那里！'],
+    ['你经常来这个食堂吗？', '是啊，离宿舍近！'],
+    ['这个菜叫什么名字？', '叫"绝代双骄"，就是青椒炒红椒！'],
+    ['吃饭别玩手机了！', '我在看学习视频呢！'],
+    ['要不要一起去小卖部？', '好啊，我想买瓶饮料！'],
+    ['今天人好多啊！', '是啊，下课高峰期！'],
+    ['你觉得这个菜咸吗？', '有点咸，可能是师傅手抖了！'],
+    ['吃完去操场散步吗？', '好啊，消消食！'],
+    ['能借我一下饭卡吗？', '好啊，在口袋里！'],
+    ['这顿饭花了多少钱？', '十二块，挺便宜的！'],
+  ],
+  playground: [
+    ['一起打篮球吗？', '好啊，正好缺个人！'],
+    ['你跑得真快！', '谢谢，我每天都锻炼！'],
+    ['累死了，休息一下！', '去那边长椅坐会儿！'],
+    ['你会打羽毛球吗？', '会啊，要不要来一局？'],
+    ['这地方不错吧？', '是啊，场地很大！'],
+    ['你一般跑几圈？', '五圈，慢慢跑！'],
+    ['那边有空场地吗？', '有，足球场那边人不多！'],
+    ['要不要一起拉伸？', '好啊，刚跑完步！'],
+    ['你带的什么饮料？', '运动饮料，补充电解质！'],
+    ['能借我一下球拍吗？', '在包里，你自己拿！'],
+    ['你运动多久了？', '才刚开始，准备跑五圈！'],
+    ['这个场地有人占了！', '我们去另一个场地吧！'],
+    ['你穿这么少不冷吗？', '运动起来就不冷了！'],
+    ['一起去做引体向上吗？', '我不行，我一个都做不了！'],
+    ['你看那边有人在跳舞！', '是啊，是广场舞社团的！'],
+    ['明天还来运动吗？', '来啊，要坚持！'],
+    ['你的运动鞋好帅！', '谢谢，新买的！'],
+    ['能帮我看一下包吗？', '好啊，我在这儿休息！'],
+    ['今天目标是多少步？', '一万步，还差三千！'],
+    ['一起去喝冰水吗？', '好啊，热死了！'],
+  ],
+
+  // ========== 奇幻空间 ==========
+  deep_forest: [
+    ['你看那棵树在发光！', '真的耶，好神奇！'],
+    ['这里有精灵吗？', '听说晚上会出现！'],
+    ['要小心脚下的藤蔓！', '谢谢提醒，差点绊倒！'],
+    ['你闻到花香了吗？', '闻到了，好香啊！'],
+    ['那边的蘑菇能吃吗？', '不能，可能有毒！'],
+    ['我们迷路了吗？', '没有，跟着萤火虫走！'],
+    ['这棵树好高啊！', '是啊，至少有五百年了！'],
+    ['你能听到鸟叫声吗？', '能，还有流水的声音！'],
+    ['那边有光！', '可能是出口，去看看！'],
+    ['地上有奇怪的脚印！', '可能是小精灵留下的！'],
+    ['这里的空气好清新！', '是啊，比城市好多了！'],
+    ['你看那片叶子在动！', '有风，或者有小动物！'],
+    ['能帮我采那朵花吗？', '好啊，紫色的那朵吗？'],
+    ['这里晚上会不会有狼？', '不会的，这里是魔法森林！'],
+    ['你的指南针还能用吗？', '不能，魔法干扰了方向！'],
+    ['看，有只小松鼠！', '好可爱，它在偷看我们！'],
+    ['前面有一条小溪！', '我们去洗把脸吧！'],
+    ['这些树好像在说话！', '嘘，别打扰它们！'],
+    ['天上飞过的是什么？', '是凤凰吗？太美了！'],
+    ['我们在这里露营吧！', '好啊，看星星一定很美！'],
+  ],
+  crystal_cave: [
+    ['这些水晶好漂亮！', '是啊，五颜六色的！'],
+    ['你能感觉到能量吗？', '感觉到了，暖暖的！'],
+    ['小心地面很滑！', '谢谢，我穿防滑鞋了！'],
+    ['这块水晶能带走吗？', '不能，会打破平衡的！'],
+    ['你听，有滴水声！', '是从洞顶滴下来的！'],
+    ['这里好冷啊！', '靠近水晶就不冷了！'],
+    ['那边在发光的是什么？', '可能是魔法石！'],
+    ['你带手电筒了吗？', '带了，但水晶本身会发光！'],
+    ['这个洞穴有多深？', '没人知道，没人走到尽头！'],
+    ['我能摸一下水晶吗？', '轻一点，它们在睡觉！'],
+    ['地上有亮晶晶的粉末！', '是水晶碎片，别踩到！'],
+    ['你看那块水晶是红色的！', '好稀有，据说有治愈能力！'],
+    ['这里回音好大！', '是啊，说话都能听见回声！'],
+    ['前面好像有风！', '说明有另一个出口！'],
+    ['这些水晶是怎么形成的？', '是魔法能量凝结的！'],
+    ['我能在这里冥想吗？', '可以，这里的能量很纯净！'],
+    ['看，水晶在变色！', '因为你的心境在变化！'],
+    ['这里能拍照吗？', '可以，但别开闪光灯！'],
+    ['你听到低语声了吗？', '是远古精灵的声音！'],
+    ['我们找到宝藏了吗？', '宝藏就是这些水晶本身！'],
+  ],
+  mushroom_village: [
+    ['这些小房子好可爱！', '是啊，像童话里一样！'],
+    ['你好，小精灵！', '它们在忙碌，别打扰！'],
+    ['能尝尝这个蘑菇汤吗？', '好啊，闻起来很香！'],
+    ['这些蘑菇能吃吗？', '红色的不能，白色的可以！'],
+    [' village 好安静啊！', '是啊，大家都很友善！'],
+    ['你看那只精灵在跳舞！', '好可爱，我也想加入！'],
+    ['这里的空气有甜味！', '是蘑菇散发的香气！'],
+    ['能帮我采一些蘑菇吗？', '好啊，要哪种颜色的？'],
+    ['这个小门我能进去吗？', '要弯腰，对你来说太小了！'],
+    ['村口的告示写了什么？', '写着"欢迎来到蘑菇村"！'],
+    ['你看屋顶上有个小精灵！', '它在晒太阳呢！'],
+    ['这里晚上会举办派对吗？', '会啊，每个月圆之夜！'],
+    ['能给我讲讲这里的故事吗？', '好啊，传说这里有三百年历史了！'],
+    ['这些蘑菇房子是用什么做的？', '是 Giant Mushroom 的菌盖！'],
+    ['小精灵们友好吗？', '非常友好，还会送你礼物！'],
+    ['我能在这里住一晚吗？', '可以，但床对你来说太小了！'],
+    ['村口的那棵大树好高！', '是精灵长老，已经一千岁了！'],
+    ['你看地上有发光的孢子！', '小心别踩到，会滑倒的！'],
+    ['这里有好吃的糖果吗？', '有，在 village 中心的小店里！'],
+    ['下次我们带朋友来吧！', '好啊，他们一定会喜欢的！'],
+  ],
+  fairy_lake: [
+    ['湖水好清澈啊！', '是啊，能看到湖底！'],
+    ['你看那朵水莲花在发光！', '是精灵之光！'],
+    ['能在这里游泳吗？', '可以，但水有点凉！'],
+    ['你看水里有鱼吗？', '有，还是彩色的！'],
+    ['这里的夕阳好美！', '是啊，湖面都是金色的！'],
+    ['坐在湖边好舒服！', '是啊，风吹过来很凉爽！'],
+    ['你看那只蜻蜓！', '好漂亮，翅膀是蓝色的！'],
+    ['能帮我拍张照吗？', '好啊，以湖水为背景！'],
+    ['这里有天鹅吗？', '有，在湖的那一边！'],
+    ['你听到青蛙叫了吗？', '听到了，还有蟋蟀的声音！'],
+    ['湖水是什么味道的？', '甜的，因为有魔法！'],
+    ['我能在这里钓鱼吗？', '可以，但鱼可能会说话！'],
+    ['晚上的湖是什么样的？', '会发光，像星空倒映！'],
+    ['你看湖面上有雾气！', '是精灵在跳舞！'],
+    ['这里的石头好光滑！', '是被湖水冲刷了上千年！'],
+    ['我能扔个石子打水漂吗？', '可以，但别吓到水精灵！'],
+    ['湖里有什么传说吗？', '传说湖底有一座水晶宫殿！'],
+    ['你看那边有彩虹！', '是阳光照在水雾上形成的！'],
+    ['这里适合做冥想吗？', '非常适合，水声很治愈！'],
+    ['我们在这里野餐吧！', '好啊，风景太美了！'],
+  ],
+  star_meadow: [
+    ['天上的星星好多啊！', '是啊，城市里看不到这么多！'],
+    ['你看那颗流星！', '快许愿！'],
+    ['躺在草地上好舒服！', '是啊，草软软的像地毯！'],
+    ['今晚的月亮好圆！', '是啊，像一个大银盘！'],
+    ['你认识那些星座吗？', '认识几个，猎户座、北斗七星！'],
+    ['这里晚上会冷吗？', '有点，但有星光就不冷了！'],
+    ['萤火虫好漂亮！', '是啊，像地上的星星！'],
+    ['你看那片云在飘！', '像棉花糖一样！'],
+    ['能教我认星星吗？', '好啊，那颗最亮的是北极星！'],
+    ['这里好安静啊！', '是啊，只能听到风声！'],
+    ['夜晚的草地有露水吗？', '有，裤子都湿了！'],
+    ['你看银河好明显！', '是啊，像一条光带！'],
+    ['我们能在这里露营吗？', '可以，但要看天气！'],
+    ['那颗红色的星星是什么？', '是火星，晚上很亮！'],
+    ['你看有颗卫星在动！', '是啊，移动得好快！'],
+    ['这里能看到极光吗？', '运气好的话可以！'],
+    ['草地上的花是什么味道？', '淡淡的清香，很好闻！'],
+    ['我们数星星吧！', '好啊，看谁数得多！'],
+    ['夜晚的森林好神秘！', '是啊，有夜行动物的声音！'],
+    ['明天早上来看日出吧！', '好啊，一定很美！'],
+  ],
+
+  // ========== 自由旷野 ==========
+  bonfire_area: [
+    ['火好暖和啊！', '是啊，晚上有点冷！'],
+    ['你会烤棉花糖吗？', '会啊，要烤得金黄！'],
+    ['能借我一下火钳吗？', '在石头旁边！'],
+    ['今晚的星空好美！', '是啊，围着篝火看星星最棒了！'],
+    ['谁带了吉他？', '我带了，想听什么歌？'],
+    [' firewood 噼啪声好治愈！', '是啊，像白噪音一样！'],
+    ['讲个鬼故事吧！', '好啊，但我讲完你别害怕！'],
+    ['这篝火能烧多久？', '大概两小时，我加了很多柴！'],
+    ['你带的零食给我吃一点！', '好啊，有薯片和饼干！'],
+    ['明天早上吃什么？', '烤面包和牛奶！'],
+    ['火光照在你脸上好温暖！', '是啊，像夕阳一样！'],
+    ['能帮我暖暖手吗？', '过来坐近一点！'],
+    ['今晚有流星吗？', '有，刚才看到一颗！'],
+    ['篝火的味道好香！', '是松木燃烧的香气！'],
+    ['你困了吗？', '有点，但不想错过这美景！'],
+    ['那边好像有动物！', '是鹿，别吓到它！'],
+    ['能再加点柴吗？', '好啊，火快灭了！'],
+    ['围着篝火聊天真好！', '是啊，感觉时间都慢下来了！'],
+    ['你带了毯子吗？', '带了，晚上盖着睡！'],
+    ['明天我们去探险吧！', '好啊，附近有一条小路！'],
+  ],
+  picnic_lawn: [
+    ['你的三明治看起来好好吃！', '是啊，我自己做的！'],
+    ['能给我尝一口吗？', '好啊，分你一半！'],
+    ['这里环境真好！', '是啊，空气很清新！'],
+    ['铺在左边还是右边？', '左边吧，有树荫！'],
+    ['你带了什么饮料？', '果汁和汽水！'],
+    ['有蚊子吗？', '有，我带了驱蚊水！'],
+    ['这片草地好软！', '是啊，像绿色的地毯！'],
+    ['吃完我们去放风筝吧！', '好啊，我带了一个！'],
+    ['你的野餐垫好大！', '是啊，可以躺好几个人！'],
+    ['今天有什么水果？', '有西瓜、葡萄和草莓！'],
+    ['能帮我打开这个盒子吗？', '好啊，是蛋糕吗？'],
+    ['这里风景真好！', '是啊，能看到远处的山！'],
+    ['蝴蝶停在你手上了！', '别动，它在休息！'],
+    ['吃完我们去散步吗？', '好啊，消化一下！'],
+    ['你带了什么零食？', '有薯片、巧克力和果冻！'],
+    ['这里的空气好新鲜！', '是啊，比城市里好多了！'],
+    ['能帮我拍张照片吗？', '好啊，以花丛为背景！'],
+    ['你的帽子好可爱！', '谢谢，遮阳用的！'],
+    ['下午去溪边玩水吗？', '好啊，一定很凉快！'],
+    ['下次野餐带什么？', '带烧烤架，我们烤肉吃！'],
+  ],
+  hammock_area: [
+    ['吊床舒服吗？', '超级舒服，像在云上！'],
+    ['能帮我推一下吗？', '好啊，轻一点哦！'],
+    ['你带了什么书？', '一本小说，很好看！'],
+    ['这里的树好高啊！', '是啊，正好挂吊床！'],
+    ['风吹过来好凉爽！', '是啊，树叶在沙沙响！'],
+    ['能借我躺一会儿吗？', '好啊，但只能十分钟！'],
+    ['你睡着了吗？', '没有，在打盹！'],
+    ['下午的阳光好温柔！', '是啊，不晒，正好！'],
+    ['吊床会不会翻？', '不会，我系得很牢！'],
+    ['你看那片叶子在飘！', '好美，像跳舞一样！'],
+    ['能帮我拿一下水杯吗？', '在包里，够不到！'],
+    ['这里好安静啊！', '是啊，只有鸟叫声！'],
+    ['你一般躺多久？', '半小时，不然会头晕！'],
+    ['旁边的花是什么颜色？', '紫色的，还有白色的！'],
+    ['能帮我拍张照吗？', '好啊，你躺着别动！'],
+    ['吊床摇摇晃晃的好好玩！', '是啊，像摇篮一样！'],
+    ['你带墨镜了吗？', '带了，阳光有点刺眼！'],
+    ['这里适合午睡吗？', '非常适合，很安静！'],
+    ['你看天上有朵云像兔子！', '真的耶，好可爱！'],
+    ['一起在这里发呆吧！', '好啊，什么都不想！'],
+  ],
+  stream_side: [
+    ['溪水好清凉啊！', '是啊，洗把脸真舒服！'],
+    ['你看那块石头好光滑！', '是被水流冲的！'],
+    ['能听到水声吗？', '能，还有青蛙的叫声！'],
+    ['能帮我捡块漂亮的石头吗？', '好啊，要什么样的？'],
+    ['这里有小鱼吗？', '有，在石缝里！'],
+    ['溪水能喝吗？', '不能，可能有细菌！'],
+    ['坐在石头上好舒服！', '是啊，被太阳晒得暖暖的！'],
+    ['你看那片叶子在漂！', '像小船一样！'],
+    ['这里能泡脚吗？', '可以，水不深！'],
+    ['能帮我拍张照吗？', '好啊，以溪水为背景！'],
+    ['溪边的花是什么颜色？', '黄色的，还有粉色的！'],
+    ['你听到鸟叫了吗？', '听到了，是黄鹂！'],
+    ['这里的石头能画画吗？', '可以，用湿的土就行！'],
+    ['溪水是从哪里流来的？', '从山上的泉水！'],
+    ['能看到水底的石头吗？', '能，水很清澈！'],
+    ['能在这里钓鱼吗？', '可以，但鱼很小！'],
+    ['溪边的草好绿啊！', '是啊，水分充足！'],
+    ['下午来这里乘凉吧！', '好啊，比空调舒服！'],
+    ['你看有只蜻蜓停在水面！', '好美，别吓到它！'],
+    ['这里的空气好湿润！', '是啊，有水的味道！'],
+  ],
+  viewing_platform: [
+    ['风景好美啊！', '是啊，能看到整个山谷！'],
+    ['远处的山是什么山？', '是青云山，海拔两千米！'],
+    ['能看到我们学校吗？', '能，在那边，好小啊！'],
+    ['风好大啊！', '是啊，把头发都吹乱了！'],
+    ['能帮我拍张照吗？', '好啊，以山为背景！'],
+    ['这里的视野真好！', '是啊，360度无死角！'],
+    ['你看那朵云像什么？', '像棉花糖！'],
+    ['日落的时候一定很美！', '是啊，金光闪闪的！'],
+    ['能在这里看日出吗？', '可以，但要早起！'],
+    ['你带望远镜了吗？', '带了，能看更远！'],
+    ['下面的房子好小啊！', '是啊，像积木一样！'],
+    ['这里的空气好稀薄！', '是啊，有点喘！'],
+    ['能帮我指一下方向吗？', '那边是北，有指南针！'],
+    ['你看有只鹰在飞！', '好帅，在盘旋！'],
+    ['这里适合画画吗？', '非常适合，风景如画！'],
+    ['下面的路是哪条？', '是通往小镇的那条！'],
+    ['能在这里野餐吗？', '可以，但风大要注意！'],
+    ['你带外套了吗？', '带了，山上冷！'],
+    ['这里的石头好特别！', '是啊，被风化得很光滑！'],
+    ['下次带朋友一起来吧！', '好啊，他们一定震撼！'],
+  ],
+
+  // ========== 小镇 ==========
+  supermarket: [
+    ['今天有什么特价吗？', '薯片买一送一！'],
+    ['你能帮我拿一下上面的吗？', '好啊，是那个蓝色的吗？'],
+    ['这个好吃吗？', '好吃，我上次买过！'],
+    ['排队要多久？', '大概五分钟！'],
+    ['你买了什么？', '买了零食和饮料！'],
+    ['能借我一下购物篮吗？', '在入口，自己去拿！'],
+    ['这个牌子怎么样？', '挺好的，性价比高！'],
+    ['你有会员卡吗？', '有，可以打折！'],
+    ['能帮我看看保质期吗？', '到明年三月，很新鲜！'],
+    ['你想吃什么口味的？', '我想吃番茄味的！'],
+    ['这个多少钱？', '十五块，不贵！'],
+    ['超市今天人好多！', '是啊，周末都出来采购！'],
+    ['能帮我推一下购物车吗？', '好啊，有点重！'],
+    ['你找到你要的东西了吗？', '找到了，在第三排！'],
+    ['有试吃吗？', '有，在熟食区！'],
+    ['这个包装好可爱！', '是啊，买回去收藏！'],
+    ['要不要一起拼单？', '好啊，满五十减十块！'],
+    ['收银台在哪边？', '在前面的右边！'],
+    ['你带够钱了吗？', '带了，手机也能付！'],
+    ['下次我们再来逛吧！', '好啊，新品上市的时候！'],
+  ],
+  cinema: [
+    ['这部电影好看吗？', '听说评分很高！'],
+    ['爆米花要甜的还是咸的？', '甜的，再加杯可乐！'],
+    ['座位在第几排？', '第五排，中间位置！'],
+    ['你看过预告片了吗？', '看了，非常期待正片！'],
+    ['预告片好精彩！', '是啊，期待正片！'],
+    ['你能帮我拿一下眼镜吗？', '在包里，3D眼镜！'],
+    ['这部电影是谁演的？', '是刘德华，演技超棒！'],
+    ['看完去吃饭吗？', '好啊，我饿了！'],
+    ['能帮我占个座吗？', '好啊，我先去洗手间！'],
+    ['你的票给我看一下！', '在手机上，电子票！'],
+    ['电影院好冷啊！', '是啊，空调开太低了！'],
+    ['这部电影时长多久？', '两小时，带好纸巾！'],
+    ['你喜欢看什么类型的？', '喜欢科幻和喜剧！'],
+    ['能借我一下外套吗？', '好啊，有点冷！'],
+    ['看完电影去逛街吗？', '好啊，附近有条商业街！'],
+    ['这个导演拍过哪些？', '拍过很多经典，比如《无间道》！'],
+    ['你能看到屏幕吗？', '能，前面的人不高！'],
+    ['电影声音好大！', '是啊，震撼效果！'],
+    ['下次我们看什么？', '看那部新出的动画！'],
+    ['彩蛋要等吗？', '等啊，说不定有惊喜！'],
+  ],
+  amusement_park: [
+    ['敢坐过山车吗？', '敢啊，超级刺激！'],
+    ['旋转木马好浪漫！', '是啊，像在童话里！'],
+    ['摩天轮能看到整个公园！', '是啊，风景超好！'],
+    ['我想玩碰碰车！', '好啊，比谁厉害！'],
+    ['棉花糖好吃吗？', '好吃，就是太甜了！'],
+    ['那个跳楼机好高啊！', '是啊，我不敢坐！'],
+    ['能帮我拍张照吗？', '好啊，以城堡为背景！'],
+    ['你想先玩哪个？', '先去过山车，人少！'],
+    ['门票包含哪些项目？', '大部分都包含，除了个别！'],
+    ['你恐高吗？', '有点，但想挑战一下！'],
+    ['海盗船晃得好厉害！', '是啊，我都叫出来了！'],
+    ['能借我一下地图吗？', '在入口拿的，我给你！'],
+    ['晚上有烟花表演吗？', '有，八点开始！'],
+    ['你的发箍好可爱！', '谢谢，在商店买的！'],
+    ['激流勇进会湿吗？', '会，我带了雨衣！'],
+    ['哪个项目最刺激？', '大摆锤，我上次吐了！'],
+    ['能帮我拿一下包吗？', '好啊，我在这等你！'],
+    ['这里的冰淇淋好吃吗？', '好吃，但有点贵！'],
+    ['我们玩了几项了？', '五项，还有好几个没玩！'],
+    ['下次带朋友一起来吧！', '好啊，人多更热闹！'],
+  ],
+  cafe: [
+    ['这杯咖啡好香！', '是啊，是手冲的！'],
+    ['你的蛋糕好吃吗？', '好吃，是提拉米苏！'],
+    ['这里好安静啊！', '是啊，适合学习！'],
+    ['能借我一下充电器吗？', '在桌边，你自己拿！'],
+    ['WiFi密码是多少？', '贴在墙上，cafe1234！'],
+    ['你想喝什么？', '我想喝抹茶拿铁！'],
+    ['这里的音乐好舒服！', '是啊，轻音乐，很放松！'],
+    ['能帮我拍张照吗？', '好啊，咖啡拉花好美！'],
+    ['下午要开会吗？', '不，就单纯来放松！'],
+    ['你经常来这里吗？', '是啊，离公司近！'],
+    ['这个座位有人吗？', '没人，请坐！'],
+    ['蛋糕是自己做的吗？', '不是，是店里烘焙师做的！'],
+    ['能帮我加一下糖吗？', '在桌上，自己加！'],
+    ['这里能带宠物吗？', '可以，很宠物友好！'],
+    ['你的书好看吗？', '好看，推荐给你！'],
+    ['下午有什么安排？', '没有，就想发呆！'],
+    ['这个杯子好特别！', '是啊，手工陶瓷的！'],
+    ['能帮我推荐一款咖啡吗？', '试试招牌拿铁，很经典！'],
+    ['这里晚上营业到几点？', '到晚上十点！'],
+    ['下次我们约在这里学习吧！', '好啊，环境很适合！'],
+  ],
+  arcade: [
+    ['你会抓娃娃吗？', '会啊，我抓了好几个了！'],
+    ['这个街机怎么玩？', '投币，然后按按钮！'],
+    ['跳舞机好难啊！', '是啊，我跟不上节奏！'],
+    ['赛车游戏好刺激！', '是啊，我能开第一！'],
+    ['你有游戏币吗？', '有，换了二十个！'],
+    ['能帮我投个币吗？', '好啊，一起玩！'],
+    ['那个投篮机能得多少分？', '我能得五十分！'],
+    ['这里好吵啊！', '是啊，音乐声很大！'],
+    ['你想玩什么？', '想玩射击游戏！'],
+    ['我的游戏币快用完了！', '去前台再换一些！'],
+    ['你赢了什么奖品？', '赢了一个小熊玩偶！'],
+    ['能帮我拿一下饮料吗？', '在桌上，自己拿！'],
+    ['这个机台有人吗？', '没有，快来玩！'],
+    ['你最高纪录是多少？', '最高分是一百万！'],
+    ['这里灯光好炫！', '是啊，像在迪厅一样！'],
+    ['我们能对战吗？', '好啊，输的请喝饮料！'],
+    ['你带了多少零钱？', '带了五十块，够玩！'],
+    ['那边有新款游戏机！', '去看看，好像很好玩！'],
+    ['我能试试你的技巧吗？', '好啊，我教你！'],
+    ['下次再来比赛吧！', '好啊，我一定赢你！'],
+  ],
+
+  // ========== 梦境小屋 ==========
+  study_room: [
+    ['这本书好看吗？', '好看，推荐给你！'],
+    ['你在写什么？', '在写日记，记录今天！'],
+    ['能借我一下笔吗？', '在笔筒里，自己拿！'],
+    ['这个书架上有小说吗？', '有，在第二层！'],
+    ['这里好安静啊！', '是啊，适合阅读！'],
+    ['你看的是什么书？', '是一本关于历史的书！'],
+    ['能帮我找一下那本书吗？', '好啊，书名是什么？'],
+    ['你每天都来看书吗？', '是啊，习惯每天读一小时！'],
+    ['这个台灯亮吗？', '亮，可调节亮度！'],
+    ['窗边的位置舒服吗？', '舒服，能看到花园！'],
+    ['你有书签吗？', '有，在抽屉里！'],
+    ['这本书我能借走吗？', '可以，但要按时还！'],
+    ['你在写什么笔记？', '读书笔记，好记性不如烂笔头！'],
+    ['这里能写字吗？', '可以，桌上有纸笔！'],
+    ['你觉得哪本书最好看？', '《小王子》，看了很多遍！'],
+    ['能帮我开一下窗户吗？', '好啊，通通风！'],
+    ['下午阳光会照进来吗？', '会，那时候很暖和！'],
+    ['你有便签纸吗？', '有，在桌角！'],
+    ['这里适合学习吗？', '非常适合，没人打扰！'],
+    ['下次一起看绘本吧！', '好啊，我有很多！'],
+  ],
+  kitchen: [
+    ['你在做什么好吃的？', '在做小饼干，香不香？'],
+    ['能教我做这个吗？', '好啊，很简单！'],
+    ['这个食谱是哪来的？', '从网上学的！'],
+    ['需要我帮忙吗？', '好啊，帮我搅拌一下！'],
+    ['烤箱温度设多少？', '一百八十度，烤十五分钟！'],
+    ['你在煮什么汤？', '排骨汤，很鲜的！'],
+    ['这个锅好用吗？', '好用，不粘锅！'],
+    ['能借我一下围裙吗？', '在挂钩上，自己去拿！'],
+    ['你在切什么？', '在切水果，做沙拉！'],
+    ['这里能喝咖啡吗？', '可以，我刚煮了一壶！'],
+    ['味道怎么样？', '很好，你尝尝！'],
+    ['要加多少糖？', '两勺，不喜欢太甜！'],
+    ['这个碗好漂亮！', '是啊，手工做的！'],
+    ['你在烘焙吗？', '是啊，做蛋糕！'],
+    ['能帮我洗一下菜吗？', '好啊，水龙头在那边！'],
+    ['这里有什么调料？', '盐、糖、酱油，都有！'],
+    ['你做这个要多久？', '大概半小时！'],
+    ['能给我一块尝尝吗？', '好啊，小心烫！'],
+    ['下次我们一起做大餐吧！', '好啊，我做主厨！'],
+    ['这里的香味好诱人！', '是啊，我都饿了！'],
+  ],
+  garden: [
+    ['这些花好美啊！', '是啊，都是我种的！'],
+    ['能帮我浇一下花吗？', '好啊，水壶在角落！'],
+    ['这是什么花？', '这是月季，很香的！'],
+    ['蝴蝶停在花上了！', '别动，它在采蜜！'],
+    ['这里好安静啊！', '是啊，只有鸟叫声！'],
+    ['能帮我摘一朵吗？', '好啊，粉色的那朵！'],
+    ['你每天都来花园吗？', '是啊，来照顾花草！'],
+    ['这棵树是什么品种？', '是樱花树，春天会开花！'],
+    ['土壤需要浇水吗？', '需要，天气太干了！'],
+    ['能在这里晒太阳吗？', '可以，躺椅上很舒服！'],
+    ['你看那只蜜蜂！', '它在采蜜，别打扰它！'],
+    ['这些花是什么颜色的？', '有红、黄、紫，好多颜色！'],
+    ['花园里有水果吗？', '有，那边有棵苹果树！'],
+    ['能帮我施一下肥吗？', '好啊，在工具房里！'],
+    ['这里适合喝茶吗？', '适合，有小桌子！'],
+    ['风一吹花瓣都掉了！', '是啊，像下雨一样美！'],
+    ['你种了多少种花？', '大概二十种，还在继续！'],
+    ['能在这里画画吗？', '可以，风景很好！'],
+    ['晚上的花园是什么样的？', '很安静，有萤火虫！'],
+    ['下次一起种花吧！', '好啊，我教你！'],
+  ],
+
+  // ========== 心理咨询室 ==========
+  psychological_room: [
+    ['最近感觉怎么样？', '有点焦虑，睡眠不太好！'],
+    ['能说说你的烦恼吗？', '嗯，最近学习压力很大！'],
+    ['这里好温馨啊！', '是啊，让人很放松！'],
+    ['你能保密吗？', '当然，这是我们的原则！'],
+    ['我可以哭吗？', '可以，这里很安全！'],
+    ['最近有做噩梦吗？', '有，经常梦到考试！'],
+    ['能给我一些建议吗？', '可以试试深呼吸练习！'],
+    ['你觉得我该怎么办？', '先别急着否定自己！'],
+    ['这里能躺下来吗？', '可以，沙发很舒服！'],
+    ['我需要吃药吗？', '先试试心理咨询，必要时再考虑！'],
+    ['能抱抱我吗？', '可以，拥抱能缓解压力！'],
+    ['我最近总是想哭！', '没关系，情绪需要释放！'],
+    ['你觉得我正常吗？', '每个人都会有低谷期！'],
+    ['能教我一些放松方法吗？', '好啊，先闭上眼睛！'],
+    ['这里好安静啊！', '是啊，有助于思考！'],
+    ['我能信任你吗？', '可以，我会一直陪着你！'],
+    ['最近有什么开心的事吗？', '有，昨天吃了好吃的蛋糕！'],
+    ['你觉得我需要来几次？', '看情况，每周一次比较好！'],
+    ['我能带朋友来吗？', '可以，团体咨询也可以！'],
+    ['谢谢你听我倾诉！', '不用谢，这是我的工作！'],
+  ],
+};
 
 // 色彩系统
 const COLORS = {
@@ -228,6 +787,24 @@ const SCENE_ACTIVITIES = {
   ],
 };
 
+// 场景行为类型定义
+const SCENE_TYPE = {
+  FIXED: 'fixed',         // 固定场景：行为持续时间较长，期间不变（如上课、学习）
+  SEMI_FIXED: 'semi',     // 半固定场景：行为持续时间中等（如吃饭、咨询）
+  VARIABLE: 'variable',   // 可变场景：行为可频繁变化（如休息、娱乐、运动）
+};
+
+// 场景类型映射
+const SCENE_TYPE_MAP = {
+  // 固定场景（40-60分钟）
+  teaching_building: SCENE_TYPE.FIXED,
+  library: SCENE_TYPE.FIXED,
+  // 半固定场景（20-30分钟）
+  cafeteria: SCENE_TYPE.SEMI_FIXED,
+  psychological_room: SCENE_TYPE.SEMI_FIXED,
+  // 可变场景（5-15分钟）- 其他未列出的默认为可变
+};
+
 // 时间调度配置（基于现实时间）
 // 工作日（周一到周五）日程
 const WEEKDAY_SCHEDULE = [
@@ -329,6 +906,17 @@ Page({
     petSceneId: 'bedroom',
     petSceneName: '卧室',
     petActivity: '在温暖的床上休息',
+    // 行为计时器
+    activityStartTime: Date.now(),      // 当前行为开始时间
+    currentActivityDuration: 10,        // 当前行为持续时间（分钟），默认10分钟
+    // 主心宠对话状态
+    mainPetTalking: false,              // 主心宠是否正在对话
+    mainPetDialogText: '',              // 主心宠对话内容
+    mainPetDialogPartner: null,         // 主心宠对话对象
+    mainPetDialogEndTime: null,         // 主心宠对话结束时间
+    mainPetDialogPhase: 0,              // 主心宠对话阶段：0=无，1=正在说，2=回应中
+    mainPetDialogPartnerId: '',         // 主心宠对话伙伴ID
+    mainPetDialogReplyText: '',         // 主心宠对话回复内容（给伙伴的）
     // 地图中心宠标记位置（一级地图用，初始在梦境小屋）
     petMarkerPrimaryStyle: 'left: calc(22% - 80rpx); top: 26%;',
     // 地图中心宠标记位置（二级地图用，初始不在任何二级地图里）
@@ -349,10 +937,14 @@ Page({
     // ========== 心情日记模态 ==========
     showDiary: false,
     diaryEntries: [],
-    diaryDates: [],
     diarySelectedDate: '',
     diaryLoading: true,
     diaryDataMap: {},
+    currentYear: new Date().getFullYear(),
+    currentMonth: new Date().getMonth() + 1,
+    calendarDays: [],
+    selectedDateText: '',
+    selectedDateWeekday: '',
 
     // ========== 帮助事件 ==========
     helpEvents: [],
@@ -856,8 +1448,8 @@ Page({
     this.boundary = {
       minX: 50,
       maxX: windowWidth - 50,
-      minY: windowHeight * 0.4,
-      maxY: windowHeight * 0.55,
+      minY: windowHeight * 0.25,
+      maxY: windowHeight * 0.45,
     };
 
     const startX = windowWidth / 2;
@@ -886,22 +1478,73 @@ Page({
     this.initOtherPets();
   },
 
-  // 初始化其他心宠
-  initOtherPets() {
+  // 获取其他心宠可用的场景（排除梦境小屋下的所有二级场景）
+  getOtherPetScenes() {
     const allScenes = this.getAllScenes();
-    const otherPets = [];
+    const { secondaryScenes } = this.data;
+    const dreamHouseSceneIds = secondaryScenes.dream_house.map((scene) => scene.id);
+    return allScenes.filter((scene) => !dreamHouseSceneIds.includes(scene.id));
+  },
 
-    for (let i = 0; i < 20; i++) {
-      // 随机分配一个场景
-      const randomScene = allScenes[Math.floor(Math.random() * allScenes.length)];
-      
-      // 随机初始位置
+  // 初始化其他心宠（确保每个场景至少有2个）
+  initOtherPets() {
+    const availableScenes = this.getOtherPetScenes();
+    const otherPets = [];
+    let petIndex = 0;
+
+    // 第一步：为每个场景分配至少2个心宠（保证每个场景都有心宠）
+    availableScenes.forEach((scene) => {
+      for (let j = 0; j < 2; j++) {
+        const x = this.boundary.minX + Math.random() * (this.boundary.maxX - this.boundary.minX);
+        const y = this.boundary.minY + Math.random() * (this.boundary.maxY - this.boundary.minY);
+
+        otherPets.push({
+          id: `other-pet-${petIndex}`,
+          name: PET_NAMES[petIndex % PET_NAMES.length],
+          sceneId: scene.id,
+          sceneName: scene.name,
+          x: x,
+          y: y,
+          targetX: x,
+          targetY: y,
+          isMoving: false,
+          isTalking: false,
+          isInConversation: false,
+          dialogText: '',
+          dialogPartner: null,
+          dialogEndTime: null,
+          dialogPhase: 0,
+          dialogText2: '',
+          dialogPartnerId: '',
+          lastCheckedHour: -1,
+        });
+        petIndex++;
+      }
+    });
+
+    // 第二步：剩余的心宠随机分配到各个场景（但每个场景最多8只）
+    const totalPets = 20; // 总心宠数
+    const remainingPets = totalPets - petIndex;
+    for (let i = 0; i < remainingPets; i++) {
+      // 过滤掉已满的场景（已有8只）
+      const availableNonFullScenes = availableScenes.filter((scene) => {
+        const count = otherPets.filter((p) => p.sceneId === scene.id).length;
+        return count < MAX_PETS_PER_SCENE;
+      });
+
+      // 如果所有场景都满了，就不分配了
+      if (availableNonFullScenes.length === 0) {
+        console.log('[Pet] 所有场景已满，停止分配剩余心宠');
+        break;
+      }
+
+      const randomScene = availableNonFullScenes[Math.floor(Math.random() * availableNonFullScenes.length)];
       const x = this.boundary.minX + Math.random() * (this.boundary.maxX - this.boundary.minX);
       const y = this.boundary.minY + Math.random() * (this.boundary.maxY - this.boundary.minY);
 
       otherPets.push({
-        id: `other-pet-${i}`,
-        name: PET_NAMES[i],
+        id: `other-pet-${petIndex}`,
+        name: PET_NAMES[petIndex % PET_NAMES.length],
         sceneId: randomScene.id,
         sceneName: randomScene.name,
         x: x,
@@ -913,8 +1556,13 @@ Page({
         isInConversation: false,
         dialogText: '',
         dialogPartner: null,
+        dialogEndTime: null,
+        dialogPhase: 0,
+        dialogText2: '',
+        dialogPartnerId: '',
         lastCheckedHour: -1,
       });
+      petIndex++;
     }
 
     this.setData({ otherPets });
@@ -925,10 +1573,10 @@ Page({
 
   // 启动其他心宠的移动
   startOtherPetsMovement() {
-    // 每5秒更新一次其他心宠（包括对话）
+    // 每3秒更新一次其他心宠（包括对话）
     this.otherPetTimer = setInterval(() => {
       this.updateOtherPets();
-    }, 5000);
+    }, 3000);
   },
 
   // 更新所有其他心宠的状态
@@ -937,17 +1585,213 @@ Page({
     const updatedPets = [...otherPets];
     let hasDialogChange = false;
     const currentHour = new Date().getHours();
+    const now = Date.now();
 
+    // 第一步：处理已有对话（切换阶段或结束）
+    updatedPets.forEach((pet, index) => {
+      if (!pet.dialogEndTime) return;
+      
+      if (now >= pet.dialogEndTime) {
+        // 对话阶段结束
+        if (pet.dialogPhase === 1) {
+          // 先保存对话内容，再清空状态（关键修复：防止dialogText2被提前清空）
+          const replyText = pet.dialogText2;
+          const partnerName = pet.name;
+          const partnerId = pet.dialogPartnerId;
+
+          // 第一个宠物停止说话，清除其所有对话状态
+          pet.isTalking = false;
+          pet.isInConversation = false;
+          pet.dialogText = '';
+          pet.dialogEndTime = null;
+          pet.dialogPhase = 0;
+          pet.dialogText2 = '';
+          pet.dialogPartnerId = '';
+          pet.dialogPartner = null;
+
+          if (partnerId === 'main-pet') {
+            // 对话伙伴是主心宠，主心宠进入Phase 2说话
+            this.setData({
+              mainPetTalking: true,
+              mainPetDialogText: replyText || '...',
+              mainPetDialogPartner: partnerName,
+              mainPetDialogEndTime: now + 3000,
+              mainPetDialogPhase: 2,
+              mainPetDialogPartnerId: pet.id,
+              mainPetDialogReplyText: '',
+            });
+          } else {
+            const partnerIndex = updatedPets.findIndex(p => p.id === partnerId);
+            if (partnerIndex >= 0) {
+              const partner = updatedPets[partnerIndex];
+              // 第二个宠物开始说话
+              partner.isTalking = true;
+              partner.dialogText = replyText || '...';
+              partner.dialogPartner = partnerName;
+              partner.dialogEndTime = now + 3000;
+              partner.dialogPhase = 2;
+              partner.dialogText2 = '';
+            }
+          }
+        } else if (pet.dialogPhase === 2) {
+          // 第二阶段结束，清理状态
+          const partnerId = pet.dialogPartnerId;
+          pet.isTalking = false;
+          pet.isInConversation = false;
+          pet.dialogText = '';
+          pet.dialogPartner = null;
+          pet.dialogEndTime = null;
+          pet.dialogPhase = 0;
+          pet.dialogText2 = '';
+          pet.dialogPartnerId = '';
+
+          // 同时清理对话伙伴的状态
+          if (partnerId === 'main-pet') {
+            // 清理主心宠状态
+            this.setData({
+              mainPetTalking: false,
+              mainPetDialogText: '',
+              mainPetDialogPartner: null,
+              mainPetDialogEndTime: null,
+              mainPetDialogPhase: 0,
+              mainPetDialogPartnerId: '',
+              mainPetDialogReplyText: '',
+            });
+          } else if (partnerId) {
+            const partnerIndex = updatedPets.findIndex(p => p.id === partnerId);
+            if (partnerIndex >= 0) {
+              const partner = updatedPets[partnerIndex];
+              partner.isTalking = false;
+              partner.isInConversation = false;
+              partner.dialogText = '';
+              partner.dialogPartner = null;
+              partner.dialogEndTime = null;
+              partner.dialogPhase = 0;
+              partner.dialogText2 = '';
+              partner.dialogPartnerId = '';
+            }
+          }
+
+          hasDialogChange = true;
+        }
+      }
+    });
+    
+    // 清理主心宠对话状态（如果主心宠参与了对话）
+    const { mainPetDialogEndTime, mainPetDialogPhase, mainPetDialogPartnerId, mainPetDialogReplyText } = this.data;
+    if (mainPetDialogEndTime && now >= mainPetDialogEndTime) {
+      if (mainPetDialogPhase === 1) {
+        // 主心宠Phase 1结束，需要触发Phase 2（让伙伴说话）
+        if (mainPetDialogPartnerId === 'main-pet') {
+          // 这种情况不应该发生，但做保护处理
+          this.setData({
+            mainPetTalking: false,
+            mainPetDialogText: '',
+            mainPetDialogPartner: null,
+            mainPetDialogEndTime: null,
+            mainPetDialogPhase: 0,
+            mainPetDialogPartnerId: '',
+            mainPetDialogReplyText: '',
+          });
+        } else {
+          // 查找伙伴，让它进入Phase 2说话
+          const partnerIndex = updatedPets.findIndex(p => p.id === mainPetDialogPartnerId);
+          if (partnerIndex >= 0) {
+            const partner = updatedPets[partnerIndex];
+            partner.isTalking = true;
+            partner.dialogText = mainPetDialogReplyText || '...';
+            partner.dialogPartner = '心宠';
+            partner.dialogEndTime = now + 3000;
+            partner.dialogPhase = 2;
+            partner.dialogText2 = '';
+            partner.dialogPartnerId = 'main-pet';
+          }
+          // 清理主心宠Phase 1状态，但保持标记知道对话未结束
+          this.setData({
+            mainPetTalking: false,
+            mainPetDialogText: '',
+            mainPetDialogPartner: null,
+            mainPetDialogEndTime: null,
+            mainPetDialogPhase: 0,  // 主心宠不再说话，但对话继续
+            mainPetDialogPartnerId: '',
+            mainPetDialogReplyText: '',
+          });
+          hasDialogChange = true;
+        }
+      } else if (mainPetDialogPhase === 2) {
+        // 主心宠Phase 2结束，清理所有状态
+        this.setData({
+          mainPetTalking: false,
+          mainPetDialogText: '',
+          mainPetDialogPartner: null,
+          mainPetDialogEndTime: null,
+          mainPetDialogPhase: 0,
+          mainPetDialogPartnerId: '',
+          mainPetDialogReplyText: '',
+        });
+      } else {
+        // 无阶段或已结束，清理状态
+        this.setData({
+          mainPetTalking: false,
+          mainPetDialogText: '',
+          mainPetDialogPartner: null,
+          mainPetDialogEndTime: null,
+          mainPetDialogPhase: 0,
+          mainPetDialogPartnerId: '',
+          mainPetDialogReplyText: '',
+        });
+      }
+    }
+
+    // 第二步：移动宠物
     updatedPets.forEach((pet, index) => {
       // 如果正在对话，不移动
-      if (pet.isTalking) return;
+      if (pet.isTalking || pet.isInConversation) return;
 
       // 每个心宠独立的时间调度（整点时切换场景）
       if (pet.lastCheckedHour !== currentHour) {
         pet.lastCheckedHour = currentHour;
         // 20%概率切换场景
         if (Math.random() < 0.2) {
-          const newSceneId = this.getSceneBySchedule();
+          let newSceneId = this.getSceneBySchedule();
+          // 其他心宠不能进入梦境小屋下的任何二级场景
+          const { secondaryScenes } = this.data;
+          const dreamHouseSceneIds = secondaryScenes.dream_house.map((scene) => scene.id);
+          if (dreamHouseSceneIds.includes(newSceneId)) {
+            const availableScenes = this.getOtherPetScenes();
+            const randomScene = availableScenes[Math.floor(Math.random() * availableScenes.length)];
+            newSceneId = randomScene.id;
+          }
+
+          // 检查目标场景是否已满（最多8只心宠）
+          const petsInTargetScene = this.getScenePetCount(newSceneId, updatedPets);
+          if (petsInTargetScene >= MAX_PETS_PER_SCENE) {
+            // 目标场景已满，尝试从调度配置中找一个未满的场景
+            const { hour, isWeekend } = this.getCurrentTimeInfo();
+            const schedule = isWeekend ? WEEKEND_SCHEDULE : WEEKDAY_SCHEDULE;
+            const hourConfig = schedule.find((item) => item.hour === hour);
+            if (hourConfig && hourConfig.scenes) {
+              // 按权重从高到低排序，尝试找未满的场景（排除梦境小屋二级场景）
+              const sortedScenes = [...hourConfig.scenes].sort((a, b) => b.weight - a.weight);
+              let foundScene = false;
+              for (const sceneOption of sortedScenes) {
+                if (sceneOption.id === newSceneId) continue;
+                // 排除梦境小屋下的二级场景
+                if (dreamHouseSceneIds.includes(sceneOption.id)) continue;
+                const count = this.getScenePetCount(sceneOption.id, updatedPets);
+                if (count < MAX_PETS_PER_SCENE) {
+                  newSceneId = sceneOption.id;
+                  foundScene = true;
+                  break;
+                }
+              }
+              // 如果所有调度场景都满了，就不切换场景
+              if (!foundScene) {
+                newSceneId = pet.sceneId;
+              }
+            }
+          }
+
           if (newSceneId !== pet.sceneId) {
             const newScene = this.getSceneInfo(newSceneId);
             if (newScene) {
@@ -962,55 +1806,125 @@ Page({
         }
       }
 
-      // 30%概率移动（如果不在对话中）
-      if (Math.random() < 0.3 && !pet.isTalking && !pet.isInConversation) {
+      // 60%概率移动（如果不在对话中）
+      if (Math.random() < 0.6 && !pet.isTalking && !pet.isInConversation) {
         this.moveOtherPet(pet);
       }
     });
 
-    // 检查对话：同一场景一次只触发一对
+    // 第三步：检查并触发新对话
     const scenesWithDialog = new Set();
     
-    for (let i = 0; i < updatedPets.length; i++) {
-      const pet = updatedPets[i];
-      if (pet.isTalking || pet.isInConversation) continue;
-      
-      // 检查与主心宠的碰撞
-      if (pet.sceneId === petSceneId && !scenesWithDialog.has(pet.sceneId)) {
+    // 计算自适应距离阈值（边界对角线的30%，最小80像素）
+    let distanceThreshold = 120;
+    if (this.boundary) {
+      const { minX, maxX, minY, maxY } = this.boundary;
+      const diag = Math.hypot(maxX - minX, maxY - minY);
+      distanceThreshold = Math.max(80, Math.floor(diag * 0.3));
+    }
+    
+    // 优先检查当前场景的心宠对话
+    const currentScenePets = updatedPets.filter(p => p.sceneId === petSceneId && !p.isTalking && !p.isInConversation && !p.dialogEndTime);
+    
+    // 第一步：检查当前场景中是否有心宠可以与主心宠对话
+    if (!scenesWithDialog.has(petSceneId)) {
+      for (let i = 0; i < currentScenePets.length; i++) {
+        const pet = currentScenePets[i];
         const distance = this.getDistance(pet.x, pet.y, petSpriteX, petSpriteY);
-        if (distance < 60) {
-          this.startDialogBetweenPets(pet, {
+        if (distance < distanceThreshold) {
+          const petIndex = updatedPets.findIndex(p => p.id === pet.id);
+          this.startDialogBetweenPets(updatedPets, pet, {
             id: 'main-pet',
             name: '心宠',
+            sceneId: petSceneId,
             x: petSpriteX,
             y: petSpriteY,
-          }, i);
-          scenesWithDialog.add(pet.sceneId);
+          }, petIndex, -1);
+          scenesWithDialog.add(petSceneId);
           hasDialogChange = true;
-          break; // 一次只触发一对
+          break;
         }
       }
-      
-      // 检查与其他心宠的碰撞
-      for (let j = i + 1; j < updatedPets.length; j++) {
-        const otherPet = updatedPets[j];
-        if (otherPet.isTalking || otherPet.isInConversation) continue;
-        
-        if (pet.sceneId === otherPet.sceneId && !scenesWithDialog.has(pet.sceneId)) {
+    }
+    
+    // 第二步：检查当前场景中的心宠之间是否可以对话
+    if (!hasDialogChange && !scenesWithDialog.has(petSceneId)) {
+      for (let i = 0; i < currentScenePets.length; i++) {
+        const pet = currentScenePets[i];
+        for (let j = i + 1; j < currentScenePets.length; j++) {
+          const otherPet = currentScenePets[j];
           const distance = this.getDistance(pet.x, pet.y, otherPet.x, otherPet.y);
-          if (distance < 60) {
-            this.startDialogBetweenPets(pet, otherPet, i, j);
-            scenesWithDialog.add(pet.sceneId);
+          if (distance < distanceThreshold) {
+            const petIndex = updatedPets.findIndex(p => p.id === pet.id);
+            const otherPetIndex = updatedPets.findIndex(p => p.id === otherPet.id);
+            this.startDialogBetweenPets(updatedPets, pet, otherPet, petIndex, otherPetIndex);
+            scenesWithDialog.add(petSceneId);
             hasDialogChange = true;
-            break; // 一次只触发一对
+            break;
           }
         }
+        if (hasDialogChange) break;
       }
-      
-      if (hasDialogChange) break; // 已经触发了一对，跳出
+    }
+    
+    // 第三步：如果当前场景没有触发对话，再检查其他场景
+    if (!hasDialogChange) {
+      for (let i = 0; i < updatedPets.length; i++) {
+        const pet = updatedPets[i];
+        if (pet.isTalking || pet.isInConversation || pet.dialogEndTime) continue;
+        
+        // 检查与其他心宠的碰撞（只检查非当前场景）
+        for (let j = i + 1; j < updatedPets.length; j++) {
+          const otherPet = updatedPets[j];
+          if (otherPet.isTalking || otherPet.isInConversation || otherPet.dialogEndTime) continue;
+          
+          if (pet.sceneId === otherPet.sceneId && !scenesWithDialog.has(pet.sceneId) && pet.sceneId !== petSceneId) {
+            const distance = this.getDistance(pet.x, pet.y, otherPet.x, otherPet.y);
+            if (distance < distanceThreshold) {
+              this.startDialogBetweenPets(updatedPets, pet, otherPet, i, j);
+              scenesWithDialog.add(pet.sceneId);
+              hasDialogChange = true;
+              break;
+            }
+          }
+        }
+        
+        if (hasDialogChange) break;
+      }
     }
 
     this.setData({ otherPets: updatedPets });
+  },
+
+  // 强制触发对话（用于测试）
+  forceTriggerDialog() {
+    const { otherPets, petSceneId } = this.data;
+    const updatedPets = [...otherPets];
+    
+    // 找到当前场景中的两只宠物
+    const petsInScene = updatedPets.filter(p => p.sceneId === petSceneId);
+    if (petsInScene.length >= 2) {
+      const pet1 = petsInScene[0];
+      const pet2 = petsInScene[1];
+      const index1 = updatedPets.findIndex(p => p.id === pet1.id);
+      const index2 = updatedPets.findIndex(p => p.id === pet2.id);
+      
+      console.log(`[Pet] 🧪 强制触发对话: ${pet1.name} vs ${pet2.name}`);
+      this.startDialogBetweenPets(updatedPets, pet1, pet2, index1, index2);
+      this.setData({ otherPets: updatedPets });
+      
+      wx.showToast({
+        title: `强制对话: ${pet1.name} vs ${pet2.name}`,
+        icon: 'none',
+        duration: 2000,
+      });
+    } else {
+      console.log('[Pet] ❌ 当前场景宠物不足，无法触发对话');
+      wx.showToast({
+        title: '当前场景宠物不足',
+        icon: 'none',
+      });
+    }
   },
 
   // 计算两点距离
@@ -1032,76 +1946,65 @@ Page({
     pet.isMoving = false;
   },
 
-  // 开始两个心宠之间的对话（轮流显示）
-  startDialogBetweenPets(pet1, pet2, index1, index2) {
-    // 检查当前场景是否已有对话在进行
-    const { otherPets } = this.data;
+  // 开始两个心宠之间的对话（基于时间的对话管理，不使用setTimeout）
+  // petsArray: 当前心宠数组（直接修改，不调用setData）
+  // pet1, pet2: 参与对话的两个心宠对象
+  // index1, index2: 在数组中的索引（对于主心宠，index为-1）
+  startDialogBetweenPets(petsArray, pet1, pet2, index1, index2) {
     const currentSceneId = pet1.sceneId;
     
-    // 检查同场景是否有其他心宠在对话
-    const hasActiveDialog = otherPets.some(p => 
-      p.sceneId === currentSceneId && (p.isTalking || p.isInConversation)
-    );
-    
-    if (hasActiveDialog) {
-      return; // 如果已有对话，跳过
+    // 根据场景获取对应的对话列表
+    const sceneDialogues = SCENE_DIALOGUES[currentSceneId];
+    let dialoguePair;
+    if (sceneDialogues && sceneDialogues.length > 0) {
+      dialoguePair = sceneDialogues[Math.floor(Math.random() * sceneDialogues.length)];
+    } else {
+      dialoguePair = ['嗨！你好呀！', '你好！很高兴见到你！'];
     }
     
-    // 随机选择一组对话
-    const dialoguePair = DIALOGUES[Math.floor(Math.random() * DIALOGUES.length)];
+    const now = Date.now();
     
-    // 第一阶段：第一个宠物说话（持续3秒）
-    const updatedPets = [...otherPets];
-    
-    if (pet1.id !== 'main-pet') {
-      updatedPets[index1].isTalking = true;
-      updatedPets[index1].dialogText = dialoguePair[0];
-      updatedPets[index1].dialogPartner = pet2.name;
+    // 第一阶段：设置第一个宠物说话（持续3秒）
+    if (pet1.id === 'main-pet') {
+      // 主心宠先说话（Phase 1）
+      this.setData({
+        mainPetTalking: true,
+        mainPetDialogText: dialoguePair[0],
+        mainPetDialogPartner: pet2.name,
+        mainPetDialogEndTime: now + 3000,
+        mainPetDialogPhase: 1,
+        mainPetDialogPartnerId: pet2.id,
+        mainPetDialogReplyText: dialoguePair[1],
+      });
+      // 标记第二个宠物正在对话中
+      if (index2 >= 0 && petsArray[index2]) {
+        petsArray[index2].isInConversation = true;
+        petsArray[index2].dialogPartner = pet1.name;
+        petsArray[index2].dialogPartnerId = pet1.id;
+      }
+    } else if (index1 >= 0 && petsArray[index1]) {
+      petsArray[index1].isTalking = true;
+      petsArray[index1].dialogText = dialoguePair[0];
+      petsArray[index1].dialogPartner = pet2.name;
+      petsArray[index1].dialogEndTime = now + 3000;
+      petsArray[index1].dialogPhase = 1;
+      petsArray[index1].dialogText2 = dialoguePair[1];
+      petsArray[index1].dialogPartnerId = pet2.id;
     }
 
-    // 第二个宠物标记为正在对话
-    if (index2 !== undefined && updatedPets[index2]) {
-      updatedPets[index2].isInConversation = true;
-      updatedPets[index2].dialogPartner = pet1.name;
+    // 第二个宠物标记为正在对话（但不说话）
+    if (pet2.id === 'main-pet') {
+      // 主心宠作为回应者，暂时不显示，但记录状态在data中
+      this.setData({
+        mainPetDialogPhase: 2,  // 主心宠将在Phase 2说话
+        mainPetDialogPartnerId: pet1.id,
+        mainPetDialogReplyText: dialoguePair[1],
+      });
+    } else if (index2 >= 0 && petsArray[index2]) {
+      petsArray[index2].isInConversation = true;
+      petsArray[index2].dialogPartner = pet1.name;
+      petsArray[index2].dialogPartnerId = pet1.id;
     }
-
-    this.setData({ otherPets: updatedPets });
-
-    // 第二阶段：3秒后，第一个宠物说完，第二个宠物回答
-    setTimeout(() => {
-      const currentPets = [...this.data.otherPets];
-      
-      // 第一个宠物停止说话
-      if (pet1.id !== 'main-pet' && currentPets[index1]) {
-        currentPets[index1].isTalking = false;
-        currentPets[index1].dialogText = '';
-      }
-      
-      // 第二个宠物开始说话（如果存在）
-      if (index2 !== undefined && currentPets[index2]) {
-        currentPets[index2].isTalking = true;
-        currentPets[index2].dialogText = dialoguePair[1];
-        currentPets[index2].isInConversation = false;
-      }
-      
-      this.setData({ otherPets: currentPets });
-    }, 3000);
-
-    // 第三阶段：6秒后，对话完全结束
-    setTimeout(() => {
-      const finalPets = [...this.data.otherPets];
-      if (pet1.id !== 'main-pet' && finalPets[index1]) {
-        finalPets[index1].isTalking = false;
-        finalPets[index1].dialogText = '';
-        finalPets[index1].dialogPartner = null;
-      }
-      if (index2 !== undefined && finalPets[index2]) {
-        finalPets[index2].isTalking = false;
-        finalPets[index2].dialogText = '';
-        finalPets[index2].dialogPartner = null;
-      }
-      this.setData({ otherPets: finalPets });
-    }, 6000);
   },
 
   // 平滑移动心宠到随机位置（带边界限制）
@@ -1127,6 +2030,7 @@ Page({
   startStatusAnimation() {
     let lastCheckedHour = -1;
     let lastCheckedMinute = -1;
+    let lastActivityCheck = -1; // 上次检查行为变化的时间（分钟）
 
     // 状态值波动和场景调度检查
     this.statusTimer = setInterval(() => {
@@ -1153,6 +2057,12 @@ Page({
         this.switchPetScene();
       }
 
+      // 每5分钟检查一次行为是否需要变化
+      if (minute % 5 === 0 && minute !== lastActivityCheck) {
+        lastActivityCheck = minute;
+        this.checkActivityChange();
+      }
+
       // 模拟事件（每30秒可能触发一次）
       if (Math.random() < 0.1) {
         this.setData({
@@ -1161,6 +2071,24 @@ Page({
         });
       }
     }, 5000);
+  },
+
+  // 检查行为是否需要变化
+  checkActivityChange() {
+    const { petSceneId, activityStartTime, currentActivityDuration } = this.data;
+    const now = Date.now();
+    const elapsedMinutes = (now - activityStartTime) / (1000 * 60);
+
+    // 如果当前行为持续时间已到，切换新行为
+    if (elapsedMinutes >= currentActivityDuration) {
+      const newActivity = this.getActivityByScene(petSceneId);
+      const newDuration = this.getActivityDuration(petSceneId);
+      this.setData({
+        petActivity: newActivity,
+        activityStartTime: now,
+        currentActivityDuration: newDuration,
+      });
+    }
   },
 
   // 数值波动
@@ -1217,6 +2145,14 @@ Page({
     return allScenes.find((s) => s.id === sceneId);
   },
 
+  // 获取指定场景中的心宠数量
+  getScenePetCount(sceneId, petsArray) {
+    if (!petsArray) {
+      petsArray = this.data.otherPets;
+    }
+    return petsArray.filter((pet) => pet.sceneId === sceneId).length;
+  },
+
   // 根据场景获取活动描述
   getActivityByScene(sceneId) {
     const activities = SCENE_ACTIVITIES[sceneId];
@@ -1224,6 +2160,29 @@ Page({
       return activities[Math.floor(Math.random() * activities.length)];
     }
     return '在探索这个神秘的地方';
+  },
+
+  // 获取场景类型（固定/半固定/可变）
+  getSceneType(sceneId) {
+    return SCENE_TYPE_MAP[sceneId] || SCENE_TYPE.VARIABLE;
+  },
+
+  // 获取场景行为的持续时间（分钟）
+  getActivityDuration(sceneId) {
+    const sceneType = this.getSceneType(sceneId);
+    switch (sceneType) {
+      case SCENE_TYPE.FIXED:
+        // 固定场景：40-60分钟
+        return 40 + Math.floor(Math.random() * 21);
+      case SCENE_TYPE.SEMI_FIXED:
+        // 半固定场景：20-30分钟
+        return 20 + Math.floor(Math.random() * 11);
+      case SCENE_TYPE.VARIABLE:
+        // 可变场景：5-15分钟
+        return 5 + Math.floor(Math.random() * 11);
+      default:
+        return 10;
+    }
   },
 
   // 检查是否触发随机事件
@@ -1271,13 +2230,22 @@ Page({
       targetSceneId = randomEvent.sceneId;
     }
 
-    // 3. 如果目标场景和当前场景相同，不切换
+    // 3. 如果目标场景和当前场景相同，检查行为持续时间是否已到
     if (targetSceneId === petSceneId) {
-      // 只更新活动描述
-      const newActivity = this.getActivityByScene(petSceneId);
-      this.setData({
-        petActivity: newActivity,
-      });
+      const now = Date.now();
+      const { activityStartTime, currentActivityDuration } = this.data;
+      const elapsedMinutes = (now - activityStartTime) / (1000 * 60);
+
+      // 如果当前行为持续时间已到，更新行为
+      if (elapsedMinutes >= currentActivityDuration) {
+        const newActivity = this.getActivityByScene(petSceneId);
+        const newDuration = this.getActivityDuration(petSceneId);
+        this.setData({
+          petActivity: newActivity,
+          activityStartTime: now,
+          currentActivityDuration: newDuration,
+        });
+      }
       return;
     }
 
@@ -1288,14 +2256,17 @@ Page({
       return;
     }
 
-    // 5. 获取新场景的活动描述
+    // 5. 获取新场景的活动描述和持续时间
     const newActivity = this.getActivityByScene(targetSceneId);
+    const newDuration = this.getActivityDuration(targetSceneId);
 
-    // 6. 更新数据
+    // 6. 更新数据（场景切换时立即更新行为并重置计时器）
     this.setData({
       petSceneId: newScene.id,
       petSceneName: newScene.name,
       petActivity: newActivity,
+      activityStartTime: Date.now(),
+      currentActivityDuration: newDuration,
     });
 
     // 7. 更新标记位置（根据当前地图级别）
@@ -1328,16 +2299,18 @@ Page({
 
   // 强制根据当前时间更新场景（用于初始化或整点切换）
   forceUpdateSceneByTime() {
-    const { hour, isWeekend } = this.getCurrentTimeInfo();
     const targetSceneId = this.getSceneBySchedule();
     const newScene = this.getSceneInfo(targetSceneId);
 
     if (newScene) {
       const newActivity = this.getActivityByScene(targetSceneId);
+      const newDuration = this.getActivityDuration(targetSceneId);
       this.setData({
         petSceneId: newScene.id,
         petSceneName: newScene.name,
         petActivity: newActivity,
+        activityStartTime: Date.now(),
+        currentActivityDuration: newDuration,
       });
       this.updatePetMarker();
     }
@@ -1887,41 +2860,136 @@ Page({
     return entries;
   },
 
+  // 将Date对象格式化为本地日期字符串 YYYY-MM-DD（避免时区问题）
+  formatDateToStr(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+
   // 初始化日记数据
   initDiaryData() {
-    const today = new Date().toISOString().split('T')[0];
-    const dates = [];
-    const now = new Date();
+    const today = new Date();
+    const todayStr = this.formatDateToStr(today);
     const diaryDataMap = {};
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
 
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
+    // 为最近30天生成日记数据
+    for (let i = 30; i >= 0; i--) {
+      const date = new Date(today);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-      dates.push({
-        date: dateStr,
-        day: date.getDate(),
-        weekDay: dayNames[date.getDay()],
-        isToday: i === 0,
-      });
-
-      // 为每一天生成日记数据
+      const dateStr = this.formatDateToStr(date);
       diaryDataMap[dateStr] = this.generateDiaryEntries(dateStr);
     }
 
     this.setData({
-      diarySelectedDate: today,
-      diaryDates: dates,
+      diarySelectedDate: todayStr,
       diaryDataMap,
-      diaryEntries: diaryDataMap[today],
+      diaryEntries: diaryDataMap[todayStr] || [],
       diaryLoading: false,
+      currentYear: year,
+      currentMonth: month,
+      selectedDateText: this.formatDateText(todayStr),
+      selectedDateWeekday: this.getWeekdayText(todayStr),
+    }, () => {
+      this.generateCalendarDays(year, month);
     });
+  },
+
+  // 生成日历天数
+  generateCalendarDays(year, month) {
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const daysInMonth = lastDay.getDate();
+    const startWeekday = firstDay.getDay(); // 0 = 周日
+
+    const { diaryDataMap, diarySelectedDate } = this.data;
+    const today = this.formatDateToStr(new Date());
+    const days = [];
+
+    // 上个月的日期
+    const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const day = prevMonthLastDay - i;
+      const date = new Date(year, month - 2, day);
+      const dateStr = this.formatDateToStr(date);
+      days.push({
+        date: dateStr,
+        day: day,
+        isCurrentMonth: false,
+        isToday: dateStr === today,
+        hasEntry: diaryDataMap[dateStr] && diaryDataMap[dateStr].length > 0,
+      });
+    }
+
+    // 当前月的日期
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, month - 1, i);
+      const dateStr = this.formatDateToStr(date);
+      days.push({
+        date: dateStr,
+        day: i,
+        isCurrentMonth: true,
+        isToday: dateStr === today,
+        hasEntry: diaryDataMap[dateStr] && diaryDataMap[dateStr].length > 0,
+      });
+    }
+
+    // 下个月的日期
+    const remaining = (7 - (days.length % 7)) % 7;
+    for (let i = 1; i <= remaining; i++) {
+      const date = new Date(year, month, i);
+      const dateStr = this.formatDateToStr(date);
+      days.push({
+        date: dateStr,
+        day: i,
+        isCurrentMonth: false,
+        isToday: dateStr === today,
+        hasEntry: diaryDataMap[dateStr] && diaryDataMap[dateStr].length > 0,
+      });
+    }
+
+    this.setData({
+      calendarDays: days,
+    });
+  },
+
+  // 上一个月
+  onPrevMonth() {
+    const { currentYear, currentMonth } = this.data;
+    let year = currentYear;
+    let month = currentMonth - 1;
+    if (month < 1) {
+      month = 12;
+      year--;
+    }
+    this.setData({ currentYear: year, currentMonth: month });
+    this.generateCalendarDays(year, month);
+  },
+
+  // 下一个月
+  onNextMonth() {
+    const { currentYear, currentMonth } = this.data;
+    let year = currentYear;
+    let month = currentMonth + 1;
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
+    this.setData({ currentYear: year, currentMonth: month });
+    this.generateCalendarDays(year, month);
   },
 
   // 点击日记
   onDiaryTap() {
     this.switchView('diary');
+    // 重新生成日历
+    const { currentYear, currentMonth } = this.data;
+    if (currentYear && currentMonth) {
+      this.generateCalendarDays(currentYear, currentMonth);
+    }
   },
 
   // 选择日记日期
@@ -1932,7 +3000,22 @@ Page({
     this.setData({
       diarySelectedDate: date,
       diaryEntries: entries,
+      selectedDateText: this.formatDateText(date),
+      selectedDateWeekday: this.getWeekdayText(date),
     });
+  },
+
+  // 格式化日期显示
+  formatDateText(dateStr) {
+    const date = new Date(dateStr);
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  },
+
+  // 获取星期文本
+  getWeekdayText(dateStr) {
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const date = new Date(dateStr);
+    return weekdays[date.getDay()];
   },
 
   // 获取日记类型颜色
