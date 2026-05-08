@@ -146,18 +146,14 @@
 
     <!-- ========== 世界地图视图 ========== -->
     <block wx:if="{{currentView === 'map'}}">
-      <scroll-view class="view-content map-view {{isEditMode ? 'edit-mode' : ''}}" scroll-y="{{!isEditMode}}" style="height: 100%;">
+      <view class="view-content map-view {{isEditMode ? 'edit-mode' : ''}}">
+        <!-- 世界地图背景 -->
+        <image class="world-map-bg" src="/static/worldmap.png" mode="aspectFill"></image>
+        
         <view class="map-scroll-content">
-          <!-- 装饰：云朵 -->
-          <view class="cloud cloud-1">☁️</view>
-          <view class="cloud cloud-2">☁️</view>
-
-          <!-- 装饰：指南针 -->
-          <view class="compass">🧭</view>
-
-          <!-- 返回按钮和编辑按钮（二级场景时显示） -->
-          <view wx:if="{{mapLevel === 'secondary'}}" class="map-actions-bar">
-            <view wx:if="{{!isEditMode}}" class="back-btn-secondary" bindtap="backToPrimary">
+          <!-- 返回按钮和编辑按钮 -->
+          <view class="map-actions-bar">
+            <view wx:if="{{mapLevel === 'secondary' && !isEditMode}}" class="back-btn-secondary" bindtap="backToPrimary">
               ← 返回
             </view>
             <view class="edit-btn {{isEditMode ? 'active' : ''}}" bindtap="toggleEditMode">
@@ -176,46 +172,60 @@
               <view class="pet-marker-glow"></view>
             </view>
             <view
-              class="territory {{item.current && currentSceneId === item.id ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}}"
+              class="territory transparent-territory {{item.current && currentSceneId === item.id ? 'current' : ''}} {{item.unlocked ? '' : 'locked'}} {{isEditMode ? 'editable' : ''}} {{editingSceneId === item.id ? 'dragging' : ''}}"
               wx:for="{{scenes}}"
               wx:key="id"
               style="left: {{item.x}}; top: {{item.y}};"
               data-scene="{{item}}"
-              bindtap="onSceneTap"
+              bindtap="{{isEditMode ? '' : 'onSceneTap'}}"
+              bindtouchstart="onSceneTouchStart"
+              bindtouchmove="onSceneTouchMove"
+              bindtouchend="onSceneTouchEnd"
             >
-              <view class="territory-body" style="background: {{item.gradient}};">
-                <view class="terrain-texture"></view>
-                <view class="territory-icon">{{item.icon}}</view>
-                <view class="terrain-deco" wx:if="{{item.deco}}">{{item.deco}}</view>
+              <view class="territory-body transparent-body" style="background: transparent;">
+                <view class="terrain-texture" style="display: none;"></view>
+                <view class="territory-icon" style="display: none;">{{item.icon}}</view>
+                <view class="terrain-deco" wx:if="{{item.deco}}" style="display: none;">{{item.deco}}</view>
               </view>
-              <view class="territory-sign">
+              <view class="territory-sign" style="display: none;">
                 <view class="sign-board">
                   <text class="sign-text">{{item.name}}</text>
                 </view>
                 <view class="sign-post"></view>
               </view>
-              <view class="secondary-badge" wx:if="{{item.hasSecondary}}">
+              <view class="secondary-badge" wx:if="{{item.hasSecondary}}" style="display: none;">
                 <text>🏠</text>
               </view>
               <view class="current-marker" wx:if="{{item.current && currentSceneId === item.id}}">
                 <view class="marker-dot"></view>
                 <view class="marker-pulse"></view>
               </view>
-              <view class="lock-marker" wx:if="{{!item.unlocked}}">
+              <view class="lock-marker" wx:if="{{!item.unlocked}}" style="display: none;">
                 <text>🔒</text>
+              </view>
+              <!-- 编辑模式显示坐标 -->
+              <view wx:if="{{isEditMode}}" class="coord-label">
+                {{item.x}}, {{item.y}}
               </view>
             </view>
           </view>
 
           <!-- 二级场景 -->
           <view wx:if="{{mapLevel === 'secondary'}}" class="territories secondary-territories zoom-in">
+            <!-- 二级场景背景图 -->
+            <image
+              class="secondary-map-bg"
+              src="/static/{{activePrimarySceneId}}.png"
+              mode="scaleToFill"
+              wx:if="{{activePrimarySceneId}}"
+            ></image>
             <!-- 二级地图心宠标记（只有当心宠在当前查看的二级地图里时才显示） -->
             <view wx:if="{{petMarkerSecondaryStyle}}" class="pet-marker-map pet-marker-secondary" style="{{petMarkerSecondaryStyle}}">
               <view class="pet-marker-body">🎀</view>
               <view class="pet-marker-glow"></view>
             </view>
             <view
-              class="territory {{currentSceneId === item.id ? 'current' : ''}} {{isEditMode ? 'editable' : ''}} {{editingSceneId === item.id ? 'dragging' : ''}}"
+              class="territory transparent-territory {{currentSceneId === item.id ? 'current' : ''}} {{isEditMode ? 'editable' : ''}} {{editingSceneId === item.id ? 'dragging' : ''}}"
               wx:for="{{secondaryScenes[activePrimarySceneId]}}"
               wx:key="id"
               style="left: {{item.x}}; top: {{item.y}};"
@@ -225,11 +235,11 @@
               bindtouchmove="onSceneTouchMove"
               bindtouchend="onSceneTouchEnd"
             >
-              <view class="territory-body" style="background: {{item.gradient}};">
-                <view class="terrain-texture"></view>
-                <view class="territory-icon">{{item.icon}}</view>
+              <view class="territory-body transparent-body" style="background: transparent;">
+                <view class="terrain-texture" style="display: none;"></view>
+                <view class="territory-icon" style="display: none;">{{item.icon}}</view>
               </view>
-              <view class="territory-sign">
+              <view class="territory-sign" style="display: none;">
                 <view class="sign-board">
                   <text class="sign-text">{{item.name}}</text>
                 </view>
@@ -247,7 +257,7 @@
           </view>
 
         </view>
-      </scroll-view>
+      </view>
     </block>
 
     <!-- ========== 背包视图 ========== -->

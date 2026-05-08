@@ -971,8 +971,8 @@ Page({
         deco: '✨',
         unlocked: true,
         current: true,
-        x: 'calc(50% - 80rpx)',
-        y: '5%',
+        x: '11.7%',
+        y: '17.1%',
         tags: ['探索', '魔法', '森林'],
         hasSecondary: true,
       },
@@ -986,8 +986,8 @@ Page({
         deco: '🎡',
         unlocked: true,
         current: false,
-        x: 'calc(78% - 80rpx)',
-        y: '26%',
+        x: '52.8%',
+        y: '27.6%',
         tags: ['休闲', '娱乐', '生活'],
         hasSecondary: true,
       },
@@ -1001,8 +1001,8 @@ Page({
         deco: '🔥',
         unlocked: true,
         current: false,
-        x: 'calc(65% - 80rpx)',
-        y: '55%',
+        x: '16.0%',
+        y: '55.5%',
         tags: ['野餐', '社交', '开阔'],
         hasSecondary: true,
       },
@@ -1016,8 +1016,8 @@ Page({
         deco: '🎓',
         unlocked: true,
         current: false,
-        x: 'calc(35% - 80rpx)',
-        y: '55%',
+        x: '62.0%',
+        y: '64.0%',
         tags: ['学习', '校园', '知识'],
         hasSecondary: true,
       },
@@ -1031,8 +1031,8 @@ Page({
         deco: '⭐',
         unlocked: true,
         current: false,
-        x: 'calc(22% - 80rpx)',
-        y: '26%',
+        x: '43.2%',
+        y: '90.8%',
         tags: ['梦境', '休息', '星空'],
         hasSecondary: true,
       },
@@ -2549,6 +2549,16 @@ Page({
     }
   },
 
+  // 解析场景坐标（支持 calc() 格式）
+  parseSceneCoord(coord) {
+    if (typeof coord === 'string' && coord.includes('calc')) {
+      // 提取 calc(50% - 80rpx) 中的百分比数值
+      const match = coord.match(/calc\((\d+)%/);
+      return match ? parseFloat(match[1]) : 0;
+    }
+    return parseFloat(coord) || 0;
+  },
+
   // 场景触摸开始（编辑模式）
   onSceneTouchStart(e) {
     if (!this.data.isEditMode) return;
@@ -2559,8 +2569,8 @@ Page({
         sceneId: scene.id,
         startX: touch.clientX,
         startY: touch.clientY,
-        origX: parseFloat(scene.x),
-        origY: parseFloat(scene.y),
+        origX: this.parseSceneCoord(scene.x),
+        origY: this.parseSceneCoord(scene.y),
       },
       editingSceneId: scene.id,
     });
@@ -2580,22 +2590,34 @@ Page({
     let newX = dragStart.origX + deltaX;
     let newY = dragStart.origY + deltaY;
 
-    // 限制在 5% - 85% 范围内
+    // 限制在 5% - 85% 范围内（X轴），Y轴限制在 5% - 100%
     newX = Math.max(5, Math.min(85, newX));
-    newY = Math.max(5, Math.min(85, newY));
+    newY = Math.max(5, Math.min(100, newY));
 
     // 更新场景位置
-    const { secondaryScenes, activePrimarySceneId } = this.data;
-    const scenes = secondaryScenes[activePrimarySceneId].map((s) => {
-      if (s.id === dragStart.sceneId) {
-        return { ...s, x: `${newX.toFixed(1)}%`, y: `${newY.toFixed(1)}%` };
-      }
-      return s;
-    });
-
-    this.setData({
-      [`secondaryScenes.${activePrimarySceneId}`]: scenes,
-    });
+    const { secondaryScenes, activePrimarySceneId, scenes: primaryScenes, mapLevel } = this.data;
+    
+    if (mapLevel === 'primary') {
+      // 更新一级场景位置
+      const updatedScenes = primaryScenes.map((s) => {
+        if (s.id === dragStart.sceneId) {
+          return { ...s, x: `${newX.toFixed(1)}%`, y: `${newY.toFixed(1)}%` };
+        }
+        return s;
+      });
+      this.setData({ scenes: updatedScenes });
+    } else {
+      // 更新二级场景位置
+      const updatedSecondaryScenes = secondaryScenes[activePrimarySceneId].map((s) => {
+        if (s.id === dragStart.sceneId) {
+          return { ...s, x: `${newX.toFixed(1)}%`, y: `${newY.toFixed(1)}%` };
+        }
+        return s;
+      });
+      this.setData({
+        [`secondaryScenes.${activePrimarySceneId}`]: updatedSecondaryScenes,
+      });
+    }
   },
 
   // 场景触摸结束
@@ -2609,9 +2631,19 @@ Page({
 
   // 导出场景配置
   exportSceneConfig() {
-    const { secondaryScenes } = this.data;
-    let config = '';
-
+    const { secondaryScenes, scenes: primaryScenes } = this.data;
+    let config = '// 一级场景配置\n';
+    
+    primaryScenes.forEach((scene) => {
+      config += `    {\n`;
+      config += `      id: '${scene.id}',\n`;
+      config += `      name: '${scene.name}',\n`;
+      config += `      x: '${scene.x}',\n`;
+      config += `      y: '${scene.y}',\n`;
+      config += `    },\n`;
+    });
+    
+    config += '\n// 二级场景配置\n';
     Object.keys(secondaryScenes).forEach((key) => {
       config += `      ${key}: [\n`;
       secondaryScenes[key].forEach((scene) => {

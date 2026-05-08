@@ -1,9 +1,12 @@
 {
-  "active_plan": "D:\\AllProjects\\AI-Projects\\PsyTwin-Pocket\\.sisyphus\\plans\\home-post-interaction.md",
-  "started_at": "2026-03-06T02:33:38.333Z",
+  "active_plan": "C:\\Users\\txj12\\Desktop\\PsyTwin\\PsyTwin-Pocket\\.sisyphus\\plans\\home-post-interaction.md",
+  "started_at": "2026-05-07T13:11:36.168Z",
   "session_ids": [
-    "ses_340d76e5fffeEb8lCpdNRqIYNB"
+    "ses_1ffc5ce01ffeHEfxY74UBgYWzC"
   ],
+  "session_origins": {
+    "ses_1ffc5ce01ffeHEfxY74UBgYWzC": "direct"
+  },
   "plan_name": "home-post-interaction",
   "agent": "atlas"
 }
