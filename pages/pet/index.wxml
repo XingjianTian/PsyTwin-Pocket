@@ -148,7 +148,7 @@
     <block wx:if="{{currentView === 'map'}}">
       <view class="view-content map-view {{isEditMode ? 'edit-mode' : ''}}">
         <!-- 世界地图背景 -->
-        <image class="world-map-bg" src="/static/worldmap.png" mode="aspectFill"></image>
+        <image class="world-map-bg" src="/static/世界地图/worldmap.png" mode="aspectFill"></image>
         
         <view class="map-scroll-content">
           <!-- 返回按钮和编辑按钮 -->
@@ -215,8 +215,8 @@
             <!-- 二级场景背景图 -->
             <image
               class="secondary-map-bg"
-              src="/static/{{activePrimarySceneId}}.png"
-              mode="scaleToFill"
+              src="/static/二级地图/{{activePrimarySceneId}}.png"
+mode="aspectFill"
               wx:if="{{activePrimarySceneId}}"
             ></image>
             <!-- 二级地图心宠标记（只有当心宠在当前查看的二级地图里时才显示） -->
