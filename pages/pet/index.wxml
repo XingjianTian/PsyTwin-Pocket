@@ -63,6 +63,9 @@
   <view class="main-area">
     <!-- 游戏背景层 - 始终显示 -->
     <view class="game-background">
+      <!-- 场景背景图 -->
+      <image class="game-bg-image" src="/static/scenes/{{currentSceneId}}.png" mode="aspectFill" wx:if="{{currentView === 'game'}}"></image>
+      
       <view class="scene-info-card" wx:if="{{currentView === 'game'}}">
         <text class="scene-location-text">{{currentScene}}</text>
       </view>
@@ -79,7 +82,9 @@
 
       <!-- 心宠精灵层（仅当在当前场景时显示） -->
       <view wx:if="{{currentView === 'game' && petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
-        <view class="pet-body">
+        <image class="pet-avatar" src="{{mainPetAvatar}}" mode="aspectFill" wx:if="{{mainPetAvatar}}" />
+        <!-- 备用：当没有头像时使用CSS绘制 -->
+        <view class="pet-body" wx:else>
           <view class="pet-face">
             <view class="pet-eye pet-eye-left"></view>
             <view class="pet-eye pet-eye-right"></view>
@@ -104,7 +109,8 @@
       <!-- 其他心宠层（仅在同一场景时显示） -->
       <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet" wx:if="{{currentView === 'game'}}">
         <view wx:if="{{otherPet.sceneId === currentSceneId}}" class="other-pet" style="left: {{otherPet.x}}px; top: {{otherPet.y}}px; transition: all 2s ease-in-out;">
-          <view class="other-pet-body"></view>
+          <image class="other-pet-avatar" src="{{otherPet.avatar}}" mode="aspectFill" wx:if="{{otherPet.avatar}}" />
+          <view class="other-pet-body" wx:else></view>
           <view class="other-pet-name">{{otherPet.name}}</view>
           
           <!-- 对话气泡 -->
@@ -168,7 +174,8 @@
           <view class="territories primary-territories {{mapLevel === 'secondary' ? 'zoom-out' : 'zoom-in'}}">
             <!-- 一级地图心宠标记（仅在显示一级地图时可见） -->
             <view class="pet-marker-map pet-marker-primary" style="{{petMarkerPrimaryStyle}}">
-              <view class="pet-marker-body">🎀</view>
+              <image class="pet-marker-avatar" src="{{mainPetAvatar}}" mode="aspectFill" wx:if="{{mainPetAvatar}}" />
+              <view class="pet-marker-body" wx:else>🎀</view>
               <view class="pet-marker-glow"></view>
             </view>
             <view
@@ -221,7 +228,8 @@ mode="aspectFill"
             ></image>
             <!-- 二级地图心宠标记（只有当心宠在当前查看的二级地图里时才显示） -->
             <view wx:if="{{petMarkerSecondaryStyle}}" class="pet-marker-map pet-marker-secondary" style="{{petMarkerSecondaryStyle}}">
-              <view class="pet-marker-body">🎀</view>
+              <image class="pet-marker-avatar" src="{{mainPetAvatar}}" mode="aspectFill" wx:if="{{mainPetAvatar}}" />
+              <view class="pet-marker-body" wx:else>🎀</view>
               <view class="pet-marker-glow"></view>
             </view>
             <view
@@ -309,7 +317,7 @@ mode="aspectFill"
       <!-- 选中日期的日记内容 -->
       <scroll-view class="view-content diary-view" scroll-y>
         <!-- 日历 -->
-        <view class="calendar-container">
+        <view class="calendar-container {{isCalendarCollapsed ? 'collapsed' : ''}}">
           <!-- 月份导航 -->
           <view class="calendar-header">
             <view class="calendar-nav-btn" bindtap="onPrevMonth">
@@ -324,8 +332,20 @@ mode="aspectFill"
           <view class="calendar-weekdays">
             <text wx:for="{{['日', '一', '二', '三', '四', '五', '六']}}" wx:key="*this" class="calendar-weekday">{{item}}</text>
           </view>
-          <!-- 日期网格 -->
-          <view class="calendar-days">
+          <!-- 日期网格 - 折叠时只显示当前周 -->
+          <view class="calendar-days" wx:if="{{isCalendarCollapsed}}">
+            <view
+              wx:for="{{calendarWeekDays}}"
+              wx:key="date"
+              class="calendar-day {{item.isCurrentMonth ? '' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.date === diarySelectedDate ? 'selected' : ''}} {{item.hasEntry ? 'has-entry' : ''}}"
+              data-date="{{item.date}}"
+              bindtap="onDiaryDateSelect"
+            >
+              <text class="calendar-day-num">{{item.day}}</text>
+              <view wx:if="{{item.hasEntry}}" class="calendar-day-dot"></view>
+            </view>
+          </view>
+          <view class="calendar-days" wx:if="{{!isCalendarCollapsed}}">
             <view
               wx:for="{{calendarDays}}"
               wx:key="date"
@@ -336,6 +356,10 @@ mode="aspectFill"
               <text class="calendar-day-num">{{item.day}}</text>
               <view wx:if="{{item.hasEntry}}" class="calendar-day-dot"></view>
             </view>
+          </view>
+          <!-- 折叠/展开按钮 -->
+          <view class="calendar-toggle-btn" bindtap="toggleCalendarCollapse">
+            <view class="calendar-toggle-icon {{isCalendarCollapsed ? 'collapsed' : ''}}"></view>
           </view>
         </view>
         <view class="diary-date-title">

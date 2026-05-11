@@ -377,11 +377,22 @@
 /* 心宠精灵 */
 .pet-sprite {
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: 100px;
+  height: 100px;
   transform: translate(-50%, -50%);
   animation: sprite-bounce 0.5s ease-in-out infinite;
   z-index: 10;
+}
+
+/* 主心宠头像 */
+.pet-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid #FF6B6B;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  background: #fff;
+  object-fit: cover;
 }
 
 @keyframes sprite-bounce {
@@ -493,6 +504,17 @@
   transition: all 2s ease-in-out;
 }
 
+/* 其他心宠头像 */
+.other-pet-avatar {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  border: 2rpx solid #FF6B6B;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  background: #fff;
+  object-fit: cover;
+}
+
 .other-pet-body {
   width: 36rpx;
   height: 36rpx;
@@ -514,7 +536,7 @@
 /* 对话气泡 */
 .dialog-bubble {
   position: absolute;
-  bottom: 60rpx;
+  bottom: 110rpx;
   background: #fff;
   padding: 16rpx 20rpx;
   border-radius: 20rpx;
@@ -574,7 +596,7 @@
 /* ========== 主心宠特殊对话气泡 ========== */
 .main-pet-dialog-bubble {
   position: absolute;
-  bottom: 70rpx;
+  bottom: 200rpx;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -1271,6 +1293,20 @@
   z-index: 30;
 }
 
+/* 地图标记头像 */
+.pet-marker-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid #FF6B6B;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 107, 0.5);
+  object-fit: cover;
+  background: #fff;
+  animation: pet-marker-bounce 2s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
 .pet-marker-map .pet-marker-body {
   width: 48rpx;
   height: 48rpx;
@@ -1466,6 +1502,11 @@
    padding: 20rpx;
    box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.1);
    border: 2rpx solid rgba(210, 180, 140, 0.25);
+   transition: all 0.3s ease;
+
+   &.collapsed {
+     padding-bottom: 12rpx;
+   }
  }
 
 .calendar-header {
@@ -1473,6 +1514,52 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20rpx;
+}
+
+/* 折叠/展开按钮 */
+.calendar-toggle-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 12rpx;
+  margin-top: 8rpx;
+  border-top: 2rpx solid rgba(210, 180, 140, 0.15);
+}
+
+.calendar-toggle-icon {
+  width: 40rpx;
+  height: 6rpx;
+  background: rgba(139, 115, 85, 0.25);
+  border-radius: 3rpx;
+  position: relative;
+  transition: all 0.3s ease;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+
+  /* 折叠状态：显示向下箭头 */
+  &.collapsed::before {
+    top: 8rpx;
+    border-left: 10rpx solid transparent;
+    border-right: 10rpx solid transparent;
+    border-top: 10rpx solid rgba(139, 115, 85, 0.4);
+  }
+
+  /* 展开状态：显示向上箭头 */
+  &:not(.collapsed)::before {
+    bottom: 8rpx;
+    border-left: 10rpx solid transparent;
+    border-right: 10rpx solid transparent;
+    border-bottom: 10rpx solid rgba(139, 115, 85, 0.4);
+  }
 }
 
 .calendar-nav-btn {

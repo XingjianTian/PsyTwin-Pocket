@@ -14,6 +14,15 @@ const PET_NAMES = [
   '悠悠', '静静', '安安', '心心', '甜甜',
 ];
 
+// 心宠头像列表（5张，来自static/头像目录）
+const PET_AVATARS = [
+  '/static/头像/dreamina_7637785329587539238_1778311461229.png',
+  '/static/头像/dreamina_7637787073256213810_1778311491743.png',
+  '/static/头像/dreamina_7637788148356910346_1778311521664.png',
+  '/static/头像/dreamina_7637788612049898779_1778311592934.png',
+  '/static/头像/dreamina_7637793672758709530_1778312525134.png',
+];
+
 // 每个场景最多容纳的心宠数量
 const MAX_PETS_PER_SCENE = 8;
 
@@ -906,6 +915,8 @@ Page({
     petSceneId: 'bedroom',
     petSceneName: '卧室',
     petActivity: '在温暖的床上休息',
+    // 主心宠头像
+    mainPetAvatar: '',
     // 行为计时器
     activityStartTime: Date.now(),      // 当前行为开始时间
     currentActivityDuration: 10,        // 当前行为持续时间（分钟），默认10分钟
@@ -943,8 +954,10 @@ Page({
     currentYear: new Date().getFullYear(),
     currentMonth: new Date().getMonth() + 1,
     calendarDays: [],
+    calendarWeekDays: [],
     selectedDateText: '',
     selectedDateWeekday: '',
+    isCalendarCollapsed: true,
 
     // ========== 帮助事件 ==========
     helpEvents: [],
@@ -971,8 +984,8 @@ Page({
         deco: '✨',
         unlocked: true,
         current: true,
-        x: '11.7%',
-        y: '17.1%',
+        x: '14.2%',
+        y: '15.4%',
         tags: ['探索', '魔法', '森林'],
         hasSecondary: true,
       },
@@ -986,8 +999,8 @@ Page({
         deco: '🎡',
         unlocked: true,
         current: false,
-        x: '52.8%',
-        y: '27.6%',
+        x: '57.5%',
+        y: '18.7%',
         tags: ['休闲', '娱乐', '生活'],
         hasSecondary: true,
       },
@@ -1001,8 +1014,8 @@ Page({
         deco: '🔥',
         unlocked: true,
         current: false,
-        x: '16.0%',
-        y: '55.5%',
+        x: '13.1%',
+        y: '56.4%',
         tags: ['野餐', '社交', '开阔'],
         hasSecondary: true,
       },
@@ -1016,8 +1029,8 @@ Page({
         deco: '🎓',
         unlocked: true,
         current: false,
-        x: '62.0%',
-        y: '64.0%',
+        x: '67.3%',
+        y: '61.0%',
         tags: ['学习', '校园', '知识'],
         hasSecondary: true,
       },
@@ -1031,8 +1044,8 @@ Page({
         deco: '⭐',
         unlocked: true,
         current: false,
-        x: '43.2%',
-        y: '90.8%',
+        x: '40.8%',
+        y: '95.9%',
         tags: ['梦境', '休息', '星空'],
         hasSecondary: true,
       },
@@ -1048,8 +1061,8 @@ Page({
           icon: '🌳',
           gradient: 'linear-gradient(135deg, #2E8B57, #3CB371)',
           color: '#2E8B57',
-          x: '20.3%',
-          y: '21.9%',
+          x: '16.2%',
+          y: '20.4%',
           tags: ['魔法', '探索', '自然'],
         },
         {
@@ -1081,8 +1094,8 @@ Page({
           icon: '🧚',
           gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
           color: '#87CEEB',
-          x: '18.9%',
-          y: '61.4%',
+          x: '17.0%',
+          y: '68.4%',
           tags: ['湖泊', '精灵', '宁静'],
         },
         {
@@ -1092,8 +1105,8 @@ Page({
           icon: '⭐',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: '62.4%',
-          y: '60.3%',
+          x: '64.0%',
+          y: '67.7%',
           tags: ['星空', '草地', '浪漫'],
         },
       ],
@@ -1105,8 +1118,8 @@ Page({
           icon: '🛒',
           gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
           color: '#4A90E2',
-          x: '41.4%',
-          y: '39.6%',
+          x: '39.5%',
+          y: '44.7%',
           tags: ['购物', '日常', '零食'],
         },
         {
@@ -1127,8 +1140,8 @@ Page({
           icon: '🎡',
           gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
           color: '#FF6B6B',
-          x: '69.9%',
-          y: '24.9%',
+          x: '65.6%',
+          y: '25.1%',
           tags: ['游乐', '刺激', '欢乐'],
         },
         {
@@ -1138,8 +1151,8 @@ Page({
           icon: '☕',
           gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
           color: '#8B4513',
-          x: '13.7%',
-          y: '59.0%',
+          x: '10.9%',
+          y: '68.2%',
           tags: ['咖啡', '甜点', '约会'],
         },
         {
@@ -1149,8 +1162,8 @@ Page({
           icon: '🎮',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: '68.8%',
-          y: '59.5%',
+          x: '67.3%',
+          y: '70.2%',
           tags: ['游戏', '竞技', '娱乐'],
         },
       ],
@@ -1162,8 +1175,8 @@ Page({
           icon: '🔥',
           gradient: 'linear-gradient(135deg, #FF8C42, #FF6B6B)',
           color: '#FF8C42',
-          x: '62.5%',
-          y: '37.8%',
+          x: '60.6%',
+          y: '44.1%',
           tags: ['篝火', '温暖', '社交'],
         },
         {
@@ -1173,8 +1186,8 @@ Page({
           icon: '🧺',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: '36.9%',
-          y: '50.4%',
+          x: '35.2%',
+          y: '57.1%',
           tags: ['野餐', '草坪', '阳光'],
         },
         {
@@ -1184,8 +1197,8 @@ Page({
           icon: '🛏️',
           gradient: 'linear-gradient(135deg, #A8E6CF, #88C6AF)',
           color: '#A8E6CF',
-          x: '20.3%',
-          y: '31.5%',
+          x: '14.3%',
+          y: '33.1%',
           tags: ['吊床', '休息', '慵懒'],
         },
         {
@@ -1195,8 +1208,8 @@ Page({
           icon: '💧',
           gradient: 'linear-gradient(135deg, #87CEEB, #67AECB)',
           color: '#87CEEB',
-          x: '49.8%',
-          y: '73.9%',
+          x: '57.8%',
+          y: '77.9%',
           tags: ['溪流', '自然', '宁静'],
         },
         {
@@ -1206,8 +1219,8 @@ Page({
           icon: '🔭',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: '59.0%',
-          y: '10.0%',
+          x: '60.4%',
+          y: '11.5%',
           tags: ['观景', '高地', '美景'],
         },
       ],
@@ -1219,8 +1232,8 @@ Page({
           icon: '📚',
           gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
           color: '#8B4513',
-          x: '19.8%',
-          y: '14.4%',
+          x: '17.0%',
+          y: '8.4%',
           tags: ['阅读', '学习', '安静'],
         },
         {
@@ -1230,8 +1243,8 @@ Page({
           icon: '🏫',
           gradient: 'linear-gradient(135deg, #4A90E2, #5BA3F5)',
           color: '#4A90E2',
-          x: '37.7%',
-          y: '34.8%',
+          x: '40.4%',
+          y: '32.5%',
           tags: ['上课', '学习', '知识'],
         },
         {
@@ -1241,8 +1254,8 @@ Page({
           icon: '🏠',
           gradient: 'linear-gradient(135deg, #9B89B3, #7B6993)',
           color: '#9B89B3',
-          x: '69.7%',
-          y: '19.3%',
+          x: '61.9%',
+          y: '7.1%',
           tags: ['休息', '游戏', '温馨'],
         },
         {
@@ -1252,8 +1265,8 @@ Page({
           icon: '⚽',
           gradient: 'linear-gradient(135deg, #7BC8A4, #5BA88A)',
           color: '#7BC8A4',
-          x: '7.8%',
-          y: '52.7%',
+          x: '5.0%',
+          y: '45.2%',
           tags: ['运动', '放松', '活力'],
         },
         {
@@ -1263,8 +1276,8 @@ Page({
           icon: '🍜',
           gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
           color: '#FF6B6B',
-          x: '70.4%',
-          y: '53.1%',
+          x: '75.0%',
+          y: '43.0%',
           tags: ['美食', '社交', '休息'],
         },
         {
@@ -1274,8 +1287,8 @@ Page({
           icon: '💬',
           gradient: 'linear-gradient(135deg, #E6A8D7, #D490C5)',
           color: '#E6A8D7',
-          x: '37.4%',
-          y: '68.2%',
+          x: '41.4%',
+          y: '67.3%',
           tags: ['咨询', '私密', '关怀'],
         },
       ],
@@ -1287,8 +1300,8 @@ Page({
           icon: '🛏️',
           gradient: 'linear-gradient(135deg, #FF8E8E, #FFB6C1)',
           color: '#FF8E8E',
-          x: '9.9%',
-          y: '33.6%',
+          x: '10.0%',
+          y: '36.7%',
           tags: ['睡眠', '温馨', '舒适'],
         },
         {
@@ -1298,8 +1311,8 @@ Page({
           icon: '📖',
           gradient: 'linear-gradient(135deg, #8B4513, #A0522D)',
           color: '#8B4513',
-          x: '66.6%',
-          y: '31.5%',
+          x: '68.8%',
+          y: '37.4%',
           tags: ['阅读', '思考', '安静'],
         },
         {
@@ -1309,8 +1322,8 @@ Page({
           icon: '🍳',
           gradient: 'linear-gradient(135deg, #FFD93D, #F6AD55)',
           color: '#FFD93D',
-          x: '16.3%',
-          y: '59.8%',
+          x: '12.7%',
+          y: '63.5%',
           tags: ['烹饪', '美食', '温馨'],
         },
         {
@@ -1320,8 +1333,8 @@ Page({
           icon: '🌸',
           gradient: 'linear-gradient(135deg, #FF69B4, #FFB6C1)',
           color: '#FF69B4',
-          x: '63.3%',
-          y: '60.6%',
+          x: '65.1%',
+          y: '63.9%',
           tags: ['花园', '鲜花', '自然'],
         },
       ],
@@ -1461,10 +1474,14 @@ Page({
       timingFunction: 'ease-in-out',
     });
 
+    // 为主心宠随机分配头像
+    const mainAvatar = PET_AVATARS[Math.floor(Math.random() * PET_AVATARS.length)];
+
     this.setData({
       petSpriteX: startX,
       petSpriteY: startY,
       petAnimation: this.petAnim.export(),
+      mainPetAvatar: mainAvatar,
     });
 
     // 心宠随机移动定时器：每3秒有40%概率移动
@@ -1492,6 +1509,19 @@ Page({
     const otherPets = [];
     let petIndex = 0;
 
+    // 创建头像分配数组，确保5张图片平均使用（每张使用4次，共20只）
+    const avatarPool = [];
+    PET_AVATARS.forEach((avatar) => {
+      for (let i = 0; i < 4; i++) {
+        avatarPool.push(avatar);
+      }
+    });
+    // 打乱头像分配顺序
+    for (let i = avatarPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [avatarPool[i], avatarPool[j]] = [avatarPool[j], avatarPool[i]];
+    }
+
     // 第一步：为每个场景分配至少2个心宠（保证每个场景都有心宠）
     availableScenes.forEach((scene) => {
       for (let j = 0; j < 2; j++) {
@@ -1501,6 +1531,7 @@ Page({
         otherPets.push({
           id: `other-pet-${petIndex}`,
           name: PET_NAMES[petIndex % PET_NAMES.length],
+          avatar: avatarPool[petIndex % avatarPool.length],
           sceneId: scene.id,
           sceneName: scene.name,
           x: x,
@@ -1545,6 +1576,7 @@ Page({
       otherPets.push({
         id: `other-pet-${petIndex}`,
         name: PET_NAMES[petIndex % PET_NAMES.length],
+        avatar: avatarPool[petIndex % avatarPool.length],
         sceneId: randomScene.id,
         sceneName: randomScene.name,
         x: x,
@@ -2986,6 +3018,38 @@ Page({
     this.setData({
       calendarDays: days,
     });
+    // 更新当前周显示
+    this.updateCalendarWeekDays(days);
+  },
+
+  // 更新当前周显示（用于折叠状态）
+  updateCalendarWeekDays(days) {
+    const { diarySelectedDate } = this.data;
+    let selectedIndex;
+
+    if (diarySelectedDate) {
+      selectedIndex = days.findIndex((d) => d.date === diarySelectedDate);
+    } else {
+      // 默认显示今天所在周
+      const today = this.formatDateToStr(new Date());
+      selectedIndex = days.findIndex((d) => d.date === today);
+    }
+
+    if (selectedIndex === -1) selectedIndex = 0;
+
+    const weekStart = Math.floor(selectedIndex / 7) * 7;
+    const weekDays = days.slice(weekStart, weekStart + 7);
+
+    this.setData({
+      calendarWeekDays: weekDays,
+    });
+  },
+
+  // 切换日历折叠状态
+  toggleCalendarCollapse() {
+    this.setData({
+      isCalendarCollapsed: !this.data.isCalendarCollapsed,
+    });
   },
 
   // 上一个月
@@ -3027,7 +3091,7 @@ Page({
   // 选择日记日期
   onDiaryDateSelect(e) {
     const { date } = e.currentTarget.dataset;
-    const { diaryDataMap } = this.data;
+    const { diaryDataMap, calendarDays } = this.data;
     const entries = diaryDataMap[date] || [];
     this.setData({
       diarySelectedDate: date,
@@ -3035,6 +3099,8 @@ Page({
       selectedDateText: this.formatDateText(date),
       selectedDateWeekday: this.getWeekdayText(date),
     });
+    // 更新当前周显示
+    this.updateCalendarWeekDays(calendarDays);
   },
 
   // 格式化日期显示
