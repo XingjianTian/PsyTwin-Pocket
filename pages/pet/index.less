@@ -382,6 +382,8 @@
   transform: translate(-50%, -50%);
   animation: sprite-bounce 0.5s ease-in-out infinite;
   z-index: 10;
+  /* 确保容器透明，无背景 */
+  background: transparent !important;
 }
 
 /* 主心宠头像 */
@@ -393,6 +395,18 @@
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
   background: #fff;
   object-fit: cover;
+}
+
+/* 主心宠动画帧 - 无边框、无阴影、透明背景 */
+.pet-animation-frame {
+  width: 120rpx;
+  height: 120rpx;
+  object-fit: contain;
+  /* 禁止任何边框、圆角、阴影、背景色 */
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
 @keyframes sprite-bounce {

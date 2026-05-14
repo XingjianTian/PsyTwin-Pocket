@@ -1,3 +1,56 @@
+// 主心宠动画帧（从315帧中均匀采样45帧，15fps，3秒循环）
+const PET_ANIMATION_FRAMES = [
+  '/static/pet/ExportedSprites/000_eef1e56dfae4dd8b436c47ebea8d33bc_0.png',
+  '/static/pet/ExportedSprites/282_eef1e56dfae4dd8b436c47ebea8d33bc_7.png',
+  '/static/pet/ExportedSprites/046_eef1e56dfae4dd8b436c47ebea8d33bc_14.png',
+  '/static/pet/ExportedSprites/124_eef1e56dfae4dd8b436c47ebea8d33bc_21.png',
+  '/static/pet/ExportedSprites/201_eef1e56dfae4dd8b436c47ebea8d33bc_28.png',
+  '/static/pet/ExportedSprites/244_eef1e56dfae4dd8b436c47ebea8d33bc_35.png',
+  '/static/pet/ExportedSprites/252_eef1e56dfae4dd8b436c47ebea8d33bc_42.png',
+  '/static/pet/ExportedSprites/259_eef1e56dfae4dd8b436c47ebea8d33bc_49.png',
+  '/static/pet/ExportedSprites/267_eef1e56dfae4dd8b436c47ebea8d33bc_56.png',
+  '/static/pet/ExportedSprites/275_eef1e56dfae4dd8b436c47ebea8d33bc_63.png',
+  '/static/pet/ExportedSprites/283_eef1e56dfae4dd8b436c47ebea8d33bc_70.png',
+  '/static/pet/ExportedSprites/290_eef1e56dfae4dd8b436c47ebea8d33bc_77.png',
+  '/static/pet/ExportedSprites/298_eef1e56dfae4dd8b436c47ebea8d33bc_84.png',
+  '/static/pet/ExportedSprites/306_eef1e56dfae4dd8b436c47ebea8d33bc_91.png',
+  '/static/pet/ExportedSprites/313_eef1e56dfae4dd8b436c47ebea8d33bc_98.png',
+  '/static/pet/ExportedSprites/008_eef1e56dfae4dd8b436c47ebea8d33bc_105.png',
+  '/static/pet/ExportedSprites/016_eef1e56dfae4dd8b436c47ebea8d33bc_112.png',
+  '/static/pet/ExportedSprites/023_eef1e56dfae4dd8b436c47ebea8d33bc_119.png',
+  '/static/pet/ExportedSprites/031_eef1e56dfae4dd8b436c47ebea8d33bc_126.png',
+  '/static/pet/ExportedSprites/039_eef1e56dfae4dd8b436c47ebea8d33bc_133.png',
+  '/static/pet/ExportedSprites/047_eef1e56dfae4dd8b436c47ebea8d33bc_140.png',
+  '/static/pet/ExportedSprites/054_eef1e56dfae4dd8b436c47ebea8d33bc_147.png',
+  '/static/pet/ExportedSprites/062_eef1e56dfae4dd8b436c47ebea8d33bc_154.png',
+  '/static/pet/ExportedSprites/070_eef1e56dfae4dd8b436c47ebea8d33bc_161.png',
+  '/static/pet/ExportedSprites/077_eef1e56dfae4dd8b436c47ebea8d33bc_168.png',
+  '/static/pet/ExportedSprites/085_eef1e56dfae4dd8b436c47ebea8d33bc_175.png',
+  '/static/pet/ExportedSprites/093_eef1e56dfae4dd8b436c47ebea8d33bc_182.png',
+  '/static/pet/ExportedSprites/100_eef1e56dfae4dd8b436c47ebea8d33bc_189.png',
+  '/static/pet/ExportedSprites/108_eef1e56dfae4dd8b436c47ebea8d33bc_196.png',
+  '/static/pet/ExportedSprites/117_eef1e56dfae4dd8b436c47ebea8d33bc_203.png',
+  '/static/pet/ExportedSprites/125_eef1e56dfae4dd8b436c47ebea8d33bc_210.png',
+  '/static/pet/ExportedSprites/132_eef1e56dfae4dd8b436c47ebea8d33bc_217.png',
+  '/static/pet/ExportedSprites/140_eef1e56dfae4dd8b436c47ebea8d33bc_224.png',
+  '/static/pet/ExportedSprites/148_eef1e56dfae4dd8b436c47ebea8d33bc_231.png',
+  '/static/pet/ExportedSprites/155_eef1e56dfae4dd8b436c47ebea8d33bc_238.png',
+  '/static/pet/ExportedSprites/163_eef1e56dfae4dd8b436c47ebea8d33bc_245.png',
+  '/static/pet/ExportedSprites/171_eef1e56dfae4dd8b436c47ebea8d33bc_252.png',
+  '/static/pet/ExportedSprites/178_eef1e56dfae4dd8b436c47ebea8d33bc_259.png',
+  '/static/pet/ExportedSprites/186_eef1e56dfae4dd8b436c47ebea8d33bc_266.png',
+  '/static/pet/ExportedSprites/194_eef1e56dfae4dd8b436c47ebea8d33bc_273.png',
+  '/static/pet/ExportedSprites/202_eef1e56dfae4dd8b436c47ebea8d33bc_280.png',
+  '/static/pet/ExportedSprites/209_eef1e56dfae4dd8b436c47ebea8d33bc_287.png',
+  '/static/pet/ExportedSprites/217_eef1e56dfae4dd8b436c47ebea8d33bc_294.png',
+  '/static/pet/ExportedSprites/226_eef1e56dfae4dd8b436c47ebea8d33bc_301.png',
+  '/static/pet/ExportedSprites/233_eef1e56dfae4dd8b436c47ebea8d33bc_308.png',
+];
+
+// 动画帧率：10fps（每100ms一帧），4.5秒循环
+const ANIMATION_FRAME_INTERVAL = 100; // ms
+const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
+
 // 其他心宠名字列表（60个）
 const PET_NAMES = [
   '小白', '小黄', '小黑', '小红', '小蓝',
@@ -917,6 +970,9 @@ Page({
     petActivity: '在温暖的床上休息',
     // 主心宠头像
     mainPetAvatar: '',
+    // 主心宠动画帧
+    petAnimationFrame: '',              // 当前动画帧图片路径
+    petAnimationIndex: 0,               // 当前动画帧索引
     // 行为计时器
     activityStartTime: Date.now(),      // 当前行为开始时间
     currentActivityDuration: 10,        // 当前行为持续时间（分钟），默认10分钟
@@ -1429,6 +1485,8 @@ Page({
     this.initDiaryData();
     this.initHelpData();
     this.updatePetMarker();
+    // 启动主心宠动画
+    this.startPetAnimation();
   },
 
   onHide() {
@@ -1446,6 +1504,8 @@ Page({
     if (this.otherPetTimer) {
       clearInterval(this.otherPetTimer);
     }
+    // 停止主心宠动画
+    this.stopPetAnimation();
     this._destroyWebSocket();
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
@@ -1493,6 +1553,48 @@ Page({
 
     // 初始化其他心宠
     this.initOtherPets();
+  },
+
+  // 启动主心宠帧动画（带预加载）
+  startPetAnimation() {
+    // 先停止之前的动画
+    this.stopPetAnimation();
+
+    // 预加载所有帧图片到缓存，避免切换时闪烁
+    const preloadPromises = PET_ANIMATION_FRAMES.map((src) =>
+      new Promise((resolve) => {
+        wx.getImageInfo({
+          src,
+          success: resolve,
+          fail: resolve, // 即使失败也不阻塞，避免动画无法启动
+        });
+      }),
+    );
+
+    Promise.all(preloadPromises).then(() => {
+      // 所有图片预加载完成，初始化并启动动画
+      this.setData({
+        petAnimationFrame: PET_ANIMATION_FRAMES[0],
+        petAnimationIndex: 0,
+      });
+
+      // 启动定时器：15fps（每67ms切换一帧）
+      this.animationTimer = setInterval(() => {
+        const nextIndex = (this.data.petAnimationIndex + 1) % ANIMATION_FRAME_COUNT;
+        this.setData({
+          petAnimationFrame: PET_ANIMATION_FRAMES[nextIndex],
+          petAnimationIndex: nextIndex,
+        });
+      }, ANIMATION_FRAME_INTERVAL);
+    });
+  },
+
+  // 停止主心宠帧动画
+  stopPetAnimation() {
+    if (this.animationTimer) {
+      clearInterval(this.animationTimer);
+      this.animationTimer = null;
+    }
   },
 
   // 获取其他心宠可用的场景（排除梦境小屋下的所有二级场景）
