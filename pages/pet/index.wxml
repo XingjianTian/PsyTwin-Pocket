@@ -83,7 +83,7 @@
       <!-- 心宠精灵层（仅当在当前场景时显示） -->
       <view wx:if="{{currentView === 'game' && petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
         <!-- 主心宠动画帧 -->
-        <image class="pet-animation-frame" src="{{petAnimationFrame}}" mode="widthFix" wx:if="{{petAnimationFrame}}" />
+        <image class="pet-animation-frame" src="{{petAnimationFrame}}" mode="aspectFit" wx:if="{{petAnimationFrame}}" />
         <!-- 备用：当动画帧未加载时使用CSS绘制 -->
         <view class="pet-body" wx:else>
           <view class="pet-face">

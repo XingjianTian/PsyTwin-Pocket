@@ -47,8 +47,8 @@ const PET_ANIMATION_FRAMES = [
   '/static/pet/ExportedSprites/233_eef1e56dfae4dd8b436c47ebea8d33bc_308.png',
 ];
 
-// 动画帧率：10fps（每100ms一帧），4.5秒循环
-const ANIMATION_FRAME_INTERVAL = 100; // ms
+// 动画帧率：1fps（每1000ms一帧），45秒循环
+const ANIMATION_FRAME_INTERVAL = 1000; // ms
 const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 
 // 其他心宠名字列表（60个）
