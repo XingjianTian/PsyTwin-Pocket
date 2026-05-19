@@ -51,6 +51,13 @@ const PET_ANIMATION_FRAMES = [
 const ANIMATION_FRAME_INTERVAL = 1000; // ms
 const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 
+// AI 模块（用于日记生成）
+const AI_MODULE = require('../../api/ai');
+
+// 物品数据库
+const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
+
+
 // 其他心宠名字列表（60个）
 const PET_NAMES = [
   '小白', '小黄', '小黑', '小红', '小蓝',
@@ -1000,6 +1007,39 @@ Page({
     bagItems: [],
     bagCapacity: { used: 0, total: 50 },
     bagLoading: true,
+    bagFilter: 'ALL',            // 当前筛选类型
+    bagCategories: [
+      { key: 'ALL', label: '全部' },
+      { key: 'STATIONERY', label: '文具' },
+      { key: 'TEXTBOOK', label: '教材' },
+      { key: 'ELECTRONIC', label: '电子' },
+      { key: 'FOOD', label: '食物' },
+      { key: 'DAILY', label: '日用' },
+      { key: 'DORM', label: '宿舍' },
+      { key: 'SOCIAL', label: '社交' },
+      { key: 'SPORTS', label: '运动' },
+      { key: 'SPECIAL', label: '特殊' },
+    ],
+
+    // ========== 金币系统 ==========
+    coins: 0,
+    coinHistory: [],
+
+    // ========== 物品详情弹窗 ==========
+    showItemDetail: false,
+    selectedItem: null,
+
+    // ========== 超市弹窗 ==========
+    showShop: false,
+    shopItems: [],
+    shopRefreshCost: 5,
+
+    // 过滤后的背包物品（供 WXML 渲染）
+    filteredBagItems: [],
+
+    // 供 WXML 使用的常量
+    RARITY,
+    ITEM_TYPE,
 
     // ========== 心情日记模态 ==========
     showDiary: false,
@@ -1014,6 +1054,9 @@ Page({
     selectedDateText: '',
     selectedDateWeekday: '',
     isCalendarCollapsed: true,
+
+    // ========== 活动日志（用于AI日记生成） ==========
+    activityLog: {}, // { '2026-05-19': [{time, type, ...}] }
 
     // ========== 帮助事件 ==========
     helpEvents: [],
@@ -1481,12 +1524,15 @@ Page({
     this.forceUpdateSceneByTime();
     this.startStatusAnimation();
     this._initWebSocket();
+    this.initCoins();
     this.initBagData();
     this.initDiaryData();
     this.initHelpData();
     this.updatePetMarker();
     // 启动主心宠动画
     this.startPetAnimation();
+    // 初始化活动日志
+    this.initActivityLog();
   },
 
   onHide() {
@@ -2179,11 +2225,28 @@ Page({
       }
 
       // 每5秒波动一次状态值
+      const oldMood = this.data.mood;
+      const oldEnergy = this.data.energy;
+      const oldSocial = this.data.social;
+      const newMood = this.fluctuateValue(oldMood, 15, 90);
+      const newEnergy = this.fluctuateValue(oldEnergy, 20, 95);
+      const newSocial = this.fluctuateValue(oldSocial, 10, 85);
       this.setData({
-        mood: this.fluctuateValue(this.data.mood, 15, 90),
-        energy: this.fluctuateValue(this.data.energy, 20, 95),
-        social: this.fluctuateValue(this.data.social, 10, 85),
+        mood: newMood,
+        energy: newEnergy,
+        social: newSocial,
       });
+      // 只有显著变化才记录日志（避免日志过于频繁）
+      if (Math.abs(newMood - oldMood) >= 3 || Math.abs(newEnergy - oldEnergy) >= 3 || Math.abs(newSocial - oldSocial) >= 3) {
+        this.logActivity('status_change', {
+          moodDelta: newMood - oldMood,
+          energyDelta: newEnergy - oldEnergy,
+          socialDelta: newSocial - oldSocial,
+          mood: newMood,
+          energy: newEnergy,
+          social: newSocial,
+        });
+      }
 
       // 每小时检查一次时间调度（整点切换场景）
       if (hour !== lastCheckedHour) {
@@ -2202,6 +2265,13 @@ Page({
         this.setData({
           hasEvent: true,
           eventCount: Math.floor(Math.random() * 3) + 1,
+        });
+        // 记录事件日志
+        const eventTypes = ['遇到了小惊喜', '碰到了一点小麻烦', '发现了一些有趣的东西', '感到有点孤单', '突然想吃东西'];
+        const eventDesc = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        this.logActivity('event', {
+          desc: eventDesc,
+          moodDelta: Math.floor((Math.random() - 0.5) * 10),
         });
       }
     }, 5000);
@@ -2414,6 +2484,23 @@ Page({
         icon: 'none',
       });
     }
+
+    // 9. 记录活动日志
+    this.logActivity('scene_change', {
+      from: petSceneId,
+      to: newScene.id,
+      sceneName: newScene.name,
+      reason: randomEvent.triggered ? 'random_event' : 'time_schedule',
+    });
+
+    // 10. 场景探索发现物品
+    this.exploreFindItem(newScene.id);
+
+    // 11. 老师发放物品（在教室场景）
+    this.teacherGiveItem(newScene.id);
+
+    // 12. 检查是否触发写日记
+    this.checkAndTriggerDiaryWriting();
   },
 
   // 更新时间显示
@@ -2447,6 +2534,13 @@ Page({
         currentActivityDuration: newDuration,
       });
       this.updatePetMarker();
+      // 记录活动日志
+      this.logActivity('scene_change', {
+        from: 'unknown',
+        to: newScene.id,
+        sceneName: newScene.name,
+        reason: 'time_schedule_init',
+      });
     }
   },
 
@@ -2547,6 +2641,7 @@ Page({
 
   // 进入二级场景详情（真正进入该场景）
   enterSecondarySceneDetail(scene) {
+    const prevSceneId = this.data.currentSceneId;
     // 清空所有一级场景的 current 标记
     const scenes = this.data.scenes.map((s) => ({
       ...s,
@@ -2565,6 +2660,17 @@ Page({
       title: `已进入${scene.name}`,
       icon: 'success',
     });
+
+    // 记录用户主动切换场景
+    this.logActivity('scene_change', {
+      from: prevSceneId,
+      to: scene.id,
+      sceneName: scene.name,
+      reason: 'user_manual',
+    });
+
+    // 检查是否触发写日记（用户主动进入写作场景）
+    this.checkAndTriggerDiaryWriting();
 
     // 返回游戏视图
     this.backToGame();
@@ -2606,6 +2712,7 @@ Page({
       confirmColor: '#6B5B95',
       success: (res) => {
         if (res.confirm) {
+          const prevSceneId = this.data.currentSceneId;
           // 更新当前场景
           const scenes = this.data.scenes.map((scene) => ({
             ...scene,
@@ -2623,6 +2730,17 @@ Page({
             title: `已进入${selectedScene.name}`,
             icon: 'success',
           });
+
+          // 记录用户主动切换场景
+          this.logActivity('scene_change', {
+            from: prevSceneId,
+            to: selectedScene.id,
+            sceneName: selectedScene.name,
+            reason: 'user_manual_modal',
+          });
+
+          // 检查是否触发写日记
+          this.checkAndTriggerDiaryWriting();
 
           this.closeSceneModal();
           this.backToGame();
@@ -2655,6 +2773,9 @@ Page({
       this.setData({ currentView: 'game' });
     } else {
       this.setData({ currentView: view });
+      if (view === 'bag') {
+        this.updateFilteredBagItems();
+      }
     }
   },
 
@@ -2808,68 +2929,113 @@ Page({
     });
   },
 
+  // ========== 金币系统 ==========
+
+  // 初始化金币
+  initCoins() {
+    const saved = wx.getStorageSync('petCoins') || { amount: 0, history: [] };
+    this.setData({
+      coins: saved.amount || 0,
+      coinHistory: saved.history || [],
+    });
+  },
+
+  // 赚取金币
+  earnCoins(amount, reason) {
+    const coins = this.data.coins + amount;
+    const history = this.data.coinHistory.slice(-49);
+    history.push({
+      id: `coin_${Date.now()}`,
+      time: new Date().toISOString(),
+      type: 'EARN',
+      amount,
+      reason,
+      balance: coins,
+    });
+    this.setData({ coins, coinHistory: history });
+    wx.setStorageSync('petCoins', { amount: coins, history });
+    return coins;
+  },
+
+  // 花费金币
+  spendCoins(amount, reason) {
+    if (this.data.coins < amount) {
+      wx.showToast({ title: '金币不足', icon: 'none' });
+      return false;
+    }
+    const coins = this.data.coins - amount;
+    const history = this.data.coinHistory.slice(-49);
+    history.push({
+      id: `coin_${Date.now()}`,
+      time: new Date().toISOString(),
+      type: 'SPEND',
+      amount: -amount,
+      reason,
+      balance: coins,
+    });
+    this.setData({ coins, coinHistory: history });
+    wx.setStorageSync('petCoins', { amount: coins, history });
+    return true;
+  },
+
   // ========== 心宠背包 ==========
 
   // 初始化背包数据
   initBagData() {
-    const mockItems = [
-      {
-        itemId: 'item_001',
-        name: '幸运饼干',
-        type: 'FOOD',
-        description: '吃下去会带来好运',
-        quantity: 3,
-        effect: { mood: 10, energy: 5 },
-        icon: '🥠',
-        source: '在奇幻森林探索时发现',
-      },
-      {
-        itemId: 'item_002',
-        name: '快乐玩具',
-        type: 'TOY',
-        description: '让心宠开心的玩具',
-        quantity: 2,
-        effect: { mood: 15 },
-        icon: '🧸',
-        source: '完成事件获得',
-      },
-      {
-        itemId: 'item_003',
-        name: '幸运四叶草',
-        type: 'DECORATION',
-        description: '稀有的幸运象征',
-        quantity: 1,
-        effect: { mood: 5 },
-        icon: '🍀',
-        source: '在森林深处发现',
-      },
-      {
-        itemId: 'item_004',
-        name: '能量饮料',
-        type: 'FOOD',
-        description: '快速恢复能量',
-        quantity: 5,
-        effect: { energy: 20 },
-        icon: '🥤',
-        source: '商店购买',
-      },
-      {
-        itemId: 'item_005',
-        name: '社交礼物',
-        type: 'GIFT',
-        description: '增进友谊的礼物',
-        quantity: 2,
-        effect: { sociability: 10 },
-        icon: '🎁',
-        source: '朋友赠送',
-      },
-    ];
-    const used = mockItems.reduce((sum, item) => sum + item.quantity, 0);
+    // 从本地存储加载背包
+    const savedBag = wx.getStorageSync('petBagItems') || [];
+    if (savedBag.length > 0) {
+      const used = savedBag.reduce((sum, item) => sum + item.quantity, 0);
+      this.setData({
+        bagItems: savedBag,
+        bagCapacity: { used, total: 50 },
+        bagLoading: false,
+      });
+      this.updateFilteredBagItems();
+      return;
+    }
+
+    // 首次初始化：赠送一些基础物品
+    const starterItems = [
+      this.createBagItem('pen_002', 2),
+      this.createBagItem('erase_001', 1),
+      this.createBagItem('note_002', 1),
+      this.createBagItem('drink_001', 3),
+      this.createBagItem('food_003', 2),
+      this.createBagItem('mask_001', 5),
+    ].filter(Boolean);
+
+    const used = starterItems.reduce((sum, item) => sum + item.quantity, 0);
     this.setData({
-      bagItems: mockItems,
+      bagItems: starterItems,
       bagCapacity: { used, total: 50 },
       bagLoading: false,
     });
+    wx.setStorageSync('petBagItems', starterItems);
+
+    // 首次登录赠送金币
+    this.earnCoins(50, '新用户入学礼包');
+
+    // 初始化过滤列表
+    this.updateFilteredBagItems();
+  },
+
+  // 根据 itemId 创建背包物品实例
+  createBagItem(itemId, quantity = 1) {
+    const template = ITEM_DATABASE.find((item) => item.itemId === itemId);
+    if (!template) return null;
+    return {
+      ...template,
+      quantity: Math.min(quantity, template.maxStack || 99),
+    };
+  },
+
+  // 保存背包到本地存储
+  saveBagToStorage() {
+    wx.setStorageSync('petBagItems', this.data.bagItems);
+    const used = this.data.bagItems.reduce((sum, item) => sum + item.quantity, 0);
+    this.setData({ bagCapacity: { used, total: 50 } });
+    this.updateFilteredBagItems();
   },
 
   // 点击背包
@@ -2877,21 +3043,533 @@ Page({
     this.switchView('bag');
   },
 
-  // 点击背包物品
+  // 筛选背包物品
+  onBagFilterTap(e) {
+    const { filter } = e.currentTarget.dataset;
+    this.setData({ bagFilter: filter });
+    this.updateFilteredBagItems();
+  },
+
+  // 更新筛选后的背包物品到 data
+  updateFilteredBagItems() {
+    const { bagItems, bagFilter } = this.data;
+    const filtered = bagFilter === 'ALL' ? bagItems : bagItems.filter((item) => item.type === bagFilter);
+    this.setData({ filteredBagItems: filtered });
+  },
+
+  // 点击背包物品 - 显示详情弹窗
   onBagItemTap(e) {
     const { item } = e.currentTarget.dataset;
-    const effectParts = [];
-    if (item.effect.mood) effectParts.push(`心情${item.effect.mood > 0 ? '+' : ''}${item.effect.mood}`);
-    if (item.effect.energy) effectParts.push(`能量${item.effect.energy > 0 ? '+' : ''}${item.effect.energy}`);
-    if (item.effect.sociability) effectParts.push(`社交${item.effect.sociability > 0 ? '+' : ''}${item.effect.sociability}`);
-    const effectStr = effectParts.join('，') || '无特殊效果';
+    this.setData({
+      showItemDetail: true,
+      selectedItem: item,
+    });
+  },
+
+  // 关闭物品详情弹窗
+  closeItemDetail() {
+    this.setData({ showItemDetail: false, selectedItem: null });
+  },
+
+  // 使用物品
+  useItem() {
+    const item = this.data.selectedItem;
+    if (!item || item.quantity <= 0) {
+      wx.showToast({ title: '物品数量不足', icon: 'none' });
+      return;
+    }
+
+    // 检查使用场景限制
+    if (item.useLimit && item.useLimit.scenes && item.useLimit.scenes.length > 0) {
+      const currentScene = this.data.currentSceneId;
+      if (!item.useLimit.scenes.includes(currentScene)) {
+        const sceneNames = item.useLimit.scenes.map((s) => this.getSceneNameById(s)).join('、');
+        wx.showToast({ title: `只能在${sceneNames}使用`, icon: 'none' });
+        return;
+      }
+    }
+
+    // 扣除数量
+    const bagItems = this.data.bagItems.map((i) => {
+      if (i.itemId === item.itemId) {
+        return { ...i, quantity: i.quantity - 1 };
+      }
+      return i;
+    }).filter((i) => i.quantity > 0);
+
+    // 应用效果
+    const { mood, energy, social } = this.data;
+    const effect = item.effect || {};
+    let newMood = mood + (effect.mood || 0);
+    let newEnergy = energy + (effect.energy || 0);
+    let newSocial = social + (effect.social || 0);
+    newMood = Math.max(10, Math.min(100, newMood));
+    newEnergy = Math.max(10, Math.min(100, newEnergy));
+    newSocial = Math.max(10, Math.min(100, newSocial));
+
+    this.setData({
+      mood: newMood,
+      energy: newEnergy,
+      social: newSocial,
+      bagItems,
+    }, () => {
+      this.saveBagToStorage();
+    });
+
+    // 使用提示
+    const effectTexts = [];
+    if (effect.mood) effectTexts.push(`心情${effect.mood > 0 ? '+' : ''}${effect.mood}`);
+    if (effect.energy) effectTexts.push(`能量${effect.energy > 0 ? '+' : ''}${effect.energy}`);
+    if (effect.social) effectTexts.push(`社交${effect.social > 0 ? '+' : ''}${effect.social}`);
+    const toastText = effectTexts.length > 0 ? `使用了${item.name}！${effectTexts.join('，')}` : `使用了${item.name}`;
+
+    wx.showToast({ title: toastText, icon: 'none', duration: 2000 });
+    this.closeItemDetail();
+  },
+
+  // 出售物品
+  sellItem() {
+    const item = this.data.selectedItem;
+    if (!item || item.quantity <= 0) return;
 
     wx.showModal({
-      title: item.name,
-      content: `${item.description}\n\n效果:\n${effectStr}\n\n来源: ${item.source}\n\n数量: ${item.quantity}`,
-      showCancel: false,
-      confirmText: '知道了',
+      title: '确认出售',
+      content: `确定要出售 ${item.name} x1 吗？\n可获得 ${item.sellPrice || 0} 金币`,
+      success: (res) => {
+        if (res.confirm) {
+          // 扣除数量
+          const bagItems = this.data.bagItems.map((i) => {
+            if (i.itemId === item.itemId) {
+              return { ...i, quantity: i.quantity - 1 };
+            }
+            return i;
+          }).filter((i) => i.quantity > 0);
+
+          // 获得金币
+          this.earnCoins(item.sellPrice || 0, `出售${item.name}`);
+
+          this.setData({ bagItems }, () => {
+            this.saveBagToStorage();
+          });
+
+          wx.showToast({ title: `出售成功！+${item.sellPrice || 0}金币`, icon: 'none' });
+          this.closeItemDetail();
+        }
+      },
     });
+  },
+
+  // 辅助：根据场景ID获取场景名称
+  getSceneNameById(sceneId) {
+    const sceneMap = {
+      bedroom: '寝室', dormitory: '宿舍', library: '图书馆',
+      classroom: '教室', cafeteria: '食堂', playground: '操场',
+      study_room: '书房', town: '小镇', laboratory: '实验室',
+    };
+    return sceneMap[sceneId] || sceneId;
+  },
+
+  // ========== 校园超市 ==========
+
+  // 打开超市
+  openShop() {
+    this.refreshShopItems();
+    this.setData({ showShop: true });
+  },
+
+  // 关闭超市
+  closeShop() {
+    this.setData({ showShop: false });
+  },
+
+  // 刷新超市商品
+  refreshShopItems() {
+    // 随机选择 8-12 个物品
+    const count = 8 + Math.floor(Math.random() * 5);
+    const shuffled = ITEM_DATABASE.sort(() => Math.random() - 0.5);
+    const shopItems = shuffled.slice(0, count).map((item) => ({
+      ...item,
+      shopQuantity: 1,
+    }));
+    this.setData({ shopItems });
+  },
+
+  // 手动刷新超市（消耗金币）
+  manualRefreshShop() {
+    const cost = this.data.shopRefreshCost;
+    if (!this.spendCoins(cost, '刷新超市商品')) return;
+    this.refreshShopItems();
+    wx.showToast({ title: '商品已刷新', icon: 'success' });
+  },
+
+  // 购买物品
+  purchaseItem(e) {
+    const { itemId } = e.currentTarget.dataset;
+    const shopItem = this.data.shopItems.find((item) => item.itemId === itemId);
+    if (!shopItem) return;
+
+    const price = shopItem.price || 0;
+    if (price > 0 && !this.spendCoins(price, `购买${shopItem.name}`)) {
+      return;
+    }
+
+    // 添加到背包
+    const bagItems = [...this.data.bagItems];
+    const existing = bagItems.find((i) => i.itemId === itemId);
+    if (existing) {
+      existing.quantity = Math.min(existing.quantity + 1, existing.maxStack || 99);
+    } else {
+      const newItem = this.createBagItem(itemId, 1);
+      if (newItem) bagItems.push(newItem);
+    }
+
+    this.setData({ bagItems }, () => {
+      this.saveBagToStorage();
+    });
+
+    wx.showToast({ title: `购买了${shopItem.name}`, icon: 'success' });
+  },
+
+  // ========== 物品获取途径 ==========
+
+  // 场景探索发现物品
+  exploreFindItem(sceneId) {
+    const hour = new Date().getHours();
+    // 5% 概率发现物品
+    if (Math.random() > 0.05) return;
+
+    // 根据场景筛选可发现的物品
+    const candidates = ITEM_DATABASE.filter((item) => item.sources && item.sources.some((s) => {
+      if (s.type === 'EXPLORE' && s.scene === sceneId) return true;
+      if (s.type === 'EXPLORE' && !s.scene) return true;
+      return false;
+    }));
+
+    if (candidates.length === 0) return;
+
+    const item = candidates[Math.floor(Math.random() * candidates.length)];
+    const source = item.sources.find((s) => s.type === 'EXPLORE');
+    const probability = source ? source.probability : 0.3;
+
+    if (Math.random() > probability) return;
+
+    // 添加到背包
+    this.addItemToBag(item.itemId, 1);
+
+    wx.showToast({
+      title: `在${this.getSceneNameById(sceneId)}发现了${item.name}！`,
+      icon: 'none',
+      duration: 2000,
+    });
+  },
+
+  // 老师发放物品
+  teacherGiveItem(sceneId) {
+    if (sceneId !== 'classroom') return;
+    // 15% 概率发放
+    if (Math.random() > 0.15) return;
+
+    const candidates = ITEM_DATABASE.filter((item) => item.sources
+      && item.sources.some((s) => s.type === 'TEACHER' && s.scene === 'classroom'));
+
+    if (candidates.length === 0) return;
+
+    const item = candidates[Math.floor(Math.random() * candidates.length)];
+    this.addItemToBag(item.itemId, 1);
+
+    wx.showToast({
+      title: `老师发放了${item.name}！`,
+      icon: 'none',
+      duration: 2000,
+    });
+  },
+
+  // 添加物品到背包
+  addItemToBag(itemId, quantity = 1) {
+    const bagItems = [...this.data.bagItems];
+    const existing = bagItems.find((i) => i.itemId === itemId);
+    if (existing) {
+      existing.quantity = Math.min(existing.quantity + quantity, existing.maxStack || 99);
+    } else {
+      const newItem = this.createBagItem(itemId, quantity);
+      if (newItem) bagItems.push(newItem);
+    }
+    this.setData({ bagItems }, () => {
+      this.saveBagToStorage();
+    });
+  },
+
+  // ========== 活动日志与AI日记 ==========
+
+  // 初始化活动日志
+  initActivityLog() {
+    const today = this.formatDateToStr(new Date());
+    const saved = wx.getStorageSync('petActivityLog') || {};
+    // 只保留最近7天的日志
+    const cleaned = {};
+    Object.keys(saved).forEach((date) => {
+      const diff = Math.floor((new Date(today) - new Date(date)) / (1000 * 60 * 60 * 24));
+      if (diff <= 7) {
+        cleaned[date] = saved[date];
+      }
+    });
+    if (!cleaned[today]) {
+      cleaned[today] = [];
+    }
+    this.setData({ activityLog: cleaned });
+    wx.setStorageSync('petActivityLog', cleaned);
+  },
+
+  // 记录活动日志
+  logActivity(type, detail = {}) {
+    const today = this.formatDateToStr(new Date());
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const entry = {
+      time: timeStr,
+      type,
+      ...detail,
+    };
+
+    const activityLog = { ...this.data.activityLog };
+    if (!activityLog[today]) {
+      activityLog[today] = [];
+    }
+    activityLog[today].push(entry);
+    // 每天最多保留50条
+    if (activityLog[today].length > 50) {
+      activityLog[today] = activityLog[today].slice(-50);
+    }
+
+    this.setData({ activityLog });
+    wx.setStorageSync('petActivityLog', activityLog);
+  },
+
+  // 检查并触发写日记
+  checkAndTriggerDiaryWriting() {
+    if (this._isGeneratingDiary) return;
+    if (!this.shouldTriggerDiaryWriting()) return;
+    this._isGeneratingDiary = true;
+    // 延迟 3 秒再触发，给用户一点缓冲时间
+    setTimeout(() => {
+      this.generateAiDiary().finally(() => {
+        this._isGeneratingDiary = false;
+      });
+    }, 3000);
+  },
+
+  // 判断是否满足写日记的触发条件
+  shouldTriggerDiaryWriting() {
+    const hour = new Date().getHours();
+    const sceneId = this.data.currentSceneId;
+    const today = this.formatDateToStr(new Date());
+    const diaryMap = this.loadDiaryFromStorage();
+
+    // 条件 1: 晚间时段 20:00 - 23:59
+    const isEvening = hour >= 20 && hour <= 23;
+    // 条件 2: 在合适的场景（寝室/图书馆/书房等安静场景）
+    const writingScenes = ['bedroom', 'dormitory', 'library', 'study_room', '阁楼书房', '卧室', '冥想室'];
+    const isWritingScene = writingScenes.some((s) => sceneId.includes(s) || this.data.currentScene === s);
+    // 条件 3: 今天还没有写过日记
+    const alreadyWritten = diaryMap[today] && diaryMap[today].length > 0;
+    // 条件 4: 今天有活动日志（有内容可写）
+    const hasActivity = this.data.activityLog[today] && this.data.activityLog[today].length >= 2;
+
+    // console.log('[Diary] trigger check:', { isEvening, isWritingScene, alreadyWritten, hasActivity, sceneId, hour });
+
+    if (!isEvening || !isWritingScene || alreadyWritten || !hasActivity) {
+      return false;
+    }
+
+    // 概率触发: 40%
+    return Math.random() < 0.4;
+  },
+
+  // AI 生成日记
+  async generateAiDiary() {
+    const today = this.formatDateToStr(new Date());
+    const activityLog = this.data.activityLog[today] || [];
+    const { mood, energy, social, currentScene, petSceneName } = this.data;
+
+    wx.showLoading({ title: '心宠正在写日记...', mask: true });
+
+    try {
+      // 构建 Prompt
+      const prompt = this.buildDiaryPrompt(activityLog, { mood, energy, social, currentScene, petSceneName });
+
+      // 调用 AI 接口（复用已有的 sendToTherapist）
+      const { sendToTherapist, extractResponseText } = AI_MODULE.default || AI_MODULE;
+      const result = await sendToTherapist(prompt);
+
+      let diaryContent = '';
+      if (result.success && result.data) {
+        diaryContent = extractResponseText(result.data);
+      }
+
+      // AI 失败或返回空，使用 fallback
+      if (!diaryContent || diaryContent.trim().length < 20) {
+        // AI 失败，使用 fallback
+        diaryContent = this.fallbackDiary(activityLog);
+      }
+
+      // 构建日记条目
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const diaryEntry = {
+        id: `diary_${today}_${Date.now()}`,
+        time: timeStr,
+        type: 'AI_DIARY',
+        content: diaryContent.trim(),
+        sceneId: this.data.currentSceneId,
+        moodBefore: Math.max(10, mood - 5),
+        moodAfter: mood,
+        energyBefore: Math.max(10, energy - 5),
+        energyAfter: energy,
+        socialBefore: Math.max(10, social - 5),
+        socialAfter: social,
+        generatedAt: now.toISOString(),
+        aiGenerated: diaryContent !== this.fallbackDiary(activityLog),
+      };
+
+      // 保存到 storage
+      this.saveDiaryToStorage(today, diaryEntry);
+
+      // 同时更新内存中的 diaryDataMap
+      const updatedDiaryMap = this.loadDiaryFromStorage();
+
+      wx.hideLoading();
+      wx.showToast({
+        title: '心宠写了一篇日记~',
+        icon: 'none',
+        duration: 2000,
+      });
+
+      // 如果当前在日记视图，刷新显示
+      if (this.data.currentView === 'diary') {
+        this.setData({
+          diaryDataMap: updatedDiaryMap,
+          diaryEntries: updatedDiaryMap[today] || [],
+        });
+      } else {
+        // 即使不在日记视图，也更新 diaryDataMap 以便日历标记正确
+        this.setData({
+          diaryDataMap: updatedDiaryMap,
+        });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      // 静默失败，不打扰用户
+    }
+  },
+
+  // 构建 AI Prompt
+  buildDiaryPrompt(activityLog, stats) {
+    const { mood, energy, social, currentScene, petSceneName } = stats;
+    const sceneName = petSceneName || currentScene || '这个地方';
+
+    // 选取当天最有意义的 5-8 条活动记录
+    const meaningfulLogs = activityLog
+      .filter((a) => a.type === 'scene_change' || a.type === 'event' || Math.abs(a.moodDelta || 0) >= 5)
+      .slice(0, 8);
+
+    const activities = meaningfulLogs.map((a) => {
+      switch (a.type) {
+        case 'scene_change':
+          return `${a.time} ${a.reason === 'user_manual' || a.reason === 'user_manual_modal' ? '主人带我去了' : '我来到了'}${a.sceneName || a.to}`;
+        case 'event':
+          return `${a.time} ${a.desc}`;
+        case 'status_change':
+          if (a.moodDelta >= 5) return `${a.time} 心情变好了一些`;
+          if (a.moodDelta <= -5) return `${a.time} 心情有点低落`;
+          return `${a.time} 状态有些变化`;
+        default:
+          return `${a.time} 在${sceneName}待着`;
+      }
+    }).join('\n');
+
+    return `你是"心宠"，一只可爱的虚拟心理伴侣，现在用第一人称写今天的日记。
+
+今天发生了这些事情：
+${activities || '今天没有发生什么特别的事情'}
+
+写完后我的心情是：心情${mood}分，能量${energy}分，社交${social}分。
+
+请写一段今天的日记（80-150字）：
+1. 语气可爱、真实、有情感，像小学生或初中生的口吻
+2. 自然融入今天发生的 2-3 件事
+3. 表达出你今天的心情变化
+4. 结尾可以写一句对明天的期待
+5. 不要列清单，要像一篇流畅的小短文
+6. 不要加标题，只返回日记正文
+7. 用第一人称"我"来写`;
+  },
+
+  // AI 失败时的 fallback 日记
+  fallbackDiary(activityLog) {
+    const sceneChanges = activityLog.filter((a) => a.type === 'scene_change');
+    const events = activityLog.filter((a) => a.type === 'event');
+    const { mood, energy, social } = this.data;
+
+    let content = '';
+    if (sceneChanges.length > 0) {
+      const places = sceneChanges.map((s) => s.sceneName || s.to).filter(Boolean);
+      const uniquePlaces = [...new Set(places)].slice(0, 3);
+      content += `今天去了${uniquePlaces.join('、')}，`;
+    }
+    if (events.length > 0) {
+      content += `${events[0].desc}。`;
+    }
+    if (mood > 70) {
+      content += '今天心情很不错，希望明天也能这么开心！';
+    } else if (mood < 40) {
+      content += '今天有点累，想早点休息，明天会好起来的。';
+    } else {
+      content += '今天过得挺充实的，期待明天的到来~';
+    }
+    return content;
+  },
+
+  // 保存日记到本地存储
+  saveDiaryToStorage(dateStr, entry) {
+    const diaryMap = this.loadDiaryFromStorage();
+    if (!diaryMap[dateStr]) {
+      diaryMap[dateStr] = [];
+    }
+    diaryMap[dateStr].push(entry);
+    // 限制总存储量：只保留最近 90 天
+    const dates = Object.keys(diaryMap).sort();
+    if (dates.length > 90) {
+      const toRemove = dates.slice(0, dates.length - 90);
+      toRemove.forEach((d) => delete diaryMap[d]);
+    }
+    wx.setStorageSync('petDiaryMap', diaryMap);
+  },
+
+  // 从本地存储加载日记
+  loadDiaryFromStorage() {
+    return wx.getStorageSync('petDiaryMap') || {};
+  },
+
+  // 测试生成日记（绕过所有限制，用于调试）
+  async testGenerateDiary() {
+    const today = this.formatDateToStr(new Date());
+    // 确保今天有活动日志（没有则生成测试日志）
+    const activityLog = { ...this.data.activityLog };
+    if (!activityLog[today] || activityLog[today].length < 2) {
+      activityLog[today] = [
+        { time: '08:30', type: 'scene_change', sceneName: '卧室', to: 'bedroom', reason: 'time_schedule_init' },
+        { time: '09:00', type: 'scene_change', sceneName: '教室', to: 'classroom', reason: 'time_schedule' },
+        { time: '12:00', type: 'scene_change', sceneName: '食堂', to: 'cafeteria', reason: 'time_schedule' },
+        { time: '14:30', type: 'event', desc: '考试有点紧张', moodDelta: -5 },
+        { time: '19:00', type: 'scene_change', sceneName: '图书馆', to: 'library', reason: 'user_manual' },
+        { time: '20:30', type: 'status_change', moodDelta: 8, energyDelta: -3, socialDelta: 0 },
+      ];
+      this.setData({ activityLog });
+      wx.setStorageSync('petActivityLog', activityLog);
+    }
+    // 直接调用生成，不检查场景/时间/概率
+    await this.generateAiDiary();
   },
 
   // ========== 心情日记 ==========
@@ -3038,17 +3716,33 @@ Page({
   initDiaryData() {
     const today = new Date();
     const todayStr = this.formatDateToStr(today);
-    const diaryDataMap = {};
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
 
-    // 为最近30天生成日记数据
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = this.formatDateToStr(date);
-      diaryDataMap[dateStr] = this.generateDiaryEntries(dateStr);
+    // 1. 从本地存储加载日记
+    const diaryDataMap = this.loadDiaryFromStorage();
+
+    // 2. 清理历史 fallback 日记：只保留 aiGenerated === true 的条目
+    // 同时删除今天之前的空日期（没有真实日记的历史日期直接显示为空）
+    Object.keys(diaryDataMap).forEach((dateStr) => {
+      const entries = diaryDataMap[dateStr];
+      if (Array.isArray(entries)) {
+        // 只保留 AI 生成的真实日记
+        diaryDataMap[dateStr] = entries.filter((e) => e.aiGenerated === true);
+        // 如果过滤后为空且不是今天，删除该日期键
+        if (diaryDataMap[dateStr].length === 0 && dateStr !== todayStr) {
+          delete diaryDataMap[dateStr];
+        }
+      }
+    });
+
+    // 3. 今天的日记：确保有数组（可能是空的）
+    if (!diaryDataMap[todayStr]) {
+      diaryDataMap[todayStr] = [];
     }
+
+    // 4. 写回存储（清理后的数据）
+    wx.setStorageSync('petDiaryMap', diaryDataMap);
 
     this.setData({
       diarySelectedDate: todayStr,
@@ -3225,6 +3919,7 @@ Page({
       EVENT: '#FF6B6B',
       ITEM_FOUND: '#FFD93D',
       SOCIAL: '#87CEEB',
+      AI_DIARY: '#C084FC',
     };
     return colors[type] || '#8C8299';
   },
@@ -3236,6 +3931,7 @@ Page({
       EVENT: '事件',
       ITEM_FOUND: '发现',
       SOCIAL: '社交',
+      AI_DIARY: '日记',
     };
     return labels[type] || type;
   },

@@ -273,6 +273,10 @@ mode="aspectFill"
     <block wx:if="{{currentView === 'bag'}}">
       <view class="view-header">
         <text class="view-title">心宠背包</text>
+        <view class="bag-coins" bindtap="openShop">
+          <text class="bag-coins-icon">💰</text>
+          <text class="bag-coins-value">{{coins}}</text>
+        </view>
       </view>
       <!-- 容量条 -->
       <view class="capacity-bar">
@@ -284,6 +288,26 @@ mode="aspectFill"
           <view class="capacity-fill" style="width: {{(bagCapacity.used / bagCapacity.total) * 100}}%"></view>
         </view>
       </view>
+      <!-- 分类筛选 -->
+      <view class="bag-filter-bar">
+        <scroll-view class="bag-filter-scroll" scroll-x>
+          <view
+            class="bag-filter-item {{bagFilter === item.key ? 'active' : ''}}"
+            wx:for="{{bagCategories}}"
+            wx:key="key"
+            data-filter="{{item.key}}"
+            bindtap="onBagFilterTap"
+          >
+            {{item.label}}
+          </view>
+        </scroll-view>
+      </view>
+      <!-- 超市入口 -->
+      <view class="shop-entry-bar" bindtap="openShop">
+        <text class="shop-entry-icon">🏪</text>
+        <text class="shop-entry-text">校园超市</text>
+        <text class="shop-entry-arrow">›</text>
+      </view>
       <!-- 物品网格 -->
       <scroll-view class="view-content bag-view" scroll-y>
         <view wx:if="{{bagLoading}}" class="view-loading">
@@ -292,19 +316,33 @@ mode="aspectFill"
         <view wx:elif="{{bagItems.length === 0}}" class="view-empty">
           <text class="empty-icon">🎒</text>
           <text class="empty-text">背包空空如也</text>
-          <text class="empty-subtext">快去探索获得物品吧~</text>
+          <text class="empty-subtext">去校园超市买点东西吧~\n或者去教室、图书馆碰碰运气</text>
+        </view>
+        <view wx:elif="{{filteredBagItems.length === 0}}" class="view-empty">
+          <text class="empty-icon">📂</text>
+          <text class="empty-text">该分类暂无物品</text>
         </view>
         <view wx:else class="bag-grid">
           <view
-            class="bag-card"
-            wx:for="{{bagItems}}"
+            class="bag-card {{item.rarity === 'LEGENDARY' ? 'legendary' : ''}} {{item.rarity === 'EPIC' ? 'epic' : ''}}"
+            wx:for="{{filteredBagItems}}"
             wx:key="itemId"
             data-item="{{item}}"
             bindtap="onBagItemTap"
           >
+            <view class="bag-rarity-badge" style="background: {{RARITY[item.rarity].color}}" wx:if="{{item.rarity !== 'COMMON'}}">
+              {{RARITY[item.rarity].label}}
+            </view>
             <view class="bag-icon">{{item.icon}}</view>
             <view class="bag-name">{{item.name}}</view>
-            <view class="bag-quantity">x{{item.quantity}}</view>
+            <view class="bag-meta">
+              <text class="bag-quantity">x{{item.quantity}}</text>
+              <text class="bag-price" wx:if="{{item.price > 0}}">💰{{item.price}}</text>
+              <text class="bag-price-free" wx:else>免费</text>
+            </view>
+            <view class="bag-source-tag" wx:if="{{item.sources && item.sources.length > 0}}">
+              {{item.sources[0].name}}
+            </view>
           </view>
         </view>
       </scroll-view>
@@ -314,6 +352,10 @@ mode="aspectFill"
     <block wx:if="{{currentView === 'diary'}}">
       <view class="view-header">
         <text class="view-title">心情日记</text>
+        <view class="test-diary-btn" bindtap="testGenerateDiary">
+          <text class="test-diary-icon">📝</text>
+          <text class="test-diary-text">测试生成</text>
+        </view>
       </view>
       <!-- 选中日期的日记内容 -->
       <scroll-view class="view-content diary-view" scroll-y>
@@ -517,6 +559,118 @@ mode="aspectFill"
           {{selectedScene.current ? '当前场景' : (selectedScene.unlocked ? '进入场景' : '未解锁')}}
         </view>
       </view>
+    </view>
+  </view>
+
+  <!-- ========== 物品详情弹窗 ========== -->
+  <view class="item-detail-modal {{showItemDetail ? 'show' : ''}}" wx:if="{{showItemDetail}}">
+    <view class="modal-mask" bindtap="closeItemDetail"></view>
+    <view class="item-detail-panel">
+      <!-- 头部 -->
+      <view class="item-detail-header">
+        <view class="item-detail-icon">{{selectedItem.icon}}</view>
+        <view class="item-detail-title-wrap">
+          <text class="item-detail-name">{{selectedItem.name}}</text>
+          <view class="item-detail-rarity" style="background: {{RARITY[selectedItem.rarity].color}}20; color: {{RARITY[selectedItem.rarity].color}}; border: 1rpx solid {{RARITY[selectedItem.rarity].color}}">
+            {{RARITY[selectedItem.rarity].label}}
+          </view>
+        </view>
+        <view class="item-detail-close" bindtap="closeItemDetail">✕</view>
+      </view>
+      <!-- 信息区 -->
+      <view class="item-detail-info">
+        <view class="item-info-row">
+          <text class="item-info-label">💰 价格</text>
+          <text class="item-info-value" wx:if="{{selectedItem.price > 0}}">{{selectedItem.price}} 金币</text>
+          <text class="item-info-value free" wx:else>免费</text>
+        </view>
+        <view class="item-info-row">
+          <text class="item-info-label">💰 出售</text>
+          <text class="item-info-value">{{selectedItem.sellPrice || 0}} 金币</text>
+        </view>
+        <view class="item-info-row">
+          <text class="item-info-label">📍 来源</text>
+          <text class="item-info-value">{{selectedItem.sources && selectedItem.sources[0] ? selectedItem.sources[0].name : '未知'}}</text>
+        </view>
+        <view class="item-info-row">
+          <text class="item-info-label">🏷️ 类型</text>
+          <text class="item-info-value">{{ITEM_TYPE[selectedItem.type] ? ITEM_TYPE[selectedItem.type].label : selectedItem.type}}</text>
+        </view>
+      </view>
+      <!-- 描述区 -->
+      <view class="item-detail-section">
+        <text class="item-section-title">📖 介绍</text>
+        <text class="item-section-text">{{selectedItem.description}}</text>
+      </view>
+      <!-- 效果区 -->
+      <view class="item-detail-section" wx:if="{{selectedItem.effect && (selectedItem.effect.mood || selectedItem.effect.energy || selectedItem.effect.social)}}">
+        <text class="item-section-title">⚡ 使用效果</text>
+        <view class="item-effect-tags">
+          <text class="item-effect-tag mood" wx:if="{{selectedItem.effect.mood}}">心情{{selectedItem.effect.mood > 0 ? '+' : ''}}{{selectedItem.effect.mood}}</text>
+          <text class="item-effect-tag energy" wx:if="{{selectedItem.effect.energy}}">能量{{selectedItem.effect.energy > 0 ? '+' : ''}}{{selectedItem.effect.energy}}</text>
+          <text class="item-effect-tag social" wx:if="{{selectedItem.effect.social}}">社交{{selectedItem.effect.social > 0 ? '+' : ''}}{{selectedItem.effect.social}}</text>
+        </view>
+        <text class="item-section-text" wx:if="{{selectedItem.specialEffect}}">{{selectedItem.specialEffect.desc}}</text>
+      </view>
+      <!-- 限制区 -->
+      <view class="item-detail-section" wx:if="{{selectedItem.useLimit && selectedItem.useLimit.scenes && selectedItem.useLimit.scenes.length > 0}}">
+        <text class="item-section-title">⚠️ 使用限制</text>
+        <text class="item-section-text">仅限：{{selectedItem.useLimit.scenes.join('、')}}</text>
+      </view>
+      <!-- 操作按钮 -->
+      <view class="item-detail-actions">
+        <view class="item-action-btn use-btn {{selectedItem.quantity <= 0 ? 'disabled' : ''}}" bindtap="useItem">
+          <text class="action-btn-icon">🎁</text>
+          <text class="action-btn-text">使用</text>
+          <text class="action-btn-sub">(持有x{{selectedItem.quantity}})</text>
+        </view>
+        <view class="item-action-btn sell-btn" bindtap="sellItem">
+          <text class="action-btn-icon">💰</text>
+          <text class="action-btn-text">出售</text>
+          <text class="action-btn-sub">(+{{selectedItem.sellPrice || 0}}金币)</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 校园超市弹窗 ========== -->
+  <view class="shop-modal {{showShop ? 'show' : ''}}" wx:if="{{showShop}}">
+    <view class="modal-mask" bindtap="closeShop"></view>
+    <view class="shop-panel">
+      <view class="shop-header">
+        <text class="shop-title">🏪 校园超市</text>
+        <view class="shop-coins">
+          <text class="shop-coins-icon">💰</text>
+          <text class="shop-coins-value">{{coins}}</text>
+        </view>
+        <view class="shop-close" bindtap="closeShop">✕</view>
+      </view>
+      <view class="shop-refresh-bar">
+        <text class="shop-refresh-text">每天6:00自动刷新</text>
+        <view class="shop-refresh-btn" bindtap="manualRefreshShop">
+          <text>🔄 刷新 (-{{shopRefreshCost}}💰)</text>
+        </view>
+      </view>
+      <scroll-view class="shop-grid" scroll-y>
+        <view class="shop-item-card" wx:for="{{shopItems}}" wx:key="itemId">
+          <view class="shop-item-icon">{{item.icon}}</view>
+          <view class="shop-item-info">
+            <view class="shop-item-name-row">
+              <text class="shop-item-name">{{item.name}}</text>
+              <view class="shop-item-rarity" style="background: {{RARITY[item.rarity].color}}20; color: {{RARITY[item.rarity].color}}">
+                {{RARITY[item.rarity].label}}
+              </view>
+            </view>
+            <text class="shop-item-desc">{{item.shortDesc}}</text>
+          </view>
+          <view class="shop-item-buy">
+            <text class="shop-item-price {{coins < item.price ? 'insufficient' : ''}}">💰{{item.price}}</text>
+            <view class="shop-buy-btn {{coins < item.price ? 'disabled' : ''}}" data-item-id="{{item.itemId}}" bindtap="purchaseItem">
+              购买
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>

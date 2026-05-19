@@ -29,8 +29,8 @@
   <!-- 空状态 -->
   <view wx:elif="{{entries.length === 0}}" class="empty-state">
     <text class="empty-icon">📖</text>
-    <text class="empty-text">今天还没有记录</text>
-    <text class="empty-subtext">心宠的一天即将开始~</text>
+    <text class="empty-text">今天还没有日记</text>
+    <text class="empty-subtext">带心宠回寝室或图书馆，晚上它可能会写日记哦~</text>
   </view>
 
   <!-- 时间线 -->
