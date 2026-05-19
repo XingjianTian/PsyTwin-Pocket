@@ -1039,6 +1039,34 @@ cd ../PsyTwin-Pocket
 
 ---
 
+## 📚 项目文档
+
+除本 README 外，项目还包含以下详细文档：
+
+### 全景文档
+
+| 文档 | 说明 |
+|------|------|
+| [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md) | **项目全景文档** - 完整架构、技术栈、目录结构、页面路由、生态协作关系 |
+
+### 开发手册
+
+| 文档 | 说明 |
+|------|------|
+| [docs/DEVELOPMENT_SETUP.md](./docs/DEVELOPMENT_SETUP.md) | **开发环境搭建指南** - 前置要求、项目初始化、工具配置、常见问题 |
+| [docs/API_GUIDE.md](./docs/API_GUIDE.md) | **API 请求层使用指南** - 请求封装、接口列表、Mock 模式、错误处理 |
+| [docs/COMPONENT_GUIDE.md](./docs/COMPONENT_GUIDE.md) | **组件开发指南** - 自定义组件、TDesign 组件库、开发规范 |
+
+### 专项文档
+
+| 文档 | 说明 |
+|------|------|
+| [docs/PET_SYSTEM.md](./docs/PET_SYSTEM.md) | **心宠系统详解** - 五视图架构、三维状态、精灵动画、场景系统、WebSocket 同步 |
+| [docs/pet_schedule_analysis.md](./docs/pet_schedule_analysis.md) | 心宠时间调度系统分析 |
+| [docs/二级场景AI生图描述.md](./docs/二级场景AI生图描述.md) | 二级场景 AI 生图 Prompt 文档 |
+
+---
+
 ## 📄 开源协议
 
 MIT License © 2026 PsyTwin Team
