@@ -54,6 +54,9 @@ const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 // AI 模块（用于日记生成）
 const AI_MODULE = require('../../api/ai');
 
+// 心宠服务器同步 API
+const { pullPetState, pushPetState } = require('../../api/pet-server');
+
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
 
@@ -1520,6 +1523,8 @@ Page({
     this.initGameView();
     // 初始化时间显示
     this.updateTimeDisplay();
+    // 从服务器同步心宠状态（包含离线进度）
+    this.syncFromServer();
     // 根据当前时间初始化心宠位置
     this.forceUpdateSceneByTime();
     this.startStatusAnimation();
@@ -1538,12 +1543,16 @@ Page({
   onHide() {
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
+    // 隐藏时同步状态到服务器
+    this.syncToServer();
   },
 
   onUnload() {
     if (this.statusTimer) {
       clearInterval(this.statusTimer);
     }
+    // 页面卸载时同步状态到服务器
+    this.syncToServer();
     if (this.moveTimer) {
       clearInterval(this.moveTimer);
     }
@@ -1555,6 +1564,93 @@ Page({
     this._destroyWebSocket();
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
+  },
+
+  // ========== 服务器同步 ==========
+
+  /** 获取或生成用户ID */
+  getPetUserId() {
+    let userId = wx.getStorageSync('petUserId');
+    if (!userId) {
+      userId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      wx.setStorageSync('petUserId', userId);
+    }
+    return userId;
+  },
+
+  /** 从服务器拉取状态（小程序启动时调用） */
+  async syncFromServer() {
+    const userId = this.getPetUserId();
+    console.log('[PetSync] 开始从服务器拉取状态, userId=', userId);
+
+    const result = await pullPetState(userId);
+    if (!result.success) {
+      console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
+      return;
+    }
+
+    const { state, generatedEvents, offlineSeconds } = result.data;
+    console.log(`[PetSync] 拉取成功, 离线 ${offlineSeconds}s, 事件 ${generatedEvents.length} 个`);
+
+    // 用服务器状态覆盖本地
+    const sceneInfo = this.getSceneInfo(state.sceneId);
+    const sceneName = sceneInfo ? sceneInfo.name : state.sceneId;
+
+    this.setData({
+      mood: state.mood,
+      energy: state.energy,
+      social: state.social,
+      currentSceneId: state.sceneId,
+      currentScene: sceneName,
+      currentSceneIcon: sceneInfo ? sceneInfo.icon : '🏠',
+      petSceneId: state.sceneId,
+      petSceneName: sceneName,
+      petActivity: state.activity,
+      activityStartTime: state.activityStartTime,
+      currentActivityDuration: state.activityDuration,
+      activityLog: state.activityLog || this.data.activityLog,
+      coins: state.coins || this.data.coins,
+      bagItems: state.bagItems || this.data.bagItems,
+      diaryDataMap: state.diaryDataMap || this.data.diaryDataMap,
+    });
+
+    // 如果有离线事件，提示用户
+    if (generatedEvents.length > 0) {
+      const lastEvent = generatedEvents[generatedEvents.length - 1];
+      let toastText = '心宠在你离开时也在好好生活~';
+      if (lastEvent.type === 'scene_change') {
+        toastText = `心宠去了${sceneName}`;
+      } else if (lastEvent.type === 'event') {
+        toastText = `心宠${lastEvent.desc}`;
+      }
+      wx.showToast({ title: toastText, icon: 'none', duration: 2500 });
+    }
+  },
+
+  /** 推送状态到服务器（小程序关闭/隐藏时调用） */
+  async syncToServer() {
+    const userId = this.getPetUserId();
+    const state = {
+      mood: this.data.mood,
+      energy: this.data.energy,
+      social: this.data.social,
+      sceneId: this.data.petSceneId || this.data.currentSceneId,
+      activity: this.data.petActivity,
+      activityStartTime: this.data.activityStartTime,
+      activityDuration: this.data.currentActivityDuration,
+      activityLog: this.data.activityLog,
+      coins: this.data.coins,
+      bagItems: this.data.bagItems,
+      diaryDataMap: this.data.diaryDataMap,
+    };
+
+    console.log('[PetSync] 开始推送状态到服务器, userId=', userId);
+    const result = await pushPetState(userId, state);
+    if (result.success) {
+      console.log('[PetSync] 推送成功');
+    } else {
+      console.log('[PetSync] 推送失败:', result.error);
+    }
   },
 
   // 初始化游戏视图
@@ -3359,6 +3455,28 @@ Page({
     }, 3000);
   },
 
+  /**
+   * 手动测试 LLM 日记生成（绕过时间/场景/活动日志限制）
+   * 使用方式：在微信开发者工具控制台执行
+   * getCurrentPages()[getCurrentPages().length - 1].testLLMDiary()
+   */
+  async testLLMDiary() {
+    console.log('[DiaryTest] 手动触发 LLM 日记测试');
+    // 确保今天有活动日志，否则 fallback 日记没有对比意义
+    const today = this.formatDateToStr(new Date());
+    if (!this.data.activityLog[today] || this.data.activityLog[today].length < 2) {
+      this.data.activityLog[today] = [
+        { type: 'scene_change', scene: '图书馆', time: '09:00' },
+        { type: 'event', desc: '完成了一份作业', moodDelta: 5, time: '11:30' },
+        { type: 'scene_change', scene: '食堂', time: '12:00' },
+        { type: 'event', desc: '和朋友聊了会儿天', moodDelta: 3, time: '14:00' },
+      ];
+      console.log('[DiaryTest] 已注入模拟活动日志');
+    }
+    await this.generateAiDiary();
+    console.log('[DiaryTest] 测试结束');
+  },
+
   // 判断是否满足写日记的触发条件
   shouldTriggerDiaryWriting() {
     const hour = new Date().getHours();
@@ -3388,6 +3506,7 @@ Page({
 
   // AI 生成日记
   async generateAiDiary() {
+    console.log('[Diary] generateAiDiary 开始执行');
     const today = this.formatDateToStr(new Date());
     const activityLog = this.data.activityLog[today] || [];
     const { mood, energy, social, currentScene, petSceneName } = this.data;
