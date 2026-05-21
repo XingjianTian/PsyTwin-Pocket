@@ -1437,13 +1437,13 @@
 /* ========== 背包视图 ========== */
 .bag-view {
   background: transparent;
-  padding: 20rpx;
-  top: 160rpx; /* 为标题和容量条留出空间 */
+  padding: 20rpx 20rpx 140rpx 20rpx; /* 底部 140rpx 为底部 tab bar 留出空间 */
+  top: 220rpx; /* 为标题(80) + 容量条(60) + 分类栏(70) + 间距(20) 留出空间 */
   z-index: 10;
 }
 
 .capacity-bar {
-  padding: 20rpx 30rpx;
+  padding: 12rpx 24rpx;
   background: rgba(245, 236, 216, 0.9);
   backdrop-filter: blur(10rpx);
   border-bottom: 2rpx solid rgba(232, 220, 200, 0.5);
@@ -1557,9 +1557,12 @@
 
 /* 分类筛选栏 */
 .bag-filter-bar {
-  padding: 16rpx 24rpx;
-  background: rgba(253, 246, 227, 0.92);
-  border-bottom: 2rpx solid rgba(210, 180, 140, 0.2);
+  padding: 20rpx 24rpx;
+  margin-top: -60rpx;
+  background: #fdf6e3;
+  border-bottom: 2rpx solid rgba(210, 180, 140, 0.3);
+  position: relative;
+  z-index: 20;
 }
 
 .bag-filter-scroll {
@@ -1568,19 +1571,36 @@
 
 .bag-filter-item {
   display: inline-block;
-  padding: 10rpx 24rpx;
-  margin-right: 12rpx;
-  border-radius: 24rpx;
-  font-size: 24rpx;
+  padding: 12rpx 28rpx;
+  margin-right: 16rpx;
+  border-radius: 28rpx;
+  font-size: 26rpx;
   color: #8B7355;
-  background: rgba(210, 180, 140, 0.2);
+  background: #fff;
+  border: 2rpx solid rgba(210, 180, 140, 0.3);
   transition: all 0.2s;
 }
 
 .bag-filter-item.active {
   background: linear-gradient(135deg, #6B5B95, #9B89B3);
   color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(107, 91, 149, 0.3);
+  border-color: transparent;
+  box-shadow: 0 4rpx 16rpx rgba(107, 91, 149, 0.35);
+}
+
+.bag-filter-count {
+  display: inline-block;
+  margin-left: 8rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 12rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.35);
+  color: inherit;
+}
+
+.bag-filter-item.active .bag-filter-count {
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* 超市入口 */
@@ -1589,7 +1609,7 @@
   align-items: center;
   gap: 16rpx;
   padding: 20rpx 30rpx;
-  margin: 16rpx 24rpx;
+  margin: 0 0 20rpx 0; /* 在 bag-view 内部，不需要左右 margin */
   background: linear-gradient(135deg, #FF8C42, #FF6B6B);
   border-radius: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 107, 0.3);
@@ -1865,6 +1885,16 @@
 .item-action-btn.sell-btn {
   background: linear-gradient(135deg, #FFD93D, #E6B800);
   box-shadow: 0 4rpx 16rpx rgba(255, 217, 61, 0.3);
+}
+
+.item-detail-readonly-hint {
+  margin-top: 30rpx;
+  padding: 20rpx 30rpx;
+  border-radius: 16rpx;
+  background: rgba(210, 180, 140, 0.15);
+  text-align: center;
+  font-size: 26rpx;
+  color: #8B7355;
 }
 
 .action-btn-icon {

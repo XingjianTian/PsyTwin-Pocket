@@ -816,38 +816,54 @@ app.get('/api/pet/status', (req, res) => {
 app.post('/api/pet/test-diary', async (req, res) => {
   const { userId } = req.body;
   const testUserId = userId || 'test_user';
-
-  // 构造一个带活动日志的测试状态
   const today = formatDateToStr(new Date());
-  const state = {
-    userId: testUserId,
-    mood: 65,
-    energy: 70,
-    social: 50,
-    sceneId: 'bedroom',
-    activity: '在温暖的床上休息',
-    activityStartTime: Date.now(),
-    activityDuration: 10,
-    activityLog: {
-      [today]: [
-        { time: '09:00', type: 'scene_change', scene: '图书馆' },
-        { time: '11:30', type: 'event', desc: '完成了一份作业', moodDelta: 5 },
-        { time: '12:00', type: 'scene_change', scene: '食堂' },
-        { time: '14:00', type: 'event', desc: '和朋友聊了会儿天', moodDelta: 3 },
-        { time: '16:00', type: 'scene_change', scene: '操场' },
-        { time: '18:00', type: 'scene_change', scene: 'bedroom' },
-      ],
-    },
-    diaryDataMap: {},
-    lastSyncAt: Date.now(),
-  };
 
-  console.log(`[Test] 开始为 ${testUserId} 测试日记生成...`);
+  // 获取或创建用户的实际状态（不是临时变量）
+  let state = petData.get(testUserId);
+  if (!state) {
+    state = getDefaultState(testUserId);
+    petData.set(testUserId, state);
+  }
+
+  // 确保今天有活动日志（如果没有，用测试数据填充）
+  if (!state.activityLog) state.activityLog = {};
+  if (!state.activityLog[today] || state.activityLog[today].length === 0) {
+    state.activityLog[today] = [
+      { time: '09:00', type: 'scene_change', scene: '图书馆' },
+      { time: '11:30', type: 'event', desc: '完成了一份作业', moodDelta: 5 },
+      { time: '12:00', type: 'scene_change', scene: '食堂' },
+      { time: '14:00', type: 'event', desc: '和朋友聊了会儿天', moodDelta: 3 },
+      { time: '16:00', type: 'scene_change', scene: '操场' },
+      { time: '18:00', type: 'scene_change', scene: 'bedroom' },
+    ];
+  }
+
+  console.log(`[Test] 开始为 ${testUserId} 生成 ${today} 的日记...`);
   const startTime = Date.now();
   const diaryContent = await generateAiDiary(state, today);
   const elapsed = Date.now() - startTime;
 
   if (diaryContent) {
+    // 保存到服务器内存并持久化
+    if (!state.diaryDataMap) state.diaryDataMap = {};
+    if (!state.diaryDataMap[today]) state.diaryDataMap[today] = [];
+    state.diaryDataMap[today].push({
+      id: `diary_${today}_${Date.now()}`,
+      time: formatTimeStr(new Date()),
+      type: 'AI_DIARY',
+      content: diaryContent,
+      sceneId: state.sceneId,
+      moodBefore: Math.max(10, state.mood - 5),
+      moodAfter: state.mood,
+      energyBefore: Math.max(10, state.energy - 5),
+      energyAfter: state.energy,
+      socialBefore: Math.max(10, state.social - 5),
+      socialAfter: state.social,
+      generatedAt: new Date().toISOString(),
+      aiGenerated: true,
+    });
+    saveData(petData);
+
     console.log(`[Test] 日记生成成功, 耗时 ${elapsed}ms, 长度 ${diaryContent.length}`);
     res.json({
       code: 0,

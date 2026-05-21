@@ -290,7 +290,7 @@ mode="aspectFill"
       </view>
       <!-- 分类筛选 -->
       <view class="bag-filter-bar">
-        <scroll-view class="bag-filter-scroll" scroll-x>
+        <scroll-view class="bag-filter-scroll" scroll-x scroll-with-animation show-scrollbar="{{false}}">
           <view
             class="bag-filter-item {{bagFilter === item.key ? 'active' : ''}}"
             wx:for="{{bagCategories}}"
@@ -299,17 +299,18 @@ mode="aspectFill"
             bindtap="onBagFilterTap"
           >
             {{item.label}}
+            <text class="bag-filter-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
           </view>
         </scroll-view>
       </view>
-      <!-- 超市入口 -->
-      <view class="shop-entry-bar" bindtap="openShop">
-        <text class="shop-entry-icon">🏪</text>
-        <text class="shop-entry-text">校园超市</text>
-        <text class="shop-entry-arrow">›</text>
-      </view>
       <!-- 物品网格 -->
       <scroll-view class="view-content bag-view" scroll-y>
+        <!-- 超市入口（放在网格内部随滚动） -->
+        <view class="shop-entry-bar" bindtap="openShop">
+          <text class="shop-entry-icon">🏪</text>
+          <text class="shop-entry-text">校园超市</text>
+          <text class="shop-entry-arrow">›</text>
+        </view>
         <view wx:if="{{bagLoading}}" class="view-loading">
           <text>加载中...</text>
         </view>
@@ -617,18 +618,9 @@ mode="aspectFill"
         <text class="item-section-title">⚠️ 使用限制</text>
         <text class="item-section-text">仅限：{{selectedItem.useLimit.scenes.join('、')}}</text>
       </view>
-      <!-- 操作按钮 -->
-      <view class="item-detail-actions">
-        <view class="item-action-btn use-btn {{selectedItem.quantity <= 0 ? 'disabled' : ''}}" bindtap="useItem">
-          <text class="action-btn-icon">🎁</text>
-          <text class="action-btn-text">使用</text>
-          <text class="action-btn-sub">(持有x{{selectedItem.quantity}})</text>
-        </view>
-        <view class="item-action-btn sell-btn" bindtap="sellItem">
-          <text class="action-btn-icon">💰</text>
-          <text class="action-btn-text">出售</text>
-          <text class="action-btn-sub">(+{{selectedItem.sellPrice || 0}}金币)</text>
-        </view>
+      <!-- 物品信息（只读，无操作按钮） -->
+      <view class="item-detail-readonly-hint">
+        <text>📦 仅展示物品信息</text>
       </view>
     </view>
   </view>

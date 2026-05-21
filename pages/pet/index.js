@@ -1012,16 +1012,12 @@ Page({
     bagLoading: true,
     bagFilter: 'ALL',            // 当前筛选类型
     bagCategories: [
-      { key: 'ALL', label: '全部' },
-      { key: 'STATIONERY', label: '文具' },
-      { key: 'TEXTBOOK', label: '教材' },
-      { key: 'ELECTRONIC', label: '电子' },
-      { key: 'FOOD', label: '食物' },
-      { key: 'DAILY', label: '日用' },
-      { key: 'DORM', label: '宿舍' },
-      { key: 'SOCIAL', label: '社交' },
-      { key: 'SPORTS', label: '运动' },
-      { key: 'SPECIAL', label: '特殊' },
+      { key: 'ALL', label: '全部', types: [] },
+      { key: 'STUDY', label: '学习用品', types: ['STATIONERY', 'TEXTBOOK'] },
+      { key: 'LIFE', label: '生活用品', types: ['DAILY', 'DORM'] },
+      { key: 'FOOD', label: '食物饮料', types: ['FOOD'] },
+      { key: 'ELECTRONIC', label: '电子产品', types: ['ELECTRONIC'] },
+      { key: 'OTHER', label: '其他', types: ['SOCIAL', 'SPORTS', 'SPECIAL'] },
     ],
 
     // ========== 金币系统 ==========
@@ -1586,7 +1582,7 @@ Page({
     const result = await pullPetState(userId);
     if (!result.success) {
       console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
-      this.initDiaryData(); // 网络失败时从本地 storage 加载兜底
+      this.initDiaryData(false); // 网络失败时从本地 storage 加载兜底
       return;
     }
 
@@ -1636,8 +1632,8 @@ Page({
       wx.showToast({ title: `心宠在你离开时也在好好生活~`, icon: 'none', duration: 2500 });
     }
 
-    // 同步完成后刷新日记数据（确保日历和日记列表显示服务器数据）
-    this.initDiaryData();
+    // 同步完成后刷新日记数据（服务器数据为准，跳过本地过滤）
+    this.initDiaryData(true);
   },
 
   /** 推送状态到服务器（小程序关闭/隐藏时调用） */
@@ -3159,11 +3155,28 @@ Page({
     this.updateFilteredBagItems();
   },
 
-  // 更新筛选后的背包物品到 data
+  // 更新筛选后的背包物品到 data，同时计算各分类数量
   updateFilteredBagItems() {
-    const { bagItems, bagFilter } = this.data;
-    const filtered = bagFilter === 'ALL' ? bagItems : bagItems.filter((item) => item.type === bagFilter);
-    this.setData({ filteredBagItems: filtered });
+    const { bagItems, bagFilter, bagCategories } = this.data;
+
+    // 找到当前分类对应的 types
+    const currentCat = bagCategories.find((c) => c.key === bagFilter);
+    const filtered = bagFilter === 'ALL' || !currentCat || currentCat.types.length === 0
+      ? bagItems
+      : bagItems.filter((item) => currentCat.types.includes(item.type));
+
+    // 计算每个分类的物品数量
+    const categoriesWithCount = bagCategories.map((cat) => {
+      const count = cat.key === 'ALL' || cat.types.length === 0
+        ? bagItems.reduce((sum, item) => sum + item.quantity, 0)
+        : bagItems.filter((item) => cat.types.includes(item.type)).reduce((sum, item) => sum + item.quantity, 0);
+      return { ...cat, count };
+    });
+
+    this.setData({
+      filteredBagItems: filtered,
+      bagCategories: categoriesWithCount,
+    });
   },
 
   // 点击背包物品 - 显示详情弹窗
@@ -3180,92 +3193,14 @@ Page({
     this.setData({ showItemDetail: false, selectedItem: null });
   },
 
-  // 使用物品
+  // 使用物品（当前版本禁用，仅展示信息）
   useItem() {
-    const item = this.data.selectedItem;
-    if (!item || item.quantity <= 0) {
-      wx.showToast({ title: '物品数量不足', icon: 'none' });
-      return;
-    }
-
-    // 检查使用场景限制
-    if (item.useLimit && item.useLimit.scenes && item.useLimit.scenes.length > 0) {
-      const currentScene = this.data.currentSceneId;
-      if (!item.useLimit.scenes.includes(currentScene)) {
-        const sceneNames = item.useLimit.scenes.map((s) => this.getSceneNameById(s)).join('、');
-        wx.showToast({ title: `只能在${sceneNames}使用`, icon: 'none' });
-        return;
-      }
-    }
-
-    // 扣除数量
-    const bagItems = this.data.bagItems.map((i) => {
-      if (i.itemId === item.itemId) {
-        return { ...i, quantity: i.quantity - 1 };
-      }
-      return i;
-    }).filter((i) => i.quantity > 0);
-
-    // 应用效果
-    const { mood, energy, social } = this.data;
-    const effect = item.effect || {};
-    let newMood = mood + (effect.mood || 0);
-    let newEnergy = energy + (effect.energy || 0);
-    let newSocial = social + (effect.social || 0);
-    newMood = Math.max(10, Math.min(100, newMood));
-    newEnergy = Math.max(10, Math.min(100, newEnergy));
-    newSocial = Math.max(10, Math.min(100, newSocial));
-
-    this.setData({
-      mood: newMood,
-      energy: newEnergy,
-      social: newSocial,
-      bagItems,
-    }, () => {
-      this.saveBagToStorage();
-    });
-
-    // 使用提示
-    const effectTexts = [];
-    if (effect.mood) effectTexts.push(`心情${effect.mood > 0 ? '+' : ''}${effect.mood}`);
-    if (effect.energy) effectTexts.push(`能量${effect.energy > 0 ? '+' : ''}${effect.energy}`);
-    if (effect.social) effectTexts.push(`社交${effect.social > 0 ? '+' : ''}${effect.social}`);
-    const toastText = effectTexts.length > 0 ? `使用了${item.name}！${effectTexts.join('，')}` : `使用了${item.name}`;
-
-    wx.showToast({ title: toastText, icon: 'none', duration: 2000 });
-    this.closeItemDetail();
+    wx.showToast({ title: '物品暂不可使用', icon: 'none' });
   },
 
-  // 出售物品
+  // 出售物品（当前版本禁用，仅展示信息）
   sellItem() {
-    const item = this.data.selectedItem;
-    if (!item || item.quantity <= 0) return;
-
-    wx.showModal({
-      title: '确认出售',
-      content: `确定要出售 ${item.name} x1 吗？\n可获得 ${item.sellPrice || 0} 金币`,
-      success: (res) => {
-        if (res.confirm) {
-          // 扣除数量
-          const bagItems = this.data.bagItems.map((i) => {
-            if (i.itemId === item.itemId) {
-              return { ...i, quantity: i.quantity - 1 };
-            }
-            return i;
-          }).filter((i) => i.quantity > 0);
-
-          // 获得金币
-          this.earnCoins(item.sellPrice || 0, `出售${item.name}`);
-
-          this.setData({ bagItems }, () => {
-            this.saveBagToStorage();
-          });
-
-          wx.showToast({ title: `出售成功！+${item.sellPrice || 0}金币`, icon: 'none' });
-          this.closeItemDetail();
-        }
-      },
-    });
+    wx.showToast({ title: '物品暂不可出售', icon: 'none' });
   },
 
   // 辅助：根据场景ID获取场景名称
@@ -3845,7 +3780,8 @@ ${activities || '今天没有发生什么特别的事情'}
   },
 
   // 初始化日记数据
-  initDiaryData() {
+  // fromServer: 是否从服务器同步过来，为 true 时不做本地过滤（服务器数据为准）
+  initDiaryData(fromServer = false) {
     const today = new Date();
     const todayStr = this.formatDateToStr(today);
     const year = today.getFullYear();
@@ -3857,26 +3793,26 @@ ${activities || '今天没有发生什么特别的事情'}
       diaryDataMap = this.loadDiaryFromStorage();
     }
 
-    // 2. 清理历史 fallback 日记：只保留 aiGenerated === true 的条目
-    // 同时删除今天之前的空日期（没有真实日记的历史日期直接显示为空）
-    Object.keys(diaryDataMap).forEach((dateStr) => {
-      const entries = diaryDataMap[dateStr];
-      if (Array.isArray(entries)) {
-        // 只保留 AI 生成的真实日记
-        diaryDataMap[dateStr] = entries.filter((e) => e.aiGenerated === true);
-        // 如果过滤后为空且不是今天，删除该日期键
-        if (diaryDataMap[dateStr].length === 0 && dateStr !== todayStr) {
-          delete diaryDataMap[dateStr];
+    // 2. 非服务器同步时，清理本地 fallback 数据
+    // 服务器同步时跳过过滤，直接信任服务器数据
+    if (!fromServer) {
+      Object.keys(diaryDataMap).forEach((dateStr) => {
+        const entries = diaryDataMap[dateStr];
+        if (Array.isArray(entries)) {
+          diaryDataMap[dateStr] = entries.filter((e) => e.aiGenerated === true);
+          if (diaryDataMap[dateStr].length === 0 && dateStr !== todayStr) {
+            delete diaryDataMap[dateStr];
+          }
         }
-      }
-    });
+      });
+    }
 
     // 3. 今天的日记：确保有数组（可能是空的）
     if (!diaryDataMap[todayStr]) {
       diaryDataMap[todayStr] = [];
     }
 
-    // 4. 写回存储（清理后的数据）
+    // 4. 写回存储
     wx.setStorageSync('petDiaryMap', diaryDataMap);
 
     this.setData({
