@@ -60,6 +60,9 @@ const { pullPetState, pushPetState } = require('../../api/pet-server');
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
 
+// 心理答题题库
+const { getScaleForCategory, calculateScore } = require('../../utils/quizDatabase');
+
 
 // 其他心宠名字列表（60个）
 const PET_NAMES = [
@@ -1060,6 +1063,16 @@ Page({
     // ========== 帮助事件 ==========
     helpEvents: [],
     helpLoading: true,
+
+    // ========== 答题面板 ==========
+    quizVisible: false,
+    quizEventId: '',
+    quizScaleId: '',
+    quizQuestions: [],
+    quizCurrent: 0,
+    quizTotal: 0,
+    quizQuestion: {},
+    quizAnswers: [],
 
     // 地图层级：primary | secondary
     mapLevel: 'primary',
@@ -4016,16 +4029,31 @@ ${activities || '今天没有发生什么特别的事情'}
         id: 'evt_001',
         type: 'large',
         category: 'emotion',
+        severity: 'high',
         title: '考试失利',
         description: '今天数学考试没考好，心情很差，需要你的鼓励',
         status: 'pending',
         deadline: Date.now() + 24 * 60 * 60 * 1000,
-        options: [
-          { id: 'opt_1', text: '安慰鼓励', hint: '温柔的鼓励能让心宠重拾信心', impact: { mood: 15, energy: 5 } },
-          { id: 'opt_2', text: '分析原因', hint: '帮助心宠找到问题所在', impact: { mood: 5, energy: -5 } },
-          { id: 'opt_3', text: '陪伴散步', hint: '换个环境，放松心情', impact: { mood: 10, energy: -10 } },
-          { id: 'opt_4', text: '制定计划', hint: '一起制定学习计划', impact: { mood: 8, energy: 5 } },
-        ],
+      },
+      {
+        id: 'evt_002',
+        type: 'daily',
+        category: 'study',
+        severity: 'medium',
+        title: '作业堆积',
+        description: '有三门课的作业还没写，有点焦虑',
+        status: 'pending',
+        deadline: Date.now() + 12 * 60 * 60 * 1000,
+      },
+      {
+        id: 'evt_003',
+        type: 'daily',
+        category: 'social',
+        severity: 'low',
+        title: '想交朋友',
+        description: '心宠想认识新的小伙伴',
+        status: 'pending',
+        deadline: Date.now() + 48 * 60 * 60 * 1000,
       },
     ];
 
@@ -4035,53 +4063,140 @@ ${activities || '今天没有发生什么特别的事情'}
     });
   },
 
-  // 选择帮助选项
-  onHelpOptionSelect(e) {
-    const { eventId, optionId } = e.currentTarget.dataset;
-    const event = this.data.helpEvents.find((ev) => ev.id === eventId);
-    const option = event && event.options.find((opt) => opt.id === optionId);
+  // 点击帮助事件卡片
+  onHelpEventTap(e) {
+    const { index } = e.currentTarget.dataset;
+    const event = this.data.helpEvents[index];
+    if (!event || event.status === 'resolved') return;
 
-    if (!event || !option) return;
+    const { severity, title } = event;
+
+    if (severity === 'high') {
+      // 红色高危 → 预约线下咨询
+      wx.showModal({
+        title: '⚠️ 高危预警',
+        content: `「${title}」\n\n心宠当前状态需要专业关注，建议预约一次线下心理咨询。是否前往预约？`,
+        confirmText: '去预约',
+        cancelText: '再观察',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/appointment/index' });
+          }
+        },
+      });
+    } else if (severity === 'medium') {
+      // 橙色中危 → 进入答题
+      this.startQuiz(event);
+    } else {
+      // 绿色正常 → 纯提示
+      const tips = [
+        '心宠状态不错，继续保持关注哦~',
+        '心宠一切安好，给它一个大大的拥抱吧！',
+        '心宠今天心情很好，陪它玩玩吧~',
+      ];
+      const randomTip = tips[Math.floor(Math.random() * tips.length)];
+      wx.showToast({ title: randomTip, icon: 'none' });
+      // 低危事件直接标记为已解决（无需操作）
+      this.resolveHelpEvent(event.id, { resolvedText: '已查看，状态正常' });
+    }
+  },
+
+  // 启动答题
+  startQuiz(event) {
+    const scale = getScaleForCategory(event.category);
+    if (!scale || !scale.questions || scale.questions.length === 0) {
+      wx.showToast({ title: '暂无相关题目', icon: 'none' });
+      return;
+    }
+
+    this.setData({
+      quizVisible: true,
+      quizEventId: event.id,
+      quizScaleId: scale.id,
+      quizQuestions: scale.questions,
+      quizCurrent: 0,
+      quizTotal: scale.questions.length,
+      quizQuestion: scale.questions[0],
+      quizAnswers: [],
+    });
+  },
+
+  // 点击答题选项
+  onQuizOptionTap(e) {
+    const { index } = e.currentTarget.dataset;
+    const option = this.data.quizQuestion.options[index];
+    if (!option) return;
+
+    const answers = [...this.data.quizAnswers, { score: option.score }];
+
+    if (answers.length >= this.data.quizTotal) {
+      // 答题完成
+      this.submitQuiz(answers);
+    } else {
+      // 进入下一题
+      const next = this.data.quizCurrent + 1;
+      this.setData({
+        quizCurrent: next,
+        quizQuestion: this.data.quizQuestions[next],
+        quizAnswers: answers,
+      });
+    }
+  },
+
+  // 提交答题结果
+  submitQuiz(answers) {
+    const result = calculateScore(this.data.quizScaleId, answers);
+
+    this.setData({ quizVisible: false });
+
+    // 标记事件已解决
+    this.resolveHelpEvent(this.data.quizEventId, {
+      resolvedText: `已完成陪伴 · ${result.label}`,
+    });
+
+    // 显示结果
+    const colorMap = { green: '#10B981', orange: '#F59E0B', red: '#EF4444' };
+    const iconMap = { green: '🌟', orange: '💛', red: '❤️' };
 
     wx.showModal({
-      title: '确认选择',
-      content: `确定要"${option.text}"吗？\n${option.hint}`,
+      title: `${iconMap[result.color] || '💝'} 陪伴结果`,
+      content: `评分：${result.total} / ${result.max}\n\n${result.advice}`,
+      showCancel: false,
+      confirmText: '知道了',
+    });
+  },
+
+  // 关闭答题面板（点击遮罩）
+  onQuizOverlayTap() {
+    wx.showModal({
+      title: '确认退出',
+      content: '退出后答题进度将丢失，确定退出吗？',
       success: (res) => {
         if (res.confirm) {
-          this.resolveHelpEvent(eventId, optionId);
+          this.setData({ quizVisible: false });
         }
       },
     });
   },
 
-  // 解决帮助事件
-  resolveHelpEvent(eventId, optionId) {
-    wx.showLoading({ title: '处理中...' });
+  // 阻止点击面板时冒泡关闭
+  onQuizPanelTap() {
+    // do nothing, just stop propagation
+  },
 
-    setTimeout(() => {
-      wx.hideLoading();
+  // 解决帮助事件（通用）
+  resolveHelpEvent(eventId, resolvedInfo) {
+    const helpEvents = this.data.helpEvents.map((ev) => {
+      if (ev.id === eventId) {
+        return {
+          ...ev,
+          status: 'resolved',
+          resolvedText: resolvedInfo.resolvedText || '已完成陪伴',
+        };
+      }
+      return ev;
+    });
 
-      const event = this.data.helpEvents.find((ev) => ev.id === eventId);
-      const option = event && event.options.find((opt) => opt.id === optionId);
-
-      const helpEvents = this.data.helpEvents.map((ev) => {
-        if (ev.id === eventId) {
-          return {
-            ...ev,
-            status: 'resolved',
-            resolvedOptionId: optionId,
-            resolvedOptionText: option ? option.text : '未知选项',
-          };
-        }
-        return ev;
-      });
-
-      this.setData({ helpEvents });
-
-      wx.showToast({
-        title: '事件已解决',
-        icon: 'success',
-      });
-    }, 1000);
+    this.setData({ helpEvents });
   },
 });

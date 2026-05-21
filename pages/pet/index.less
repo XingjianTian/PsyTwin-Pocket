@@ -2693,17 +2693,37 @@
 .event-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .event-card {
-  background: rgba(253, 246, 227, 0.92);
-  backdrop-filter: blur(10rpx);
-  border-radius: 20rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.15);
-  border: 2rpx solid rgba(210, 180, 140, 0.3);
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(139, 115, 85, 0.1);
+  overflow: hidden;
   transition: all 0.3s ease;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 4rpx 20rpx rgba(139, 115, 85, 0.2);
+  }
+
+  /* 左侧危机程度色条 */
+  .severity-bar {
+    width: 8rpx;
+    flex-shrink: 0;
+  }
+
+  &.severity-high .severity-bar {
+    background: linear-gradient(180deg, #EF4444, #DC2626);
+  }
+  &.severity-medium .severity-bar {
+    background: linear-gradient(180deg, #F59E0B, #D97706);
+  }
+  &.severity-low .severity-bar {
+    background: linear-gradient(180deg, #10B981, #059669);
+  }
 
   &.resolved {
     opacity: 0.7;
@@ -2714,33 +2734,51 @@
       text-decoration: line-through;
       color: @text-secondary;
     }
-
-    .options-list {
-      display: none;
-    }
   }
+}
+
+.event-content {
+  flex: 1;
+  padding: 24rpx;
 }
 
 .event-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
-.event-type {
+.event-tags {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.event-severity-tag {
   font-size: 22rpx;
-  color: @primary-500;
-  background: @primary-50;
-  padding: 6rpx 16rpx;
-  border-radius: 12rpx;
-  font-weight: 500;
+  padding: 4rpx 14rpx;
+  border-radius: 10rpx;
+  font-weight: 600;
+
+  &.severity-high {
+    color: #DC2626;
+    background: #FEE2E2;
+  }
+  &.severity-medium {
+    color: #D97706;
+    background: #FEF3C7;
+  }
+  &.severity-low {
+    color: #059669;
+    background: #D1FAE5;
+  }
 }
 
 .event-status {
   font-size: 22rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 12rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 10rpx;
   font-weight: 500;
 
   &.pending {
@@ -2758,76 +2796,147 @@
   font-size: 30rpx;
   font-weight: bold;
   color: @text-primary;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 
 .event-desc {
   font-size: 26rpx;
   color: @text-secondary;
   line-height: 1.5;
-  margin-bottom: 20rpx;
+  margin-bottom: 12rpx;
 }
 
-.options-list {
+.event-tap-hint {
+  margin-top: 8rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed rgba(139, 115, 85, 0.15);
+
+  .tap-hint-text {
+    font-size: 24rpx;
+    color: @primary-500;
+  }
+}
+
+.resolved-info {
+  margin-top: 8rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed rgba(139, 115, 85, 0.15);
+
+  text {
+    font-size: 24rpx;
+    color: @primary-500;
+  }
+}
+
+/* ========== 答题面板 ========== */
+.quiz-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 40rpx;
+}
+
+.quiz-panel {
+  background: #fff;
+  border-radius: 32rpx;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.quiz-header {
+  padding: 32rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+
+  .quiz-title {
+    font-size: 34rpx;
+    font-weight: bold;
+    color: @text-primary;
+    display: block;
+    margin-bottom: 16rpx;
+  }
+
+  .quiz-progress-bar {
+    height: 8rpx;
+    background: #f0f0f0;
+    border-radius: 4rpx;
+    overflow: hidden;
+    margin-bottom: 8rpx;
+  }
+
+  .quiz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFB6C1, #FF69B4);
+    border-radius: 4rpx;
+    transition: width 0.3s ease;
+  }
+
+  .quiz-progress-text {
+    font-size: 22rpx;
+    color: @text-secondary;
+  }
+}
+
+.quiz-body {
+  padding: 32rpx;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.quiz-question {
+  font-size: 30rpx;
+  color: @text-primary;
+  line-height: 1.6;
+  margin-bottom: 32rpx;
+  font-weight: 500;
+}
+
+.quiz-options {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
 }
 
-.option-item {
-  background: rgba(253, 246, 227, 0.92);
-  backdrop-filter: blur(10rpx);
+.quiz-option {
+  background: #FAF7F2;
+  border: 2rpx solid rgba(139, 115, 85, 0.1);
   border-radius: 16rpx;
-  padding: 20rpx;
-  border: 2rpx solid rgba(210, 180, 140, 0.3);
+  padding: 24rpx 28rpx;
   transition: all 0.2s ease;
 
   &:active {
-    background: rgba(245, 236, 216, 0.95);
+    background: @primary-50;
     border-color: @primary-500;
     transform: scale(0.98);
   }
-}
 
-.option-text {
-  font-size: 28rpx;
-  color: @text-primary;
-  font-weight: 500;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.option-hint {
-  font-size: 24rpx;
-  color: @text-secondary;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.option-impact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-
-  text {
-    font-size: 22rpx;
-    color: @primary-500;
-    background: @primary-50;
-    padding: 6rpx 14rpx;
-    border-radius: 10rpx;
+  .quiz-option-text {
+    font-size: 28rpx;
+    color: @text-primary;
+    line-height: 1.5;
   }
 }
 
-.resolved-info {
-  background: rgba(245, 236, 216, 0.9);
-  backdrop-filter: blur(10rpx);
-  border-radius: 16rpx;
-  padding: 20rpx;
+.quiz-footer {
+  padding: 20rpx 32rpx 32rpx;
   text-align: center;
+  flex-shrink: 0;
 
-  text {
-    font-size: 26rpx;
-    color: @primary-500;
+  .quiz-footer-text {
+    font-size: 22rpx;
+    color: @text-secondary;
   }
 }
 
