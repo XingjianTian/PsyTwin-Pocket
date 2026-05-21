@@ -1531,7 +1531,7 @@ Page({
     this._initWebSocket();
     this.initCoins();
     this.initBagData();
-    this.initDiaryData();
+    // initDiaryData 移到 syncFromServer 完成后调用，避免竞态
     this.initHelpData();
     this.updatePetMarker();
     // 启动主心宠动画
@@ -1586,11 +1586,13 @@ Page({
     const result = await pullPetState(userId);
     if (!result.success) {
       console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
+      this.initDiaryData(); // 网络失败时从本地 storage 加载兜底
       return;
     }
 
-    const { state, generatedEvents, offlineSeconds } = result.data;
-    console.log(`[PetSync] 拉取成功, 离线 ${offlineSeconds}s, 事件 ${generatedEvents.length} 个`);
+    const { state, offlineSeconds, diaryGenerated } = result.data;
+    const generatedEvents = result.data.generatedEvents || [];
+    console.log(`[PetSync] 拉取成功, 离线 ${offlineSeconds}s, 日记 ${diaryGenerated ? diaryGenerated.length : 0} 篇`);
 
     // 用服务器状态覆盖本地
     const sceneInfo = this.getSceneInfo(state.sceneId);
@@ -1614,17 +1616,28 @@ Page({
       diaryDataMap: state.diaryDataMap || this.data.diaryDataMap,
     });
 
-    // 如果有离线事件，提示用户
-    if (generatedEvents.length > 0) {
-      const lastEvent = generatedEvents[generatedEvents.length - 1];
-      let toastText = '心宠在你离开时也在好好生活~';
-      if (lastEvent.type === 'scene_change') {
-        toastText = `心宠去了${sceneName}`;
-      } else if (lastEvent.type === 'event') {
-        toastText = `心宠${lastEvent.desc}`;
-      }
-      wx.showToast({ title: toastText, icon: 'none', duration: 2500 });
+    // 把服务器数据持久化到本地存储，保证离线时也能看到完整数据
+    if (state.diaryDataMap) {
+      wx.setStorageSync('petDiaryMap', state.diaryDataMap);
     }
+    if (state.activityLog) {
+      wx.setStorageSync('petActivityLog', state.activityLog);
+    }
+    if (typeof state.coins === 'number') {
+      const history = this.data.coinHistory || [];
+      wx.setStorageSync('petCoins', { amount: state.coins, history });
+    }
+    if (state.bagItems) {
+      wx.setStorageSync('petBagItems', state.bagItems);
+    }
+
+    // 如果离线时间较长，提示用户
+    if (offlineSeconds > 60) {
+      wx.showToast({ title: `心宠在你离开时也在好好生活~`, icon: 'none', duration: 2500 });
+    }
+
+    // 同步完成后刷新日记数据（确保日历和日记列表显示服务器数据）
+    this.initDiaryData();
   },
 
   /** 推送状态到服务器（小程序关闭/隐藏时调用） */
@@ -3838,8 +3851,11 @@ ${activities || '今天没有发生什么特别的事情'}
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
 
-    // 1. 从本地存储加载日记
-    const diaryDataMap = this.loadDiaryFromStorage();
+    // 1. 优先使用内存中的 diaryDataMap（可能已从服务器同步），否则从本地存储加载
+    let diaryDataMap = this.data.diaryDataMap;
+    if (!diaryDataMap || Object.keys(diaryDataMap).length === 0) {
+      diaryDataMap = this.loadDiaryFromStorage();
+    }
 
     // 2. 清理历史 fallback 日记：只保留 aiGenerated === true 的条目
     // 同时删除今天之前的空日期（没有真实日记的历史日期直接显示为空）

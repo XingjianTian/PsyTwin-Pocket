@@ -322,20 +322,94 @@ async function generateAiDiary(state, dateStr) {
 
 // ========== 数据持久化 ==========
 
+const MAX_LOG_RETENTION_DAYS = 7;      // activityLog 保留天数
+const MAX_DIARY_RETENTION_DAYS = 30;   // diaryDataMap 保留天数
+
+/**
+ * 清理和校验心宠状态数据
+ * - 如果时间戳在未来，重置为当前时间
+ * - 删除未来日期的数据
+ * - 限制 activityLog 保留天数
+ * - 限制 diaryDataMap 保留天数
+ */
+function sanitizeState(state) {
+  if (!state) return;
+  const nowMs = Date.now();
+  const now = new Date();
+  const todayStr = formatDateToStr(now);
+
+  // 1. 时间戳校验：如果 lastSyncAt 在未来（允许 60 秒误差），重置为当前时间
+  if (state.lastSyncAt > nowMs + 60000) {
+    console.warn(`[Sanitize] ${state.userId} lastSyncAt 在未来 (${new Date(state.lastSyncAt).toISOString()})，重置为当前时间`);
+    state.lastSyncAt = nowMs;
+  }
+
+  // 2. 清理 activityLog：删除未来日期和超过保留天数的旧数据
+  if (state.activityLog) {
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - MAX_LOG_RETENTION_DAYS);
+    const cutoffStr = formatDateToStr(cutoff);
+
+    for (const dateStr of Object.keys(state.activityLog)) {
+      if (dateStr > todayStr) {
+        console.warn(`[Sanitize] ${state.userId} 删除未来 activityLog: ${dateStr}`);
+        delete state.activityLog[dateStr];
+      } else if (dateStr < cutoffStr) {
+        delete state.activityLog[dateStr];
+      }
+    }
+  }
+
+  // 3. 清理 diaryDataMap：删除未来日期和超过保留天数的旧数据
+  if (state.diaryDataMap) {
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - MAX_DIARY_RETENTION_DAYS);
+    const cutoffStr = formatDateToStr(cutoff);
+
+    for (const dateStr of Object.keys(state.diaryDataMap)) {
+      if (dateStr > todayStr) {
+        console.warn(`[Sanitize] ${state.userId} 删除未来日记: ${dateStr}`);
+        delete state.diaryDataMap[dateStr];
+      } else if (dateStr < cutoffStr) {
+        delete state.diaryDataMap[dateStr];
+      }
+    }
+  }
+}
+
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      // 转换回 Map
       const map = new Map();
       for (const [key, value] of Object.entries(parsed)) {
-        map.set(key, value);
+        // 数据分离：JSON 只存持久化数据，实时状态用默认值
+        const state = getDefaultState(key);
+        state.diaryDataMap = value.diaryDataMap || {};
+        state.bagItems = value.bagItems || [];
+        state.coins = typeof value.coins === 'number' ? value.coins : 0;
+        state.activityLog = value.activityLog || {};
+        // 兼容旧格式：如果 JSON 中有合理的 lastSyncAt，使用它
+        if (value.lastSyncAt && value.lastSyncAt > 0 && value.lastSyncAt < Date.now() + 60000) {
+          state.lastSyncAt = value.lastSyncAt;
+        }
+        sanitizeState(state);
+        map.set(key, state);
       }
       return map;
     }
   } catch (err) {
     console.error('[Data] 加载数据失败:', err.message);
+    if (fs.existsSync(DATA_FILE)) {
+      const backupPath = DATA_FILE + '.corrupted.' + Date.now();
+      try {
+        fs.renameSync(DATA_FILE, backupPath);
+        console.log('[Data] 已备份损坏文件到', backupPath);
+      } catch (e) {
+        // 忽略备份错误
+      }
+    }
   }
   return new Map();
 }
@@ -346,9 +420,23 @@ function saveData(dataMap) {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
-      const obj = Object.fromEntries(dataMap);
-      fs.writeFileSync(DATA_FILE, JSON.stringify(obj, null, 2), 'utf-8');
-      console.log('[Data] 数据已保存到', DATA_FILE);
+      const persistent = {};
+      for (const [userId, state] of dataMap) {
+        sanitizeState(state);
+        // 只保存持久化数据：日记、物品、金币、活动日志
+        // 实时状态（mood/energy/social/sceneId/activity）不写入 JSON
+        persistent[userId] = {
+          userId: state.userId,
+          diaryDataMap: state.diaryDataMap || {},
+          bagItems: state.bagItems || [],
+          coins: state.coins || 0,
+          activityLog: state.activityLog || {},
+        };
+      }
+      const tempFile = DATA_FILE + '.tmp';
+      fs.writeFileSync(tempFile, JSON.stringify(persistent, null, 2), 'utf-8');
+      fs.renameSync(tempFile, DATA_FILE);
+      console.log('[Data] 持久化数据已保存到', DATA_FILE);
     } catch (err) {
       console.error('[Data] 保存数据失败:', err.message);
     }
@@ -359,10 +447,168 @@ function saveData(dataMap) {
 // 内存存储
 const petData = loadData();
 
-// ========== 离线进度模拟 ==========
+// ========== 持续运行引擎 ==========
 
+const tickContexts = new Map(); // userId -> { tickCount, lastTickHour, lastTickMinute, lastEventTickCount }
+const diaryQueue = [];
+let isProcessingDiary = false;
+
+/**
+ * 异步日记队列处理：在后台逐个调用 MiniMax 生成日记
+ * 不阻塞 tick 定时器
+ */
+async function processDiaryQueue() {
+  if (isProcessingDiary || diaryQueue.length === 0) return;
+  isProcessingDiary = true;
+
+  while (diaryQueue.length > 0) {
+    const { userId, state, dateStr } = diaryQueue.shift();
+    console.log(`[DiaryQueue] 为 ${userId} 生成 ${dateStr} 的日记...`);
+    const content = await generateAiDiary(state, dateStr);
+    if (content) {
+      if (!state.diaryDataMap) state.diaryDataMap = {};
+      if (!state.diaryDataMap[dateStr]) state.diaryDataMap[dateStr] = [];
+      state.diaryDataMap[dateStr].push({
+        id: `diary_${dateStr}_${Date.now()}`,
+        time: formatTimeStr(new Date()),
+        type: 'AI_DIARY',
+        content,
+        sceneId: state.sceneId,
+        moodBefore: Math.max(10, state.mood - 5),
+        moodAfter: state.mood,
+        energyBefore: Math.max(10, state.energy - 5),
+        energyAfter: state.energy,
+        socialBefore: Math.max(10, state.social - 5),
+        socialAfter: state.social,
+        generatedAt: new Date().toISOString(),
+        aiGenerated: true,
+      });
+      saveData(petData);
+      console.log(`[DiaryQueue] ✓ ${userId} 的 ${dateStr} 日记生成完成，长度 ${content.length}`);
+    }
+  }
+
+  isProcessingDiary = false;
+}
+
+/**
+ * 单次 tick：更新心宠一个时间步的状态
+ * 直接修改 state 对象
+ */
+function runSingleTick(state, nowMs) {
+  const userId = state.userId;
+  let ctx = tickContexts.get(userId);
+  if (!ctx) {
+    ctx = { tickCount: 0, lastTickHour: -1, lastTickMinute: -1, lastEventTickCount: -Infinity };
+    tickContexts.set(userId, ctx);
+  }
+
+  ctx.tickCount++;
+  const date = new Date(nowMs);
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
+  // 1. 状态波动（每tick）
+  state.mood = fluctuateValue(state.mood, 15, 90);
+  state.energy = fluctuateValue(state.energy, 20, 95);
+  state.social = fluctuateValue(state.social, 10, 85);
+
+  // 2. 每小时场景切换（整点tick）
+  if (hour !== ctx.lastTickHour) {
+    ctx.lastTickHour = hour;
+    const newScene = getSceneBySchedule(date);
+    if (newScene !== state.sceneId) {
+      console.log(`  ${formatTimeStr(date)} 心宠来到了「${newScene}」`);
+      state.sceneId = newScene;
+      state.activity = getActivityByScene(newScene);
+      state.activityStartTime = nowMs;
+      state.activityDuration = getActivityDuration(newScene);
+
+      const dateStr = formatDateToStr(date);
+      if (!state.activityLog) state.activityLog = {};
+      if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
+      state.activityLog[dateStr].push({
+        time: formatTimeStr(date),
+        type: 'scene_change',
+        scene: newScene,
+      });
+    }
+  }
+
+  // 3. 每5分钟行为变化检查
+  if (minute % 5 === 0 && minute !== ctx.lastTickMinute) {
+    ctx.lastTickMinute = minute;
+    const elapsedMin = (nowMs - state.activityStartTime) / (1000 * 60);
+    if (elapsedMin >= state.activityDuration) {
+      state.activity = getActivityByScene(state.sceneId);
+      state.activityStartTime = nowMs;
+      state.activityDuration = getActivityDuration(state.sceneId);
+    }
+  }
+
+  // 4. 随机事件（每6个tick即30秒，10%概率）
+  if (ctx.tickCount - ctx.lastEventTickCount >= 6 && Math.random() < 0.1) {
+    ctx.lastEventTickCount = ctx.tickCount;
+    const eventDesc = EVENT_TYPES[Math.floor(Math.random() * EVENT_TYPES.length)];
+    const moodDelta = Math.floor((Math.random() - 0.5) * 10);
+    state.mood = Math.max(15, Math.min(90, state.mood + moodDelta));
+
+    const dateStr = formatDateToStr(date);
+    console.log(`  ${formatTimeStr(date)} ${eventDesc}`);
+    if (!state.activityLog) state.activityLog = {};
+    if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
+    state.activityLog[dateStr].push({
+      time: formatTimeStr(date),
+      type: 'event',
+      desc: eventDesc,
+      moodDelta,
+    });
+  }
+
+  // 5. 每分钟记录状态快照（每12个tick）
+  if (ctx.tickCount > 0 && ctx.tickCount % 12 === 0) {
+    const dateStr = formatDateToStr(date);
+    if (!state.activityLog) state.activityLog = {};
+    if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
+    state.activityLog[dateStr].push({
+      time: formatTimeStr(date),
+      type: 'status_change',
+      mood: state.mood,
+      energy: state.energy,
+      social: state.social,
+    });
+  }
+
+  // 6. 日记触发检查（晚间20-23点，安静场景，有活动日志，今天没写过，40%概率）
+  let diaryTriggered = false;
+  let diaryDateStr = null;
+  if (hour >= 20 && hour <= 23) {
+    const dateStr = formatDateToStr(date);
+    const writingScenes = ['bedroom', 'dormitory', 'library', 'study_room', 'kitchen', 'garden'];
+    const isWritingScene = writingScenes.includes(state.sceneId);
+    const todayLog = state.activityLog[dateStr] || [];
+    const hasDiary = state.diaryDataMap && state.diaryDataMap[dateStr] && state.diaryDataMap[dateStr].length > 0;
+    if (isWritingScene && !hasDiary && todayLog.length >= 2 && Math.random() < 0.4) {
+      console.log(`  ${formatTimeStr(date)} 心宠想写日记了（今天有 ${todayLog.length} 件事可以写）`);
+      diaryTriggered = true;
+      diaryDateStr = dateStr;
+    }
+  }
+
+  state.lastSyncAt = nowMs;
+
+  // 每次 tick 后自动清理过期数据，防止数据无限增长
+  sanitizeState(state);
+
+  return { diaryTriggered, dateStr: diaryDateStr };
+}
+
+/**
+ * 离线进度模拟：服务器启动/加载时，一次性补偿停机期间的所有 tick
+ * 内部调用 runSingleTick 多次
+ */
 async function simulateOfflineProgress(state, nowMs) {
-  const TICK_MS = 5000; // 5秒一个tick，与小程序端一致
+  const TICK_MS = 5000;
   const deltaMs = nowMs - state.lastSyncAt;
 
   if (deltaMs <= 0 || state.lastSyncAt <= 0) {
@@ -376,117 +622,29 @@ async function simulateOfflineProgress(state, nowMs) {
     return { state, generatedEvents: [], ticks: 0, diaryGenerated: [] };
   }
 
-  console.log(`[Simulate] user=${state.userId}, 离线 ${Math.round(deltaMs / 1000)}s, 模拟 ${ticks} ticks`);
+  console.log(`【${state.userId}】服务器停机了 ${Math.round(deltaMs / 60000)} 分钟，为心宠补偿 ${ticks} 个 tick...`);
 
-  const generatedEvents = [];
-  const diaryPending = new Set(); // 记录需要生成日记的日期
-  let lastHour = -1;
-  let lastActivityMinute = -1;
-  let lastEventTick = -Infinity;
+  const diaryPending = new Set();
 
   for (let i = 0; i < ticks; i++) {
     const tickTime = state.lastSyncAt + (i + 1) * TICK_MS;
-    const date = new Date(tickTime);
-    const hour = date.getHours();
-    const minute = date.getMinutes();
-
-    // 1. 状态波动（每tick）
-    state.mood = fluctuateValue(state.mood, 15, 90);
-    state.energy = fluctuateValue(state.energy, 20, 95);
-    state.social = fluctuateValue(state.social, 10, 85);
-
-    // 2. 每小时场景切换（整点tick）
-    if (hour !== lastHour) {
-      lastHour = hour;
-      const newScene = getSceneBySchedule(date);
-      if (newScene !== state.sceneId) {
-        state.sceneId = newScene;
-        state.activity = getActivityByScene(newScene);
-        state.activityStartTime = tickTime;
-        state.activityDuration = getActivityDuration(newScene);
-        generatedEvents.push({
-          time: formatTimeStr(date),
-          type: 'scene_change',
-          scene: newScene,
-          tickTime,
-        });
-      }
-    }
-
-    // 3. 每5分钟行为变化检查
-    if (minute % 5 === 0 && minute !== lastActivityMinute) {
-      lastActivityMinute = minute;
-      const elapsedMin = (tickTime - state.activityStartTime) / (1000 * 60);
-      if (elapsedMin >= state.activityDuration) {
-        state.activity = getActivityByScene(state.sceneId);
-        state.activityStartTime = tickTime;
-        state.activityDuration = getActivityDuration(state.sceneId);
-      }
-    }
-
-    // 4. 随机事件（每6个tick即30秒，10%概率）
-    if (i - lastEventTick >= 6 && Math.random() < 0.1) {
-      lastEventTick = i;
-      const eventDesc = EVENT_TYPES[Math.floor(Math.random() * EVENT_TYPES.length)];
-      const moodDelta = Math.floor((Math.random() - 0.5) * 10);
-      state.mood = Math.max(15, Math.min(90, state.mood + moodDelta));
-      generatedEvents.push({
-        time: formatTimeStr(date),
-        type: 'event',
-        desc: eventDesc,
-        moodDelta,
-        tickTime,
-      });
-
-      // 写入活动日志（按日期分组）
-      const dateStr = formatDateToStr(date);
-      if (!state.activityLog) state.activityLog = {};
-      if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
-      state.activityLog[dateStr].push({
-        time: formatTimeStr(date),
-        type: 'event',
-        desc: eventDesc,
-        moodDelta,
-      });
-    }
-
-    // 5. 显著状态变化记录到日志
-    if (i > 0 && i % 12 === 0) { // 每分钟记录一次状态
-      const dateStr = formatDateToStr(date);
-      if (!state.activityLog) state.activityLog = {};
-      if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
-      state.activityLog[dateStr].push({
-        time: formatTimeStr(date),
-        type: 'status_change',
-        mood: state.mood,
-        energy: state.energy,
-        social: state.social,
-      });
-    }
-
-    // 6. 日记触发检查（晚间20-23点，安静场景，有活动日志，今天没写过，40%概率）
-    if (hour >= 20 && hour <= 23) {
-      const dateStr = formatDateToStr(date);
-      const writingScenes = ['bedroom', 'dormitory', 'library', 'study_room', 'study_room', 'kitchen', 'garden'];
-      const isWritingScene = writingScenes.includes(state.sceneId);
-      const todayLog = state.activityLog[dateStr] || [];
-      const hasDiary = state.diaryDataMap && state.diaryDataMap[dateStr] && state.diaryDataMap[dateStr].length > 0;
-      if (isWritingScene && !hasDiary && todayLog.length >= 2 && Math.random() < 0.4) {
-        diaryPending.add(dateStr);
-      }
+    const result = runSingleTick(state, tickTime);
+    if (result.diaryTriggered) {
+      diaryPending.add(result.dateStr);
     }
   }
 
-  // 7. 离线模拟结束后，统一生成待处理的日记
+  // 离线补偿结束后，统一生成待处理的日记
   const diaryGenerated = [];
   for (const dateStr of diaryPending) {
+    console.log(`  正在帮心宠写 ${dateStr} 的日记...`);
     const diaryContent = await generateAiDiary(state, dateStr);
     if (diaryContent) {
       if (!state.diaryDataMap) state.diaryDataMap = {};
       if (!state.diaryDataMap[dateStr]) state.diaryDataMap[dateStr] = [];
       state.diaryDataMap[dateStr].push({
         id: `diary_${dateStr}_${Date.now()}`,
-        time: '21:00',
+        time: formatTimeStr(new Date()),
         type: 'AI_DIARY',
         content: diaryContent,
         sceneId: state.sceneId,
@@ -500,11 +658,13 @@ async function simulateOfflineProgress(state, nowMs) {
         aiGenerated: true,
       });
       diaryGenerated.push(dateStr);
+      console.log(`  ✓ 日记写好了！`);
     }
   }
 
   state.lastSyncAt = nowMs;
-  return { state, generatedEvents, ticks, diaryGenerated };
+  console.log(`【${state.userId}】补偿完成，共执行 ${ticks} 个 tick，生成 ${diaryGenerated.length} 篇日记`);
+  return { state, generatedEvents: [], ticks, diaryGenerated };
 }
 
 // ========== 默认初始状态 ==========
@@ -532,9 +692,10 @@ function getDefaultState(userId) {
 
 /**
  * POST /api/pet/pull
- * 小程序启动时调用，获取服务器计算后的当前状态（包含离线进度）
+ * 小程序启动时调用，直接读取服务器内存中的实时状态
+ * 心宠状态由全局引擎持续更新，不需要离线模拟
  */
-app.post('/api/pet/pull', async (req, res) => {
+app.post('/api/pet/pull', (req, res) => {
   const { userId } = req.body;
   if (!userId) {
     return res.status(400).json({ code: 400, message: '缺少 userId' });
@@ -549,20 +710,17 @@ app.post('/api/pet/pull', async (req, res) => {
   }
 
   const nowMs = Date.now();
-  const result = await simulateOfflineProgress(state, nowMs);
-  petData.set(userId, result.state);
-  saveData(petData);
+  const idleMin = Math.floor((nowMs - state.lastSyncAt) / 60000);
 
-  console.log(`[API] pull user=${userId}, events=${result.generatedEvents.length}, diary=${result.diaryGenerated.length}, ticks=${result.ticks}`);
+  console.log(`【${userId}】主人打开了小程序，拉取心宠实时状态 | 在${state.sceneId}「${state.activity}」| 心情${state.mood} 精力${state.energy} 社交${state.social} | 离线${idleMin}分钟`);
 
   res.json({
     code: 0,
     message: 'success',
     data: {
-      state: result.state,
-      generatedEvents: result.generatedEvents,
-      diaryGenerated: result.diaryGenerated,
-      offlineSeconds: result.ticks * 5,
+      state,
+      diaryGenerated: [],
+      offlineSeconds: idleMin * 60,
     },
   });
 });
@@ -577,10 +735,52 @@ app.post('/api/pet/push', (req, res) => {
     return res.status(400).json({ code: 400, message: '缺少 userId 或 state' });
   }
 
-  // 补全必要字段
+  // 智能合并：保留服务器和小程序双方的日记、活动日志
+  const existing = petData.get(userId) || {};
+
+  // 合并日记：按日期分组，同一天的去重（按 id）
+  const mergedDiary = {};
+  const allDiarySources = [existing.diaryDataMap, state.diaryDataMap];
+  for (const src of allDiarySources) {
+    if (!src) continue;
+    for (const [date, entries] of Object.entries(src)) {
+      if (!mergedDiary[date]) mergedDiary[date] = [];
+      const existingIds = new Set(mergedDiary[date].map((e) => e.id));
+      for (const entry of entries) {
+        if (entry.id && !existingIds.has(entry.id)) {
+          mergedDiary[date].push(entry);
+          existingIds.add(entry.id);
+        } else if (!entry.id) {
+          // 无 id 的条目直接追加（兜底）
+          mergedDiary[date].push(entry);
+        }
+      }
+    }
+  }
+
+  // 合并活动日志：按日期分组，去重（按时间+类型+描述）
+  const mergedActivityLog = {};
+  const allLogSources = [existing.activityLog, state.activityLog];
+  for (const src of allLogSources) {
+    if (!src) continue;
+    for (const [date, entries] of Object.entries(src)) {
+      if (!mergedActivityLog[date]) mergedActivityLog[date] = [];
+      const existingKeys = new Set(mergedActivityLog[date].map((e) => `${e.time}_${e.type}_${e.desc || ''}`));
+      for (const entry of entries) {
+        const key = `${entry.time}_${entry.type}_${entry.desc || ''}`;
+        if (!existingKeys.has(key)) {
+          mergedActivityLog[date].push(entry);
+          existingKeys.add(key);
+        }
+      }
+    }
+  }
+
   const merged = {
-    ...petData.get(userId),
+    ...existing,
     ...state,
+    diaryDataMap: mergedDiary,
+    activityLog: mergedActivityLog,
     userId,
     lastSyncAt: Date.now(),
   };
@@ -588,7 +788,7 @@ app.post('/api/pet/push', (req, res) => {
   petData.set(userId, merged);
   saveData(petData);
 
-  console.log(`[API] push user=${userId}, scene=${merged.sceneId}, mood=${merged.mood}`);
+  console.log(`【${userId}】主人离开了，心宠状态已保存：${merged.activity}，心情${merged.mood}分`);
 
   res.json({ code: 0, message: 'success' });
 });
@@ -673,20 +873,80 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime(), users: petData.size });
 });
 
+// ========== 全局持续运行引擎 ==========
+// 服务器启动时，先补偿停机时间，再启动定时器
+(async function initEngine() {
+  console.log('[Engine] 启动心宠持续运行引擎...');
+  const nowMs = Date.now();
+
+  for (const [userId, state] of petData) {
+    await simulateOfflineProgress(state, nowMs);
+  }
+  saveData(petData);
+
+  console.log('[Engine] 停机补偿完成，启动实时 tick 定时器（每 5 秒）');
+
+  // 每 5 秒为所有活跃心宠执行一次 tick
+  setInterval(() => {
+    const now = Date.now();
+    for (const [userId, state] of petData) {
+      // 跳过超过 24 小时不活跃的用户
+      if (now - state.lastSyncAt > 24 * 3600 * 1000) continue;
+
+      const result = runSingleTick(state, now);
+      if (result.diaryTriggered) {
+        diaryQueue.push({ userId, state, dateStr: result.dateStr });
+        processDiaryQueue();
+      }
+    }
+    saveData(petData);
+  }, 5000);
+})();
+
+// ========== 定时状态播报 ==========
+setInterval(() => {
+  if (petData.size === 0) return;
+  console.log('');
+  console.log('--- 心宠们在做什么 ---');
+  for (const [userId, state] of petData) {
+    const diaryCount = Object.values(state.diaryDataMap || {}).reduce((sum, arr) => sum + arr.length, 0);
+    const idleMin = Math.floor((Date.now() - state.lastSyncAt) / 60000);
+    console.log(`  ${userId.slice(0, 16)} | 在${state.sceneId}「${state.activity}」| 心情${state.mood} 精力${state.energy} 社交${state.social} | 日记${diaryCount}篇 | 离线${idleMin}分钟`);
+  }
+  console.log('');
+}, 30000);
+
 // ========== 启动 ==========
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`===============================================`);
-  console.log(`  心宠离线状态服务器已启动`);
+  console.log(`  心宠持续运行服务器已启动`);
   console.log(`  端口: ${PORT}`);
   console.log(`  数据文件: ${DATA_FILE}`);
   console.log(`  当前用户: ${petData.size}`);
+  console.log(`  引擎模式: 全局 setInterval，每 5 秒 tick`);
+  console.log(`  日记模式: 异步队列，触发后后台调用 MiniMax`);
   console.log(`===============================================`);
   console.log('');
   console.log('API 端点:');
   console.log(`  POST http://localhost:${PORT}/api/pet/test-diary     - 测试日记生成`);
-  console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取状态（含离线进度）`);
+  console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取实时状态（直接读取内存）`);
   console.log(`  POST http://localhost:${PORT}/api/pet/push           - 推送状态`);
   console.log(`  GET  http://localhost:${PORT}/api/pet/status?userId=xxx  - 查看状态`);
   console.log(`  GET  http://localhost:${PORT}/health                 - 健康检查`);
   console.log('');
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n❌ 错误：端口 ${PORT} 已被占用`);
+    console.error('   可能是之前的服务器进程还在运行。');
+    console.error('');
+    console.error('   解决方案（在 PowerShell 中执行）：');
+    console.error('   Get-NetTCPConnection -LocalPort 3002 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }');
+    console.error('');
+    console.error('   或者手动结束所有 node.exe 进程，然后重新启动服务器。\n');
+    process.exit(1);
+  }
+  console.error('服务器启动错误:', err);
+  process.exit(1);
 });
