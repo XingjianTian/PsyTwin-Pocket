@@ -273,7 +273,7 @@ mode="aspectFill"
     <block wx:if="{{currentView === 'bag'}}">
       <view class="view-header">
         <text class="view-title">心宠背包</text>
-        <view class="bag-coins" bindtap="openShop">
+        <view class="bag-coins">
           <text class="bag-coins-icon">💰</text>
           <text class="bag-coins-value">{{coins}}</text>
         </view>
@@ -305,19 +305,13 @@ mode="aspectFill"
       </view>
       <!-- 物品网格 -->
       <scroll-view class="view-content bag-view" scroll-y>
-        <!-- 超市入口（放在网格内部随滚动） -->
-        <view class="shop-entry-bar" bindtap="openShop">
-          <text class="shop-entry-icon">🏪</text>
-          <text class="shop-entry-text">校园超市</text>
-          <text class="shop-entry-arrow">›</text>
-        </view>
         <view wx:if="{{bagLoading}}" class="view-loading">
           <text>加载中...</text>
         </view>
         <view wx:elif="{{bagItems.length === 0}}" class="view-empty">
           <text class="empty-icon">🎒</text>
           <text class="empty-text">背包空空如也</text>
-          <text class="empty-subtext">去校园超市买点东西吧~\n或者去教室、图书馆碰碰运气</text>
+          <text class="empty-subtext">去教室、图书馆碰碰运气\n说不定会有意外发现哦~</text>
         </view>
         <view wx:elif="{{filteredBagItems.length === 0}}" class="view-empty">
           <text class="empty-icon">📂</text>
@@ -652,44 +646,5 @@ mode="aspectFill"
     </view>
   </view>
 
-  <!-- ========== 校园超市弹窗 ========== -->
-  <view class="shop-modal {{showShop ? 'show' : ''}}" wx:if="{{showShop}}">
-    <view class="modal-mask" bindtap="closeShop"></view>
-    <view class="shop-panel">
-      <view class="shop-header">
-        <text class="shop-title">🏪 校园超市</text>
-        <view class="shop-coins">
-          <text class="shop-coins-icon">💰</text>
-          <text class="shop-coins-value">{{coins}}</text>
-        </view>
-        <view class="shop-close" bindtap="closeShop">✕</view>
-      </view>
-      <view class="shop-refresh-bar">
-        <text class="shop-refresh-text">每天6:00自动刷新</text>
-        <view class="shop-refresh-btn" bindtap="manualRefreshShop">
-          <text>🔄 刷新 (-{{shopRefreshCost}}💰)</text>
-        </view>
-      </view>
-      <scroll-view class="shop-grid" scroll-y>
-        <view class="shop-item-card" wx:for="{{shopItems}}" wx:key="itemId">
-          <view class="shop-item-icon">{{item.icon}}</view>
-          <view class="shop-item-info">
-            <view class="shop-item-name-row">
-              <text class="shop-item-name">{{item.name}}</text>
-              <view class="shop-item-rarity" style="background: {{RARITY[item.rarity].color}}20; color: {{RARITY[item.rarity].color}}">
-                {{RARITY[item.rarity].label}}
-              </view>
-            </view>
-            <text class="shop-item-desc">{{item.shortDesc}}</text>
-          </view>
-          <view class="shop-item-buy">
-            <text class="shop-item-price {{coins < item.price ? 'insufficient' : ''}}">💰{{item.price}}</text>
-            <view class="shop-buy-btn {{coins < item.price ? 'disabled' : ''}}" data-item-id="{{item.itemId}}" bindtap="purchaseItem">
-              购买
-            </view>
-          </view>
-        </view>
-      </scroll-view>
-    </view>
-  </view>
+
 </view>

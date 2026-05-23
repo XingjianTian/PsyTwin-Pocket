@@ -55,7 +55,7 @@ const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 const AI_MODULE = require('../../api/ai');
 
 // 心宠服务器同步 API
-const { pullPetState, pushPetState } = require('../../api/pet-server');
+const { pullPetState, pushPetState, fetchPetEvents, fetchPetQuiz } = require('../../api/pet-server');
 
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
@@ -1030,11 +1030,6 @@ Page({
     // ========== 物品详情弹窗 ==========
     showItemDetail: false,
     selectedItem: null,
-
-    // ========== 超市弹窗 ==========
-    showShop: false,
-    shopItems: [],
-    shopRefreshCost: 5,
 
     // 过滤后的背包物品（供 WXML 渲染）
     filteredBagItems: [],
@@ -3226,67 +3221,6 @@ Page({
     return sceneMap[sceneId] || sceneId;
   },
 
-  // ========== 校园超市 ==========
-
-  // 打开超市
-  openShop() {
-    this.refreshShopItems();
-    this.setData({ showShop: true });
-  },
-
-  // 关闭超市
-  closeShop() {
-    this.setData({ showShop: false });
-  },
-
-  // 刷新超市商品
-  refreshShopItems() {
-    // 随机选择 8-12 个物品
-    const count = 8 + Math.floor(Math.random() * 5);
-    const shuffled = ITEM_DATABASE.sort(() => Math.random() - 0.5);
-    const shopItems = shuffled.slice(0, count).map((item) => ({
-      ...item,
-      shopQuantity: 1,
-    }));
-    this.setData({ shopItems });
-  },
-
-  // 手动刷新超市（消耗金币）
-  manualRefreshShop() {
-    const cost = this.data.shopRefreshCost;
-    if (!this.spendCoins(cost, '刷新超市商品')) return;
-    this.refreshShopItems();
-    wx.showToast({ title: '商品已刷新', icon: 'success' });
-  },
-
-  // 购买物品
-  purchaseItem(e) {
-    const { itemId } = e.currentTarget.dataset;
-    const shopItem = this.data.shopItems.find((item) => item.itemId === itemId);
-    if (!shopItem) return;
-
-    const price = shopItem.price || 0;
-    if (price > 0 && !this.spendCoins(price, `购买${shopItem.name}`)) {
-      return;
-    }
-
-    // 添加到背包
-    const bagItems = [...this.data.bagItems];
-    const existing = bagItems.find((i) => i.itemId === itemId);
-    if (existing) {
-      existing.quantity = Math.min(existing.quantity + 1, existing.maxStack || 99);
-    } else {
-      const newItem = this.createBagItem(itemId, 1);
-      if (newItem) bagItems.push(newItem);
-    }
-
-    this.setData({ bagItems }, () => {
-      this.saveBagToStorage();
-    });
-
-    wx.showToast({ title: `购买了${shopItem.name}`, icon: 'success' });
-  },
-
   // ========== 物品获取途径 ==========
 
   // 场景探索发现物品
@@ -4022,8 +3956,31 @@ ${activities || '今天没有发生什么特别的事情'}
 
   // ========== 帮助事件 ==========
 
-  // 初始化帮助数据
+  // 初始化帮助数据（优先从服务器获取预警模拟数据）
   initHelpData() {
+    this.setData({ helpLoading: true });
+
+    const userId = this.getPetUserId();
+    fetchPetEvents(userId)
+      .then((result) => {
+        if (result.success && result.data && result.data.events && result.data.events.length > 0) {
+          this.setData({
+            helpEvents: result.data.events,
+            helpLoading: false,
+          });
+          console.log('[Help] 从服务器加载事件:', result.data.events.length, '个');
+        } else {
+          this.loadLocalHelpEvents();
+        }
+      })
+      .catch((err) => {
+        console.log('[Help] 服务器获取失败，使用本地事件:', err);
+        this.loadLocalHelpEvents();
+      });
+  },
+
+  // 本地兜底事件（服务器不可用时使用）
+  loadLocalHelpEvents() {
     const mockEvents = [
       {
         id: 'evt_001',
@@ -4101,9 +4058,24 @@ ${activities || '今天没有发生什么特别的事情'}
     }
   },
 
-  // 启动答题
-  startQuiz(event) {
-    const scale = getScaleForCategory(event.category);
+  // 启动答题（优先从服务器获取随机题目）
+  async startQuiz(event) {
+    wx.showLoading({ title: '加载题目...', mask: true });
+
+    const result = await fetchPetQuiz(event.category);
+    let scale = null;
+
+    if (result.success && result.data && result.data.questions && result.data.questions.length > 0) {
+      scale = result.data;
+      console.log('[Quiz] 从服务器加载题目:', scale.questions.length, '道');
+    } else {
+      // fallback 到本地固定题库
+      scale = getScaleForCategory(event.category);
+      console.log('[Quiz] 服务器获取失败，使用本地题库');
+    }
+
+    wx.hideLoading();
+
     if (!scale || !scale.questions || scale.questions.length === 0) {
       wx.showToast({ title: '暂无相关题目', icon: 'none' });
       return;

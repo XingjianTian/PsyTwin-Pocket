@@ -882,6 +882,283 @@ app.post('/api/pet/test-diary', async (req, res) => {
 });
 
 /**
+ * POST /api/pet/events
+ * 根据心宠当前状态生成帮助事件列表（预警模拟）
+ * 每次请求基于实时状态动态生成，确保事件不固定
+ */
+app.post('/api/pet/events', (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ code: 400, message: '缺少 userId' });
+  }
+
+  const state = petData.get(userId);
+  if (!state) {
+    return res.status(404).json({ code: 404, message: '用户未找到' });
+  }
+
+  const events = generateHelpEvents(state);
+
+  res.json({
+    code: 0,
+    message: 'success',
+    data: { events },
+  });
+});
+
+/**
+ * 根据心宠三维状态动态生成帮助事件
+ * 状态越低，生成高危事件概率越高
+ * @param {Object} state - 心宠状态
+ * @returns {Array} 事件列表
+ */
+function generateHelpEvents(state) {
+  const events = [];
+  const now = Date.now();
+  const idPrefix = `evt_${Date.now()}`;
+
+  // 情绪事件（基于 mood）
+  if (state.mood < 25) {
+    events.push({
+      id: `${idPrefix}_emotion_high`,
+      type: 'large',
+      category: 'emotion',
+      severity: 'high',
+      title: '情绪低落',
+      description: '心宠最近总是闷闷不乐，对什么都提不起兴趣，它需要你的陪伴和安慰。',
+      status: 'pending',
+      deadline: now + 24 * 60 * 60 * 1000,
+    });
+  } else if (state.mood < 45) {
+    events.push({
+      id: `${idPrefix}_emotion_medium`,
+      type: 'daily',
+      category: 'emotion',
+      severity: 'medium',
+      title: '心情不佳',
+      description: '心宠今天看起来有点失落，也许是一次小小的陪伴就能让它开心起来。',
+      status: 'pending',
+      deadline: now + 12 * 60 * 60 * 1000,
+    });
+  }
+
+  // 学习/精力事件（基于 energy）
+  if (state.energy < 25) {
+    events.push({
+      id: `${idPrefix}_study_high`,
+      type: 'large',
+      category: 'study',
+      severity: 'high',
+      title: '精力透支',
+      description: '心宠看起来疲惫不堪，像是经历了一场漫长的跋涉，它需要好好休息。',
+      status: 'pending',
+      deadline: now + 24 * 60 * 60 * 1000,
+    });
+  } else if (state.energy < 45) {
+    events.push({
+      id: `${idPrefix}_study_medium`,
+      type: 'daily',
+      category: 'study',
+      severity: 'medium',
+      title: '有点累',
+      description: '心宠最近似乎有些疲惫，也许是时候放慢脚步，给自己一点喘息的空间。',
+      status: 'pending',
+      deadline: now + 12 * 60 * 60 * 1000,
+    });
+  }
+
+  // 社交事件（基于 social）
+  if (state.social < 25) {
+    events.push({
+      id: `${idPrefix}_social_high`,
+      type: 'large',
+      category: 'social',
+      severity: 'high',
+      title: '社交孤立',
+      description: '心宠很久没有和其他小伙伴互动了，它看起来很孤单，需要有人陪它说说话。',
+      status: 'pending',
+      deadline: now + 24 * 60 * 60 * 1000,
+    });
+  } else if (state.social < 45) {
+    events.push({
+      id: `${idPrefix}_social_medium`,
+      type: 'daily',
+      category: 'social',
+      severity: 'medium',
+      title: '想交朋友',
+      description: '心宠看着其他小伙伴在一起玩耍，眼中流露出一丝羡慕，它需要一点勇气去结识新朋友。',
+      status: 'pending',
+      deadline: now + 12 * 60 * 60 * 1000,
+    });
+  }
+
+  // 如果状态都很好，生成一个随机的低风险事件
+  if (events.length === 0) {
+    const lowEvents = [
+      {
+        id: `${idPrefix}_low_0`,
+        type: 'daily',
+        category: 'emotion',
+        severity: 'low',
+        title: '想散步',
+        description: '心宠今天心情不错，想出去走走，看看外面的世界。',
+        status: 'pending',
+        deadline: now + 48 * 60 * 60 * 1000,
+      },
+      {
+        id: `${idPrefix}_low_1`,
+        type: 'daily',
+        category: 'study',
+        severity: 'low',
+        title: '好奇宝宝',
+        description: '心宠对周围的一切充满了好奇，它想尝试一些新鲜的事物。',
+        status: 'pending',
+        deadline: now + 48 * 60 * 60 * 1000,
+      },
+      {
+        id: `${idPrefix}_low_2`,
+        type: 'daily',
+        category: 'social',
+        severity: 'low',
+        title: '分享快乐',
+        description: '心宠最近遇到了一些开心的事，它很想和你分享这份喜悦。',
+        status: 'pending',
+        deadline: now + 48 * 60 * 60 * 1000,
+      },
+    ];
+    events.push(lowEvents[Math.floor(Math.random() * lowEvents.length)]);
+  }
+
+  return events;
+}
+
+/**
+ * POST /api/pet/quiz
+ * 根据事件分类返回随机抽取的心理测评题目
+ * 每次从完整题库中随机抽取，确保答题内容不固定
+ */
+app.post('/api/pet/quiz', (req, res) => {
+  const { category } = req.body;
+  if (!category) {
+    return res.status(400).json({ code: 400, message: '缺少 category 参数' });
+  }
+
+  const quizData = generateRandomQuiz(category);
+  if (!quizData) {
+    return res.status(404).json({ code: 404, message: '未找到对应分类的题目' });
+  }
+
+  res.json({
+    code: 0,
+    message: 'success',
+    data: quizData,
+  });
+});
+
+/**
+ * 引入本地题库并随机抽取题目
+ */
+let quizDB = null;
+try {
+  quizDB = require('../utils/quizDatabase');
+} catch (err) {
+  console.warn('[Quiz] 无法加载 quizDatabase.js，将使用内置备用题库:', err.message);
+}
+
+/**
+ * 内置备用题库（当无法加载 quizDatabase.js 时使用）
+ */
+const FALLBACK_QUESTIONS = {
+  emotion: [
+    { id: 'f1', text: '心宠最近对平时喜欢的活动完全提不起兴趣，你觉得它……', options: [{ text: '🌟 和以前一样开心', score: 0 }, { text: '😔 有几天不太想动', score: 1 }, { text: '🌧️ 一半以上时间都没精打采', score: 2 }, { text: '💤 几乎每天都不愿意出门', score: 3 }] },
+    { id: 'f2', text: '心宠最近总觉得特别累，哪怕什么都没做也像跑了一场马拉松，你觉得它……', options: [{ text: '⚡ 精力充沛', score: 0 }, { text: '🥱 偶尔犯困', score: 1 }, { text: '😪 经常觉得累', score: 2 }, { text: '🛌 几乎每天都疲惫不堪', score: 3 }] },
+    { id: 'f3', text: '心宠最近是不是很容易责怪自己，觉得自己什么都做不好？', options: [{ text: '😊 觉得自己很棒', score: 0 }, { text: '😕 偶尔小失落', score: 1 }, { text: '😢 经常觉得失败', score: 2 }, { text: '💔 总是怪自己', score: 3 }] },
+    { id: 'f4', text: '心宠最近对未来好像提不起期待，觉得做什么都没意思？', options: [{ text: '🌈 充满期待', score: 0 }, { text: '☁️ 偶尔平淡', score: 1 }, { text: '🌫️ 经常觉得没劲', score: 2 }, { text: '🌑 几乎看不到希望', score: 3 }] },
+    { id: 'f5', text: '心宠最近是不是入睡困难，或者睡醒了还是觉得累？', options: [{ text: '😴 睡得很好', score: 0 }, { text: '🌙 偶尔失眠', score: 1 }, { text: '⏰ 经常睡不着或早醒', score: 2 }, { text: '🥀 几乎每天都睡不好', score: 3 }] },
+    { id: 'f6', text: '心宠最近胃口怎么样？', options: [{ text: '🍜 胃口很好', score: 0 }, { text: '🍞 偶尔没胃口', score: 1 }, { text: '🥗 经常不想吃东西', score: 2 }, { text: '💨 几乎什么都吃不下', score: 3 }] },
+  ],
+  study: [
+    { id: 's1', text: '心宠最近总是担心各种事情停不下来，你觉得它……', options: [{ text: '😌 很放松', score: 0 }, { text: '🤔 偶尔担心', score: 1 }, { text: '😰 经常担心', score: 2 }, { text: '😱 几乎每天坐立不安', score: 3 }] },
+    { id: 's2', text: '心宠是不是对小事情都担忧过多？', options: [{ text: '✨ 想得开', score: 0 }, { text: '📝 偶尔多想', score: 1 }, { text: '🔄 经常翻来覆去想', score: 2 }, { text: '🌀 几乎每件事都担心很久', score: 3 }] },
+    { id: 's3', text: '心宠最近是不是坐不住，总是焦躁，很难安静下来？', options: [{ text: '🧘 能安静专注', score: 0 }, { text: '🐿️ 偶尔坐不住', score: 1 }, { text: '🏃 经常焦躁不安', score: 2 }, { text: '⚡ 几乎静不下来', score: 3 }] },
+    { id: 's4', text: '心宠最近是不是很容易变得烦躁或急躁？', options: [{ text: '😊 脾气很好', score: 0 }, { text: '😤 偶尔不耐烦', score: 1 }, { text: '😠 经常着急', score: 2 }, { text: '🤯 几乎每天很容易发火', score: 3 }] },
+    { id: 's5', text: '心宠最近是不是感觉肌肉紧张，或者身体某些部位不舒服？', options: [{ text: '💪 身体放松', score: 0 }, { text: '🤏 偶尔紧绷', score: 1 }, { text: '😣 经常感到紧张', score: 2 }, { text: '😖 几乎每天都身体不适', score: 3 }] },
+    { id: 's6', text: '心宠最近是不是觉得很难集中精力做一件事？', options: [{ text: '🎯 注意力集中', score: 0 }, { text: '🌪️ 偶尔走神', score: 1 }, { text: '📉 经常分心', score: 2 }, { text: '🚫 几乎无法集中注意力', score: 3 }] },
+  ],
+  social: [
+    { id: 'so1', text: '当有其他小精灵在场时，心宠会感到紧张或不自在吗？', options: [{ text: '🤗 很自在', score: 0 }, { text: '😶 偶尔害羞', score: 1 }, { text: '😓 经常紧张', score: 2 }, { text: '😰 几乎每次都很害怕', score: 3 }] },
+    { id: 'so2', text: '心宠会主动避开需要和其他精灵一起参与的活动吗？', options: [{ text: '🎉 积极参加', score: 0 }, { text: '🏠 偶尔婉拒', score: 1 }, { text: '🚪 经常找借口', score: 2 }, { text: '🔒 几乎不参与', score: 3 }] },
+    { id: 'so3', text: '心宠是不是担心自己在别的精灵面前出丑或被嘲笑？', options: [{ text: '💪 自信满满', score: 0 }, { text: '🙈 偶尔担心', score: 1 }, { text: '😣 经常害怕被笑话', score: 2 }, { text: '😢 几乎每天担心别人看法', score: 3 }] },
+    { id: 'so4', text: '心宠面对不熟悉的精灵时，是不是很难开口说话？', options: [{ text: '👋 主动热情', score: 0 }, { text: '😊 等别人先开口', score: 1 }, { text: '🤐 经常沉默', score: 2 }, { text: '🫥 几乎说不出话', score: 3 }] },
+    { id: 'so5', text: '心宠是不是害怕成为别人注意的焦点？', options: [{ text: '⭐ 喜欢被关注', score: 0 }, { text: '🌿 偶尔不自在', score: 1 }, { text: '🍂 经常想躲起来', score: 2 }, { text: '🌑 极度害怕被注视', score: 3 }] },
+    { id: 'so6', text: '心宠在集体活动后，是不是会反复回想自己有没有说错话？', options: [{ text: '😌 从不回想', score: 0 }, { text: '🤔 偶尔想一下', score: 1 }, { text: '🔄 经常反复回想', score: 2 }, { text: '🌀 几乎每次都想很久', score: 3 }] },
+  ],
+};
+
+/**
+ * 根据分类生成随机题目组
+ * @param {string} category - emotion | study | social
+ * @returns {Object|null} { id, name, category, questions, scoring }
+ */
+function generateRandomQuiz(category) {
+  const map = { emotion: 'PHQ9', study: 'GAD7', social: 'SOCIAL' };
+  const scaleId = map[category] || 'PHQ9';
+
+  let allQuestions = [];
+  let scaleMeta = null;
+
+  // 优先使用 quizDatabase.js 的题库
+  if (quizDB && quizDB.SCALES && quizDB.SCALES[scaleId]) {
+    const scale = quizDB.SCALES[scaleId];
+    allQuestions = scale.questions ? [...scale.questions] : [];
+    scaleMeta = {
+      id: scale.id,
+      name: scale.name,
+      category: scale.category,
+      scoring: scale.scoring,
+    };
+  }
+
+  // 如果加载失败或题目不够，混入备用题库
+  const fallbackList = FALLBACK_QUESTIONS[category] || FALLBACK_QUESTIONS.emotion;
+  if (allQuestions.length < 4) {
+    const existingIds = new Set(allQuestions.map((q) => q.id));
+    for (const q of fallbackList) {
+      if (!existingIds.has(q.id)) {
+        allQuestions.push(q);
+        existingIds.add(q.id);
+      }
+    }
+    if (!scaleMeta) {
+      scaleMeta = {
+        id: scaleId,
+        name: category === 'emotion' ? '心宠情绪观察' : category === 'study' ? '心宠担忧观察' : '心宠社交观察',
+        category,
+        scoring: {
+          ranges: [
+            { max: 3, label: '状态良好', color: 'green', advice: '心宠状态不错，继续保持温馨陪伴吧！' },
+            { max: 6, label: '轻度关注', color: 'orange', advice: '心宠最近有点累，多带它晒晒太阳、聊聊天~' },
+            { max: 12, label: '需要关注', color: 'red', advice: '心宠需要更多关爱，建议预约一次线下心理咨询。' },
+          ],
+        },
+      };
+    }
+  }
+
+  if (allQuestions.length === 0) return null;
+
+  // 随机抽取 4 道题目（如果题库不足 4 道则取全部）
+  const targetCount = Math.min(4, allQuestions.length);
+  const shuffled = allQuestions.sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, targetCount);
+
+  return {
+    ...scaleMeta,
+    questions: selected,
+  };
+}
+
+/**
  * GET /health
  * 健康检查
  */
@@ -947,6 +1224,8 @@ const server = app.listen(PORT, () => {
   console.log(`  POST http://localhost:${PORT}/api/pet/test-diary     - 测试日记生成`);
   console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取实时状态（直接读取内存）`);
   console.log(`  POST http://localhost:${PORT}/api/pet/push           - 推送状态`);
+  console.log(`  POST http://localhost:${PORT}/api/pet/events         - 获取帮助事件列表（预警模拟）`);
+  console.log(`  POST http://localhost:${PORT}/api/pet/quiz           - 获取随机测评题目`);
   console.log(`  GET  http://localhost:${PORT}/api/pet/status?userId=xxx  - 查看状态`);
   console.log(`  GET  http://localhost:${PORT}/health                 - 健康检查`);
   console.log('');

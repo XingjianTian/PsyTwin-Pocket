@@ -52,7 +52,7 @@ Page({
         quantity: 5,
         effect: { energy: 20 },
         icon: '🥤',
-        source: '商店购买',
+        source: '场景探索',
       },
       {
         itemId: 'item_005',

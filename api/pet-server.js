@@ -87,7 +87,87 @@ export async function pushPetState(userId, state) {
   }
 }
 
+/**
+ * 从服务器获取帮助事件列表（预警模拟）
+ * @param {string} userId 用户ID
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function fetchPetEvents(userId) {
+  if (!userId) {
+    return { success: false, error: '缺少 userId' };
+  }
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      wx.request({
+        url: `${petSyncUrl}/api/pet/events`,
+        method: 'POST',
+        data: { userId },
+        dataType: 'json',
+        header: { 'content-type': 'application/json' },
+        success(res) {
+          resolve(res.data);
+        },
+        fail(err) {
+          reject(err);
+        },
+      });
+    });
+
+    if (response.code !== 0) {
+      return { success: false, error: response.message || '获取事件失败' };
+    }
+
+    console.log('[PetServer] fetchEvents 成功:', response.data);
+    return { success: true, data: response.data };
+  } catch (err) {
+    console.error('[PetServer] fetchEvents 失败:', err);
+    return { success: false, error: err.message || '网络请求失败' };
+  }
+}
+
+/**
+ * 从服务器获取随机测评题目
+ * @param {string} category 事件分类: emotion | study | social
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function fetchPetQuiz(category) {
+  if (!category) {
+    return { success: false, error: '缺少 category' };
+  }
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      wx.request({
+        url: `${petSyncUrl}/api/pet/quiz`,
+        method: 'POST',
+        data: { category },
+        dataType: 'json',
+        header: { 'content-type': 'application/json' },
+        success(res) {
+          resolve(res.data);
+        },
+        fail(err) {
+          reject(err);
+        },
+      });
+    });
+
+    if (response.code !== 0) {
+      return { success: false, error: response.message || '获取题目失败' };
+    }
+
+    console.log('[PetServer] fetchQuiz 成功:', response.data);
+    return { success: true, data: response.data };
+  } catch (err) {
+    console.error('[PetServer] fetchQuiz 失败:', err);
+    return { success: false, error: err.message || '网络请求失败' };
+  }
+}
+
 export default {
   pullPetState,
   pushPetState,
+  fetchPetEvents,
+  fetchPetQuiz,
 };
