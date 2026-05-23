@@ -36,6 +36,12 @@ PsyTwin-Pocket 是 **PsyTwin 生态系统** 的前端触角，与 **Sentinel**�
 
 通过多模态数据在数字世界中构建学生心理画像，实现从「手机端日常情绪感知」到「VR 端深度干预」的完整服务闭环。
 
+### 当前导航与角色
+
+- **学生端**：当前使用自定义 TabBar，主入口为「心墙 / 心宠 / AI / 预约 / 我的」，非 Tab 页面通过分包承载通知、测评、VR 记录、帖子详情、搜索等功能。
+- **教师端**：登录时可切换教师角色，底部导航会切换为「心墙 / AI / 工作台 / 我的」，并开放 `pages/teacher/*` 下的预警列表、预约管理、学生管理等页面。
+- **消息与测评承载方式**：通知中心、心理测评、VR 记录都已经作为独立页面接入，后续可以继续承载“心宠事件化”的测评题推送、邀约通知和 VR 体验入口。
+
 ---
 
 ## 🏗️ PsyTwin 生态系统
@@ -101,7 +107,7 @@ PsyTwin 是一套完整的**校园心理健康数字孪生解决方案**，由�
 | 子项目 | 定位 | 目标用户 | 核心功能 | 技术栈 | 仓库链接 |
 |--------|------|----------|----------|--------|----------|
  **[PsyTwin-Sentinel](https://github.com/XingjianTian/PsyTwin-Sentinel)** | **后端中台** | 心理教师<br>学校管理层 | • 多模态数据实时监控<br>• 风险预警与溯源<br>• 学生心理孪生档案<br>• 干预工单管理<br>• 预约调度管理 | Next.js 16<br>React 19<br>TypeScript<br>PostgreSQL<br>Redis | [Sentinel](https://github.com/XingjianTian/PsyTwin-Sentinel) |
-| **[PsyTwin-Pocket](https://github.com/XingjianTian/PsyTwin-Pocket)**<br>📱 **本仓库** | **移动端入口** | 在校学生<br>教师 | • 心墙瀑布流社交<br>• AI 心理咨询 (Therapist)<br>• 心理画像查看<br>• 线上预约服务<br>• 消息通知中心 | 微信小程序<br>TDesign<br>LESS | **本仓库** |
+| **[PsyTwin-Pocket](https://github.com/XingjianTian/PsyTwin-Pocket)**<br>📱 **本仓库** | **移动端入口** | 在校学生<br>教师 | • 心墙瀑布流社交<br>• 心宠陪伴小游戏<br>• AI 心理咨询 (Therapist)<br>• 心理画像查看<br>• 线上预约服务<br>• 消息通知中心 | 微信小程序<br>TDesign<br>LESS | **本仓库** |
 | **[PsyTwin-Companion](https://github.com/XingjianTian/PsyTwin-Companion)** | **边缘网关** | 系统对接<br>(Raspberry Pi) | • 多模态数据采集 (生理/语音/脑电)<br>• 实时数据转发 (WebSocket)<br>• 百度 ASR 语音转写<br>• 百度 TTS 语音合成<br>• 设备管理 | Node.js<br>TypeScript<br>Python<br>Docker | [Companion](https://github.com/XingjianTian/PsyTwin-Companion) |
 | **[PsyTwin-OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw)** | **AI 编排** | AI 代理 | • main (首席数据官) - 全链路监控<br>• Collector (采集员) - 多模态采集<br>• Therapist (咨询师) - VR干预策略<br>• Relayer (中继工程师) - 边缘处理<br>• DBA (数据哨兵) - 数据整理<br>• Analyst (分析师) - 特征提取<br>• 多 Agent 协作编排 | Python<br>FastAPI<br>WebSocket | [OpenClaw](https://github.com/XingjianTian/PsyTwin-OpenClaw) |
 
@@ -228,59 +234,45 @@ PsyTwin 是一套完整的**校园心理健康数字孪生解决方案**，由�
 
 ```
 心宠模块 (pages/pet/)
-├── 游戏视图 (game)
-│   ├── 三维状态栏（心情/能量/社交）
-│   ├── CSS 精灵动画（弹跳、移动）
-│   └── 场景背景与装饰
-├── 世界地图 (map)
-│   ├── 5 个一级场景（奇幻空间/梦境小屋/自由旷野/心灵港湾/学校）
-│   └── 24 个二级场景（每个一级场景下 3-6 个，分散分布）
-├── 帮助事件 (help)
-│   ├── 大型事件触发（模拟/WebSocket）
-│   └── 4 选项决策影响三维状态
-├── 心宠背包 (bag)
-│   └── 物品查看（食物/玩具/装饰/礼物）
-└── 心情日记 (diary)
-    └── 7 天时间线记录
+├── 主游戏视图
+│   ├── 心情 / 能量 / 社交 三维状态
+│   ├── 心宠动画、场景背景、全屏模式
+│   └── 其他心宠同场景互动与对话
+├── 世界地图
+│   ├── 5 个一级区域
+│   ├── 24 个二级场景
+│   └── 当前心宠位置标记与场景切换
+├── 帮助事件
+│   ├── 本地随机触发
+│   ├── WebSocket 实时推送
+│   └── 多选项决策影响状态
+├── 背包与商店
+│   ├── 校园主题物品库
+│   ├── 探索拾取 / 老师发放 / 商店购买
+│   └── 物品使用、出售、筛选
+└── 心情日记
+    ├── 活动日志沉淀
+    └── AI 自动生成日记
 ```
 
-#### 核心交互
+#### 当前已实现能力
 
-**三维状态系统**：
-- 心情（0-100）、能量（0-100）、社交（0-100）
-- 每 5 秒随机波动 ±3，边界限制保护
-- 低值警告（< 30%）：图标抖动 + 文字脉冲 + 进度条变色
-
-**心宠精灵**：
-- 纯 CSS 绘制：粉色圆形身体 + 眼睛 + 腮红 + 微笑 + 💕 耳朵
-- 持续弹跳动画 + 平滑移动（每 3 秒 40% 概率随机移动）
-- 边界限制在底部草地区域
-
-**场景系统**：
-- 5 个一级场景，24 个二级场景（分散坐标布局）
-- 心宠只能进入二级场景，一级场景仅作入口
-- 用户主动切换 / 心宠自主切换（15 秒 30% 概率）
-- 场景编辑模式：支持拖拽调整二级场景位置，导出配置
-
-**帮助事件**：
-- 触发方式：模拟触发（30 秒 10% 概率）/ WebSocket 推送
-- 事件类型：大型/中型/小型，影响情绪/学习/社交
-- 4 选项决策，影响三维状态，解决后记录日记
-
-#### 技术实现
-
-- **状态波动**：`fluctuateValue(value, min, max)` 随机算法
-- **自主移动**：`wx.createAnimation` 平滑过渡（1.5 秒 ease-in-out）
-- **场景切换**：一级场景点击 → 二级场景弹窗确认 → 更新 currentSceneId
-- **WebSocket**：`utils/petWebSocket.js` 实时状态同步、事件触发
-- **动画系统**：10+ 种 CSS 动画（弹跳、抖动、脉冲、浮动、弹入等）
+- **陪伴主界面**：心宠已接入底部 Tab，主界面支持三维状态展示、场景背景切换、时间信息、全屏沉浸模式和主心宠动画帧播放。
+- **自主行为与陪伴感**：除了主心宠，场景里还会出现其他心宠；系统支持按时段切换活动地点、随机事件、同场景对话和状态波动，让角色更像“在校园里生活”。
+- **地图探索**：已实现一级世界地图 + 二级场景地图，支持进入场景、查看当前位置，内部还保留了编辑模式，方便后续继续微调场景坐标。
+- **背包循环**：已有独立物品数据库，支持探索拾取、老师发放、商店购买、物品使用与出售，内容明显偏校园生活化。
+- **日记系统**：心宠会按活动日志沉淀日常记录，并在合适时机结合 AI 自动生成日记，形成最近几天的可回看内容。
+- **事件机制**：帮助事件已经做成可选择分支，用户选择会直接影响心情、能量、社交等状态，也适合作为后续承载测评问题、提醒通知和 VR 邀约的交互入口。
+- **实时同步能力**：项目内已有 `utils/petWebSocket.js`，支持认证、心跳、自动重连、事件推送和场景同步，为后续和后端持续联动留好了接口。
 
 #### 文件位置
 
-- `pages/pet/index.js` - 心宠主逻辑（~1260 行，含状态/场景/背包/日记/事件/编辑模式）
-- `pages/pet/index.wxml` - 五视图切换（game/map/bag/diary/help）
-- `pages/pet/index.less` - 精灵绘制、动画、场景布局、编辑模式样式
+- `pages/pet/index.js` - 心宠主逻辑（状态、地图、背包、日记、事件、编辑模式）
+- `pages/pet/index.wxml` - 心宠主界面与多视图结构
+- `pages/pet/index.less` - 动画、地图、背包、日记等核心样式
+- `pages/pet/diary/index.*` - 日记独立页面
 - `utils/petWebSocket.js` - WebSocket 客户端（自动重连、心跳、认证）
+- `utils/itemDatabase.js` - 校园化物品数据库
 
 ---
 
@@ -759,14 +751,16 @@ const RoomStatus = {
 | LESS | - | CSS 预处理器 |
 | ESLint (airbnb-base) | - | 代码规范 |
 
-### 后端技术栈
+### 后端依赖能力
 
-| 技术 | 用途 |
+> Pocket 本身是微信小程序前端，不直接承载服务端代码。这里列的是当前依赖的后端能力，而不是本仓库内部技术栈。
+
+| 能力 | 用途 |
 |------|------|
-| NestJS | Node.js 后端框架 |
-| Prisma | ORM 数据库访问 |
-| PostgreSQL | 关系型数据库 |
-| JWT | 身份认证 |
+| Sentinel REST API | 登录、心墙、画像、预约、通知等主业务接口 |
+| Pet Service | 心宠实时事件、状态同步、场景推送 |
+| PostgreSQL / Redis | 数据持久化与缓存，由后端服务统一维护 |
+| JWT / Token 鉴权 | 用户登录态校验与接口访问控制 |
 
 ### AI 技术栈
 
@@ -851,10 +845,12 @@ PsyTwin-Pocket/
 │   └── teacher/                          # 教师端数据
 │
 ├── 📁 docs/                              # 项目文档
-│   ├── pet-interaction-analysis.md       # 心宠交互逻辑分析
-│   ├── api_contract.md                   # API 契约文档
-│   ├── PRD_STUDENT.md                    # 学生端 PRD
-│   └── PRD_TEACHER.md                    # 教师端 PRD
+│   ├── PROJECT_OVERVIEW.md               # 项目总览
+│   ├── DEVELOPMENT_SETUP.md              # 本地开发与环境配置
+│   ├── API_GUIDE.md                      # API 使用说明
+│   ├── COMPONENT_GUIDE.md                # 组件与页面结构说明
+│   ├── PET_SYSTEM.md                     # 心宠系统专项文档
+│   └── pet_schedule_analysis.md          # 心宠时段/行为分析
 │
 ├── 📁 custom-tab-bar/                    # 自定义 TabBar
 │
@@ -879,9 +875,14 @@ npm install
 # 编辑 config/index.js
 export default {
   isMock: false,  // 关闭 Mock，连接真实后端
-  baseUrl: 'http://localhost:3000/api/pocket'
+  baseUrl: 'http://localhost:3000/api/pocket',
+  petServiceUrl: 'http://localhost:3001'
 };
 ```
+
+说明：
+- `baseUrl` 对应 Sentinel 的 Pocket API。
+- `petServiceUrl` 对应心宠独立服务，目前主要给 `utils/petWebSocket.js` 使用。
 
 ### 启动开发
 
