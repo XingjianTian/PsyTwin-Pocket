@@ -1,10 +1,13 @@
 // pages/pet/diary/index.js
+const { pullPetState } = require('../../api/pet-server');
+
 Page({
   data: {
     entries: [],
     selectedDate: '',
     dates: [],
     loading: true,
+    serverError: false,
   },
 
   onLoad() {
@@ -14,7 +17,15 @@ Page({
     this.generateDates();
   },
 
-  // 生成日期列表（最近7天）
+  getPetUserId() {
+    let userId = wx.getStorageSync('petUserId');
+    if (!userId) {
+      userId = 'pet_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      wx.setStorageSync('petUserId', userId);
+    }
+    return userId;
+  },
+
   generateDates() {
     const dates = [];
     const today = new Date();
@@ -30,27 +41,44 @@ Page({
         isToday: i === 0,
       });
     }
-    this.setData({ dates });
+    this.setData({ dates: dates });
   },
 
-  // 加载日记数据
-  loadDiary() {
+  async loadDiary() {
+    this.setData({ loading: true, serverError: false });
+    const userId = this.getPetUserId();
+
+    try {
+      const result = await pullPetState(userId);
+      if (result.success && result.data && result.data.state && result.data.state.diaryDataMap) {
+        const diaryDataMap = result.data.state.diaryDataMap;
+        wx.setStorageSync('petDiaryMap', diaryDataMap);
+        const entries = diaryDataMap[this.data.selectedDate] || [];
+        this.setData({ entries: entries, loading: false });
+        console.log('[Diary] Loaded from server:', entries.length, 'entries');
+        return;
+      }
+    } catch (err) {
+      console.log('[Diary] Server fail, using local:', err);
+    }
+
+    // Fallback to local storage
     const diaryMap = wx.getStorageSync('petDiaryMap') || {};
     const entries = diaryMap[this.data.selectedDate] || [];
     this.setData({
-      entries,
+      entries: entries,
       loading: false,
+      serverError: entries.length === 0,
     });
+    console.log('[Diary] Loaded from local:', entries.length, 'entries');
   },
 
-  // 选择日期
   onDateSelect(e) {
     const { date } = e.currentTarget.dataset;
     this.setData({ selectedDate: date });
     this.loadDiary();
   },
 
-  // 获取类型颜色
   getTypeColor(type) {
     const colors = {
       ACTIVITY: '#7BC8A4',
@@ -61,7 +89,6 @@ Page({
     return colors[type] || '#8C8299';
   },
 
-  // 获取类型标签
   getTypeLabel(type) {
     const labels = {
       ACTIVITY: '日常',
@@ -72,7 +99,6 @@ Page({
     return labels[type] || type;
   },
 
-  // 返回
   onBackTap() {
     wx.navigateBack();
   },

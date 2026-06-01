@@ -7,8 +7,8 @@ import createBus from './eventBus';
 import config from '../config';
 
 // WebSocket URL - 直接使用 petServiceUrl 配置
-// petServiceUrl: http://localhost:3001 -> ws://localhost:3001/ws/pet
-const petUrl = config.petServiceUrl || 'http://localhost:3001';
+// petServiceUrl: http://localhost:3002 -> ws://localhost:3002/ws/pet
+const petUrl = config.petSyncUrl || 'http://localhost:3002';
 const WS_URL = petUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/pet';
 
 // 重连退避策略: 1s→2s→4s→8s→16s→30s (max)

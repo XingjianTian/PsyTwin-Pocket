@@ -1616,7 +1616,7 @@ Page({
       currentActivityDuration: state.activityDuration,
       activityLog: state.activityLog || this.data.activityLog,
       coins: state.coins || this.data.coins,
-      bagItems: state.bagItems || this.data.bagItems,
+      bagItems: this.enrichBagItems(state.bagItems || this.data.bagItems),
       diaryDataMap: state.diaryDataMap || this.data.diaryDataMap,
     });
 
@@ -1632,7 +1632,7 @@ Page({
       wx.setStorageSync('petCoins', { amount: state.coins, history });
     }
     if (state.bagItems) {
-      wx.setStorageSync('petBagItems', state.bagItems);
+      const enrichedBag = this.enrichBagItems(state.bagItems); wx.setStorageSync('petBagItems', enrichedBag);
     }
 
     // 如果离线时间较长，提示用户
@@ -3100,7 +3100,7 @@ Page({
     if (savedBag.length > 0) {
       const used = savedBag.reduce((sum, item) => sum + item.quantity, 0);
       this.setData({
-        bagItems: savedBag,
+        bagItems: this.enrichBagItems(savedBag),
         bagCapacity: { used, total: 50 },
         bagLoading: false,
       });
@@ -3143,6 +3143,26 @@ Page({
     };
   },
 
+
+  // 根据 ITEM_DATABASE 补齐背包物品的缺失属性（服务器物品数据可能不完整）
+  enrichBagItems(bagItems) {
+    if (!bagItems || bagItems.length === 0) return bagItems;
+    return bagItems.map((item) => {
+      const template = ITEM_DATABASE.find((t) => t.itemId === item.itemId);
+      if (!template) return item;
+      return {
+        ...template,
+        quantity: item.quantity || 1,
+        name: item.name || template.name,
+        icon: item.icon || template.icon,
+        rarity: item.rarity || template.rarity,
+        type: item.type || template.type,
+        description: item.description || template.description,
+        effect: item.effect && (item.effect.mood || item.effect.energy || item.effect.social)
+          ? item.effect : template.effect,
+      };
+    });
+  },
   // 保存背包到本地存储
   saveBagToStorage() {
     wx.setStorageSync('petBagItems', this.data.bagItems);
