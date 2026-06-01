@@ -461,7 +461,7 @@ mode="aspectFill"
         <view wx:if="{{helpLoading}}" class="view-loading">
           <text>加载中...</text>
         </view>
-        <view wx:elif="{{!hasEvent || helpEvents.length === 0}}" class="view-empty">
+        <view wx:elif="{{!hasEvent && helpEvents.length === 0}}" class="view-empty">
           <text class="empty-icon">🌟</text>
           <text class="empty-text">暂无求助事件</text>
           <text class="empty-subtext">心宠一切安好，继续保持关注哦~</text>

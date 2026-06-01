@@ -1536,7 +1536,6 @@ Page({
     this.initCoins();
     this.initBagData();
     // initDiaryData 移到 syncFromServer 完成后调用，避免竞态
-    this.initHelpData();
     this.updatePetMarker();
     // 启动主心宠动画
     this.startPetAnimation();
@@ -1596,11 +1595,19 @@ Page({
 
     const { state, offlineSeconds, diaryGenerated } = result.data;
     const generatedEvents = result.data.generatedEvents || [];
+    const persistedEvents = result.data.helpEvents || [];
     console.log(`[PetSync] 拉取成功, 离线 ${offlineSeconds}s, 日记 ${diaryGenerated ? diaryGenerated.length : 0} 篇`);
 
     // 用服务器状态覆盖本地
     const sceneInfo = this.getSceneInfo(state.sceneId);
     const sceneName = sceneInfo ? sceneInfo.name : state.sceneId;
+
+    // 合并离线事件和持久化事件，按 id 去重
+    const idSet = new Set();
+    const syncedHelpEvents = [];
+    for (const e of [...generatedEvents, ...persistedEvents]) {
+      if (!idSet.has(e.id)) { idSet.add(e.id); syncedHelpEvents.push(e); }
+    }
 
     this.setData({
       mood: state.mood,
@@ -1618,6 +1625,9 @@ Page({
       coins: state.coins || this.data.coins,
       bagItems: this.enrichBagItems(state.bagItems || this.data.bagItems),
       diaryDataMap: state.diaryDataMap || this.data.diaryDataMap,
+      helpEvents: syncedHelpEvents.length > 0 ? syncedHelpEvents : this.data.helpEvents,
+      hasEvent: syncedHelpEvents.length > 0 || this.data.helpEvents.length > 0,
+      helpLoading: false,
     });
 
     // 把服务器数据持久化到本地存储，保证离线时也能看到完整数据
@@ -1642,6 +1652,9 @@ Page({
 
     // 同步完成后刷新日记数据（服务器数据为准，跳过本地过滤）
     this.initDiaryData(true);
+
+    // 同步完成后加载帮助事件，与离线事件合并
+    this.initHelpData();
   },
 
   /** 推送状态到服务器（小程序关闭/隐藏时调用） */
@@ -3978,19 +3991,24 @@ ${activities || '今天没有发生什么特别的事情'}
 
   // 初始化帮助数据（优先从服务器获取预警模拟数据）
   initHelpData() {
-    this.setData({ helpLoading: true });
+    // 不重置 helpLoading，避免覆盖 syncFromServer 已设置的状态
 
     const userId = this.getPetUserId();
     fetchPetEvents(userId)
       .then((result) => {
         if (result.success && result.data && result.data.events && result.data.events.length > 0) {
+          const existingIds = new Set(this.data.helpEvents.map((e) => e.id));
+          const newEvents = result.data.events.filter((e) => !existingIds.has(e.id));
           this.setData({
-            helpEvents: result.data.events,
+            helpEvents: [...this.data.helpEvents, ...newEvents],
+            hasEvent: true,
             helpLoading: false,
           });
           console.log('[Help] 从服务器加载事件:', result.data.events.length, '个');
         } else {
-          this.loadLocalHelpEvents();
+          // 服务器返回空事件是正常的（没有新事件需要生成），不用 fallback 到 mock
+          this.setData({ helpLoading: false });
+          console.log('[Help] 没有新事件，保持已有事件');
         }
       })
       .catch((err) => {
@@ -4034,8 +4052,10 @@ ${activities || '今天没有发生什么特别的事情'}
       },
     ];
 
+    // 合并而不是覆盖，保留 syncFromServer 已加载的事件
     this.setData({
-      helpEvents: mockEvents,
+      helpEvents: [...this.data.helpEvents, ...mockEvents.filter((e) => !this.data.helpEvents.find((h) => h.id === e.id))],
+      hasEvent: true,
       helpLoading: false,
     });
   },

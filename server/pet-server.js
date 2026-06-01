@@ -127,6 +127,26 @@ const WEEKEND_SCHEDULE = [
 
 const EVENT_TYPES = ['遇到了小惊喜', '碰到了一点小麻烦', '发现了一些有趣的东西', '感到有点孤单', '突然想吃东西'];
 
+
+const SERVER_ITEM_POOL = [
+  { itemId: 'pen_002', name: '中性笔', icon: '🖊️', rarity: 'COMMON', type: 'STATIONERY', weight: 10 },
+  { itemId: 'erase_001', name: '橡皮', icon: '🧹', rarity: 'COMMON', type: 'STATIONERY', weight: 10 },
+  { itemId: 'note_002', name: '笔记本', icon: '📓', rarity: 'COMMON', type: 'STATIONERY', weight: 10 },
+  { itemId: 'drink_001', name: '矿泉水', icon: '💧', rarity: 'COMMON', type: 'FOOD', weight: 12 },
+  { itemId: 'food_003', name: '面包', icon: '🍞', rarity: 'COMMON', type: 'FOOD', weight: 12 },
+  { itemId: 'food_001', name: '苹果', icon: '🍎', rarity: 'COMMON', type: 'FOOD', weight: 10 },
+  { itemId: 'mask_001', name: '口罩', icon: '😷', rarity: 'COMMON', type: 'DAILY', weight: 8 },
+  { itemId: 'snack_001', name: '薯片', icon: '🥔', rarity: 'COMMON', type: 'FOOD', weight: 8 },
+  { itemId: 'drink_004', name: '奶茶', icon: '🧋', rarity: 'UNCOMMON', type: 'FOOD', weight: 5 },
+  { itemId: 'food_005', name: '蛋糕', icon: '🎂', rarity: 'UNCOMMON', type: 'FOOD', weight: 4 },
+  { itemId: 'gift_001', name: '小卡片', icon: '💌', rarity: 'UNCOMMON', type: 'SOCIAL', weight: 4 },
+  { itemId: 'sport_001', name: '跳绳', icon: '🪢', rarity: 'UNCOMMON', type: 'SPORTS', weight: 3 },
+  { itemId: 'book_001', name: '课外书', icon: '📚', rarity: 'UNCOMMON', type: 'TEXTBOOK', weight: 3 },
+  { itemId: 'pen_004', name: '荧光笔', icon: '🖍️', rarity: 'UNCOMMON', type: 'STATIONERY', weight: 3 },
+  { itemId: 'elec_001', name: '充电线', icon: '🔌', rarity: 'RARE', type: 'ELECTRONIC', weight: 2 },
+  { itemId: 'special_001', name: '四叶草', icon: '🍀', rarity: 'RARE', type: 'SPECIAL', weight: 1 },
+  { itemId: 'special_002', name: '许愿星', icon: '⭐', rarity: 'EPIC', type: 'SPECIAL', weight: 0.5 },
+];
 // ========== 工具函数 ==========
 
 function fluctuateValue(value, min, max) {
@@ -375,6 +395,11 @@ function sanitizeState(state) {
       }
     }
   }
+
+  // 清理过期的 helpEvents（deadline 已过）
+  if (state.helpEvents && state.helpEvents.length > 0) {
+    state.helpEvents = state.helpEvents.filter((e) => !e.deadline || e.deadline > nowMs || e.status === 'active');
+  }
 }
 
 function loadData() {
@@ -388,6 +413,7 @@ function loadData() {
         const state = getDefaultState(key);
         state.diaryDataMap = value.diaryDataMap || {};
         state.bagItems = value.bagItems || [];
+        state.helpEvents = value.helpEvents || [];
         state.coins = typeof value.coins === 'number' ? value.coins : 0;
         state.activityLog = value.activityLog || {};
         // 兼容旧格式：如果 JSON 中有合理的 lastSyncAt，使用它
@@ -429,6 +455,7 @@ function saveData(dataMap) {
           userId: state.userId,
           diaryDataMap: state.diaryDataMap || {},
           bagItems: state.bagItems || [],
+          helpEvents: state.helpEvents || [],
           coins: state.coins || 0,
           activityLog: state.activityLog || {},
         };
@@ -595,12 +622,66 @@ function runSingleTick(state, nowMs) {
     }
   }
 
+
+  // 7. 物品发现（每3个tick即15秒，20%概率）
+  if (ctx.tickCount > 0 && ctx.tickCount % 3 === 0 && Math.random() < 0.2) {
+    const discovered = discoverItem(state);
+    if (discovered) {
+      console.log(`  ${formatTimeStr(date)} 发现了物品: ${discovered.name}`);
+    }
+  }
   state.lastSyncAt = nowMs;
 
   // 每次 tick 后自动清理过期数据，防止数据无限增长
   sanitizeState(state);
 
   return { diaryTriggered, dateStr: diaryDateStr };
+}
+
+
+/**
+ * 服务器tick物品发现逻辑
+ * 根据权重随机抽取物品并添加到背包
+ */
+function discoverItem(state) {
+  if (!SERVER_ITEM_POOL || SERVER_ITEM_POOL.length === 0) return null;
+
+  const totalWeight = SERVER_ITEM_POOL.reduce((sum, item) => sum + item.weight, 0);
+  let random = Math.random() * totalWeight;
+  let selected = SERVER_ITEM_POOL[0];
+
+  for (const item of SERVER_ITEM_POOL) {
+    random -= item.weight;
+    if (random <= 0) {
+      selected = item;
+      break;
+    }
+  }
+
+  if (!selected) return null;
+
+  if (!state.bagItems) state.bagItems = [];
+
+  const existing = state.bagItems.find(b => b.itemId === selected.itemId);
+  if (existing) {
+    if (existing.quantity >= (existing.maxStack || 99)) return null;
+    existing.quantity += 1;
+  } else {
+    state.bagItems.push({
+      itemId: selected.itemId,
+      name: selected.name,
+      icon: selected.icon,
+      rarity: selected.rarity,
+      type: selected.type,
+      quantity: 1,
+      effect: {},
+      description: '',
+      source: '场景探索',
+      maxStack: 99,
+    });
+  }
+
+  return selected;
 }
 
 /**
@@ -683,6 +764,7 @@ function getDefaultState(userId) {
     activityLog: {},
     coins: 0,
     bagItems: [],
+    helpEvents: [],
     diaryDataMap: {},
     lastSyncAt: now,
   };
@@ -695,7 +777,7 @@ function getDefaultState(userId) {
  * 小程序启动时调用，直接读取服务器内存中的实时状态
  * 心宠状态由全局引擎持续更新，不需要离线模拟
  */
-app.post('/api/pet/pull', (req, res) => {
+app.post('/api/pet/pull', async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
     return res.status(400).json({ code: 400, message: '缺少 userId' });
@@ -714,12 +796,18 @@ app.post('/api/pet/pull', (req, res) => {
 
   console.log(`【${userId}】主人打开了小程序，拉取心宠实时状态 | 在${state.sceneId}「${state.activity}」| 心情${state.mood} 精力${state.energy} 社交${state.social} | 离线${idleMin}分钟`);
 
+  // 模拟离线期间心宠活动，生成日记和求助事件
+  const result = await simulateOfflineProgress(state, nowMs);
+  const generatedEvents = generateOfflineHelpEvents(state, idleMin);
+
   res.json({
     code: 0,
     message: 'success',
     data: {
-      state,
-      diaryGenerated: [],
+      state: result.state,
+      diaryGenerated: result.diaryGenerated || [],
+      generatedEvents,
+      helpEvents: result.state.helpEvents || [],
       offlineSeconds: idleMin * 60,
     },
   });
@@ -776,11 +864,20 @@ app.post('/api/pet/push', (req, res) => {
     }
   }
 
+  // 合并 helpEvents，按 id 去重
+  const idSet = new Set();
+  const mergedHelpEvents = [];
+  const allHelpEvents = [...(existing.helpEvents || []), ...(state.helpEvents || [])];
+  for (const e of allHelpEvents) {
+    if (!idSet.has(e.id)) { idSet.add(e.id); mergedHelpEvents.push(e); }
+  }
+
   const merged = {
     ...existing,
     ...state,
     diaryDataMap: mergedDiary,
     activityLog: mergedActivityLog,
+    helpEvents: mergedHelpEvents,
     userId,
     lastSyncAt: Date.now(),
   };
@@ -899,12 +996,75 @@ app.post('/api/pet/events', (req, res) => {
 
   const events = generateHelpEvents(state);
 
+  // 生成事件后立即持久化到 JSON
+  saveData(petData);
+
   res.json({
     code: 0,
     message: 'success',
     data: { events },
   });
 });
+
+
+/**
+ * 根据离线时间和状态生成帮助事件
+ */
+function generateOfflineHelpEvents(state, offlineMinutes) {
+  const events = [];
+  
+  if (offlineMinutes > 120) {
+    events.push({
+      id: 'evt_offline_1',
+      type: 'large',
+      category: 'emotion',
+      severity: 'high',
+      title: '想念主人',
+      description: '你离开这么久，心宠很想你呢~快回来陪陪它吧！',
+      status: 'pending',
+      deadline: Date.now() + 24 * 60 * 60 * 1000,
+      createdAt: Date.now(),
+    });
+    
+    events.push({
+      id: 'evt_offline_2',
+      type: 'large',
+      category: 'social',
+      severity: 'medium',
+      title: '需要社交',
+      description: '心宠太久没有和其他小伙伴一起玩了，有点孤单。',
+      status: 'pending',
+      deadline: Date.now() + 12 * 60 * 60 * 1000,
+      createdAt: Date.now(),
+    });
+  } else if (offlineMinutes > 60) {
+    events.push({
+      id: 'evt_offline_1',
+      type: 'daily',
+      category: 'emotion',
+      severity: 'medium',
+      title: '有点担心',
+      description: '你不在的时候，心宠会担心你哦，记得按时回来~',
+      status: 'pending',
+      deadline: Date.now() + 18 * 60 * 60 * 1000,
+      createdAt: Date.now(),
+    });
+  } else if (offlineMinutes > 30) {
+    events.push({
+      id: 'evt_offline_1',
+      type: 'daily',
+      category: 'study',
+      severity: 'low',
+      title: '想主人了',
+      description: '心宠在等你回来一起学习呢！',
+      status: 'pending',
+      deadline: Date.now() + 6 * 60 * 60 * 1000,
+      createdAt: Date.now(),
+    });
+  }
+  
+  return events;
+}
 
 /**
  * 根据心宠三维状态动态生成帮助事件
@@ -913,12 +1073,18 @@ app.post('/api/pet/events', (req, res) => {
  * @returns {Array} 事件列表
  */
 function generateHelpEvents(state) {
+  // 检查是否已有未解决的同类型事件，避免重复生成
+  if (!state.helpEvents) state.helpEvents = [];
+  const unresolvedCategories = new Set(
+    state.helpEvents.filter((e) => e.status !== 'resolved').map((e) => e.category)
+  );
+
   const events = [];
   const now = Date.now();
-  const idPrefix = `evt_${Date.now()}`;
+  const idPrefix = 'evt_state';  // 使用固定前缀，避免每次生成重复事件
 
   // 情绪事件（基于 mood）
-  if (state.mood < 25) {
+  if (!unresolvedCategories.has('emotion') && state.mood < 25) {
     events.push({
       id: `${idPrefix}_emotion_high`,
       type: 'large',
@@ -943,7 +1109,7 @@ function generateHelpEvents(state) {
   }
 
   // 学习/精力事件（基于 energy）
-  if (state.energy < 25) {
+  if (!unresolvedCategories.has('study') && state.energy < 25) {
     events.push({
       id: `${idPrefix}_study_high`,
       type: 'large',
@@ -968,7 +1134,7 @@ function generateHelpEvents(state) {
   }
 
   // 社交事件（基于 social）
-  if (state.social < 25) {
+  if (!unresolvedCategories.has('social') && state.social < 25) {
     events.push({
       id: `${idPrefix}_social_high`,
       type: 'large',
@@ -992,8 +1158,8 @@ function generateHelpEvents(state) {
     });
   }
 
-  // 如果状态都很好，生成一个随机的低风险事件
-  if (events.length === 0) {
+  // 如果状态都很好，且没有未解决事件，生成一个随机的低风险事件
+  if (events.length === 0 && unresolvedCategories.size === 0) {
     const lowEvents = [
       {
         id: `${idPrefix}_low_0`,
@@ -1027,6 +1193,14 @@ function generateHelpEvents(state) {
       },
     ];
     events.push(lowEvents[Math.floor(Math.random() * lowEvents.length)]);
+  }
+
+  // 持久化事件到 state
+  if (!state.helpEvents) state.helpEvents = [];
+  const existingIds = new Set(state.helpEvents.map((e) => e.id));
+  const newEvents = events.filter((e) => !existingIds.has(e.id));
+  if (newEvents.length > 0) {
+    state.helpEvents.push(...newEvents);
   }
 
   return events;
