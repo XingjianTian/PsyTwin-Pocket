@@ -18,6 +18,7 @@
 |------|------|----------|
 | [DEVELOPMENT_SETUP.md](./DEVELOPMENT_SETUP.md) | **开发环境搭建指南** - 前置要求、项目初始化、工具配置、常见问题 | 新加入的开发者 |
 | [API_GUIDE.md](./API_GUIDE.md) | **API 请求层使用指南** - 请求封装、接口列表、Mock 模式、错误处理 | 前端开发者 |
+| [api_contract.md](./api_contract.md) | **跨端 API 契约文件链接** - 指向 Sentinel 的唯一事实源，网络请求和 Mock 字段必须以此为准 | 前端/联调开发者 |
 | [COMPONENT_GUIDE.md](./COMPONENT_GUIDE.md) | **组件开发指南** - 自定义组件、TDesign 组件库、开发规范、TabBar | 前端开发者 |
 
 ### 🐾 专项文档
@@ -27,8 +28,30 @@
 | [PET_SYSTEM.md](./PET_SYSTEM.md) | **心宠系统详解** - 五视图架构、三维状态、精灵动画、场景系统、WebSocket | 心宠功能开发者 |
 | [pet_schedule_analysis.md](./pet_schedule_analysis.md) | 心宠时间调度系统分析 | 心宠功能开发者 |
 | [二级场景AI生图描述.md](./二级场景AI生图描述.md) | 二级场景 AI 生图 Prompt 文档 | 美术/设计 |
+| [sentinel_project_analysis.md](./sentinel_project_analysis.md) | **Sentinel 项目分析文件链接** - 查看 API Producer 结构、心宠日记联动状态和互链约定 | 跨端联调开发者 |
 
 ---
+
+## 与 PsyTwin-Sentinel 的双向文档链接
+
+Pocket 是 API Consumer，Sentinel 是 API Producer。为避免契约复制导致文档漂移，两端通过 Markdown 相对路径互相指向关键文档，方便开发者和 AI 识别两个项目之间的关系。
+
+| 本项目链接 | 指向 | 用途 |
+|------|------|------|
+| [api_contract.md](./api_contract.md) | `../../PsyTwin-Sentinel/docs/api_contract.md` | 网络请求、Mock 数据、字段命名的唯一契约入口 |
+| [sentinel_project_analysis.md](./sentinel_project_analysis.md) | `../../PsyTwin-Sentinel/docs/project-analysis-2026-06-15.md` | 查看 Sentinel 结构分析与跨端联动状态 |
+
+Sentinel 侧同时通过 Markdown 链接回看 Pocket 文档：
+
+| Sentinel 链接 | 指向 | 用途 |
+|------|------|------|
+| `../../PsyTwin-Sentinel/docs/pocket_api_guide.md` | `../../PsyTwin-Pocket/docs/API_GUIDE.md` | Sentinel 侧查看 Pocket 请求层约定 |
+| `../../PsyTwin-Sentinel/docs/pocket_project_overview.md` | `../../PsyTwin-Pocket/docs/PROJECT_OVERVIEW.md` | Sentinel 侧查看 Pocket 项目全景 |
+
+**使用规则**：
+- 写网络请求或 Mock 前，必须先读 [api_contract.md](./api_contract.md)。
+- 如果契约缺字段，不要在 Pocket 侧自行伪造，先通知 Sentinel 补充契约。
+- Pocket 侧不维护服务端逻辑、Prisma 或 Next.js 代码。
 
 ## 快速导航
 

@@ -349,7 +349,7 @@ mode="aspectFill"
         <text class="view-title">心情日记</text>
         <view class="test-diary-btn" bindtap="testGenerateDiary">
           <text class="test-diary-icon">📝</text>
-          <text class="test-diary-text">测试生成</text>
+          <text class="test-diary-text">测试读取</text>
         </view>
       </view>
       <!-- 选中日期的日记内容 -->

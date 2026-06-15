@@ -51,11 +51,9 @@ const PET_ANIMATION_FRAMES = [
 const ANIMATION_FRAME_INTERVAL = 1000; // ms
 const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 
-// AI 模块（用于日记生成）
-const AI_MODULE = require('../../api/ai');
-
 // 心宠服务器同步 API
 const { pullPetState, pushPetState, fetchPetEvents, fetchPetQuiz } = require('../../api/pet-server');
+const { triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
 
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
@@ -1652,6 +1650,7 @@ Page({
 
     // 同步完成后刷新日记数据（服务器数据为准，跳过本地过滤）
     this.initDiaryData(true);
+    await this.backfillDiaryFromSentinel(offlineSeconds);
 
     // 同步完成后加载帮助事件，与离线事件合并
     this.initHelpData();
@@ -3377,7 +3376,7 @@ Page({
     this._isGeneratingDiary = true;
     // 延迟 3 秒再触发，给用户一点缓冲时间
     setTimeout(() => {
-      this.generateAiDiary().finally(() => {
+      this.generateDatabaseDiary().finally(() => {
         this._isGeneratingDiary = false;
       });
     }, 3000);
@@ -3401,113 +3400,126 @@ Page({
       ];
       console.log('[DiaryTest] 已注入模拟活动日志');
     }
-    await this.generateAiDiary();
+    await this.generateDatabaseDiary({ force: true });
     console.log('[DiaryTest] 测试结束');
   },
 
   // 判断是否满足写日记的触发条件
   shouldTriggerDiaryWriting() {
     const hour = new Date().getHours();
-    const sceneId = this.data.currentSceneId;
+    const sceneId = this.data.petSceneId || this.data.currentSceneId || '';
     const today = this.formatDateToStr(new Date());
     const diaryMap = this.loadDiaryFromStorage();
 
     // 条件 1: 晚间时段 20:00 - 23:59
     const isEvening = hour >= 20 && hour <= 23;
     // 条件 2: 在合适的场景（寝室/图书馆/书房等安静场景）
-    const writingScenes = ['bedroom', 'dormitory', 'library', 'study_room', '阁楼书房', '卧室', '冥想室'];
-    const isWritingScene = writingScenes.some((s) => sceneId.includes(s) || this.data.currentScene === s);
+    const writingScenes = ['dormitory', 'library'];
+    const isWritingScene = writingScenes.includes(sceneId);
     // 条件 3: 今天还没有写过日记
     const alreadyWritten = diaryMap[today] && diaryMap[today].length > 0;
     // 条件 4: 今天有活动日志（有内容可写）
-    const hasActivity = this.data.activityLog[today] && this.data.activityLog[today].length >= 2;
+    // console.log('[Diary] trigger check:', { isEvening, isWritingScene, alreadyWritten, sceneId, hour });
 
-    // console.log('[Diary] trigger check:', { isEvening, isWritingScene, alreadyWritten, hasActivity, sceneId, hour });
-
-    if (!isEvening || !isWritingScene || alreadyWritten || !hasActivity) {
+    if (!isEvening || !isWritingScene || alreadyWritten) {
       return false;
     }
 
-    // 概率触发: 40%
-    return Math.random() < 0.4;
+    return true;
   },
 
   // AI 生成日记
-  async generateAiDiary() {
-    console.log('[Diary] generateAiDiary 开始执行');
-    const today = this.formatDateToStr(new Date());
-    const activityLog = this.data.activityLog[today] || [];
-    const { mood, energy, social, currentScene, petSceneName } = this.data;
+  mergeDiaryMap(existingMap = {}, incomingMap = {}) {
+    const merged = { ...existingMap };
+    Object.keys(incomingMap || {}).forEach((dateStr) => {
+      const existingEntries = Array.isArray(merged[dateStr]) ? merged[dateStr] : [];
+      const incomingEntries = Array.isArray(incomingMap[dateStr]) ? incomingMap[dateStr] : [];
+      const idSet = new Set(existingEntries.map((entry) => entry.id));
+      const nextEntries = [...existingEntries];
+      incomingEntries.forEach((entry) => {
+        if (!idSet.has(entry.id)) {
+          idSet.add(entry.id);
+          nextEntries.push(entry);
+        }
+      });
+      merged[dateStr] = nextEntries.sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
+    });
+    return merged;
+  },
 
-    wx.showLoading({ title: '心宠正在写日记...', mask: true });
+  applyServerDiaryData(payload, selectedDate) {
+    const safePayload = payload || {};
+    const dateStr = selectedDate || this.data.diarySelectedDate || this.formatDateToStr(new Date());
+    const diaryDataMap = this.mergeDiaryMap(this.loadDiaryFromStorage(), safePayload.diaryDataMap || {});
+
+    if (!diaryDataMap[dateStr]) {
+      diaryDataMap[dateStr] = [];
+    }
+
+    wx.setStorageSync('petDiaryMap', diaryDataMap);
+    this.setData({
+      diaryDataMap,
+      diaryEntries: diaryDataMap[dateStr] || [],
+      diaryLoading: false,
+    }, () => {
+      this.generateCalendarDays(this.data.currentYear, this.data.currentMonth);
+    });
+  },
+
+  async generateDatabaseDiary({ force = false } = {}) {
+    const today = this.formatDateToStr(new Date());
+    const sceneId = this.data.petSceneId || this.data.currentSceneId || 'dormitory';
+
+    if (force) {
+      wx.showLoading({ title: '正在读取日记...', mask: true });
+    }
 
     try {
-      // 构建 Prompt
-      const prompt = this.buildDiaryPrompt(activityLog, { mood, energy, social, currentScene, petSceneName });
+      const result = force
+        ? await testPetDiary({ sceneId, date: today })
+        : await triggerPetDiary({ sceneId, date: today, hour: new Date().getHours() });
 
-      // 调用 AI 接口（复用已有的 sendToTherapist）
-      const { sendToTherapist, extractResponseText } = AI_MODULE.default || AI_MODULE;
-      const result = await sendToTherapist(prompt);
-
-      let diaryContent = '';
-      if (result.success && result.data) {
-        diaryContent = extractResponseText(result.data);
+      if (!result.success) {
+        if (force) {
+          wx.showToast({ title: result.error || '读取失败', icon: 'none' });
+        }
+        return;
       }
 
-      // AI 失败或返回空，使用 fallback
-      if (!diaryContent || diaryContent.trim().length < 20) {
-        // AI 失败，使用 fallback
-        diaryContent = this.fallbackDiary(activityLog);
-      }
+      this.applyServerDiaryData(result.data, today);
 
-      // 构建日记条目
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const diaryEntry = {
-        id: `diary_${today}_${Date.now()}`,
-        time: timeStr,
-        type: 'AI_DIARY',
-        content: diaryContent.trim(),
-        sceneId: this.data.currentSceneId,
-        moodBefore: Math.max(10, mood - 5),
-        moodAfter: mood,
-        energyBefore: Math.max(10, energy - 5),
-        energyAfter: energy,
-        socialBefore: Math.max(10, social - 5),
-        socialAfter: social,
-        generatedAt: now.toISOString(),
-        aiGenerated: diaryContent !== this.fallbackDiary(activityLog),
-      };
-
-      // 保存到 storage
-      this.saveDiaryToStorage(today, diaryEntry);
-
-      // 同时更新内存中的 diaryDataMap
-      const updatedDiaryMap = this.loadDiaryFromStorage();
-
-      wx.hideLoading();
-      wx.showToast({
-        title: '心宠写了一篇日记~',
-        icon: 'none',
-        duration: 2000,
-      });
-
-      // 如果当前在日记视图，刷新显示
-      if (this.data.currentView === 'diary') {
-        this.setData({
-          diaryDataMap: updatedDiaryMap,
-          diaryEntries: updatedDiaryMap[today] || [],
-        });
-      } else {
-        // 即使不在日记视图，也更新 diaryDataMap 以便日历标记正确
-        this.setData({
-          diaryDataMap: updatedDiaryMap,
+      if (force || result.data.triggered || result.data.entry) {
+        wx.showToast({
+          title: force ? '日记读取成功' : '心宠写了一篇日记',
+          icon: 'none',
+          duration: 2000,
         });
       }
     } catch (err) {
-      wx.hideLoading();
-      // 静默失败，不打扰用户
+      if (force) {
+        wx.showToast({ title: '读取失败', icon: 'none' });
+      }
+    } finally {
+      if (force) {
+        wx.hideLoading();
+      }
     }
+  },
+
+  async backfillDiaryFromSentinel(offlineSeconds = 0) {
+    const safeOfflineSeconds = Math.max(Number(offlineSeconds) || 0, 1);
+    const lastOnlineAt = new Date(Date.now() - safeOfflineSeconds * 1000).toISOString();
+    const result = await backfillPetDiary({ lastOnlineAt, maxDays: 7 });
+
+    if (!result.success) {
+      return;
+    }
+
+    this.applyServerDiaryData(result.data, this.formatDateToStr(new Date()));
+  },
+
+  async generateAiDiary() {
+    await this.generateDatabaseDiary({ force: true });
   },
 
   // 构建 AI Prompt
@@ -3598,25 +3610,9 @@ ${activities || '今天没有发生什么特别的事情'}
     return wx.getStorageSync('petDiaryMap') || {};
   },
 
-  // 测试生成日记（绕过所有限制，用于调试）
+  // 测试读取日记（绕过时间/场景/概率限制，用于调试）
   async testGenerateDiary() {
-    const today = this.formatDateToStr(new Date());
-    // 确保今天有活动日志（没有则生成测试日志）
-    const activityLog = { ...this.data.activityLog };
-    if (!activityLog[today] || activityLog[today].length < 2) {
-      activityLog[today] = [
-        { time: '08:30', type: 'scene_change', sceneName: '卧室', to: 'bedroom', reason: 'time_schedule_init' },
-        { time: '09:00', type: 'scene_change', sceneName: '教室', to: 'classroom', reason: 'time_schedule' },
-        { time: '12:00', type: 'scene_change', sceneName: '食堂', to: 'cafeteria', reason: 'time_schedule' },
-        { time: '14:30', type: 'event', desc: '考试有点紧张', moodDelta: -5 },
-        { time: '19:00', type: 'scene_change', sceneName: '图书馆', to: 'library', reason: 'user_manual' },
-        { time: '20:30', type: 'status_change', moodDelta: 8, energyDelta: -3, socialDelta: 0 },
-      ];
-      this.setData({ activityLog });
-      wx.setStorageSync('petActivityLog', activityLog);
-    }
-    // 直接调用生成，不检查场景/时间/概率
-    await this.generateAiDiary();
+    await this.generateDatabaseDiary({ force: true });
   },
 
   // ========== 心情日记 ==========
@@ -3779,7 +3775,9 @@ ${activities || '今天没有发生什么特别的事情'}
       Object.keys(diaryDataMap).forEach((dateStr) => {
         const entries = diaryDataMap[dateStr];
         if (Array.isArray(entries)) {
-          diaryDataMap[dateStr] = entries.filter((e) => e.aiGenerated === true);
+          diaryDataMap[dateStr] = entries.filter((e) => (
+            e.aiGenerated === true || e.type === 'DB_DIARY' || e.source === 'template_library'
+          ));
           if (diaryDataMap[dateStr].length === 0 && dateStr !== todayStr) {
             delete diaryDataMap[dateStr];
           }
