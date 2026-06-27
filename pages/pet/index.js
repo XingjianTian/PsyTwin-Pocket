@@ -53,7 +53,7 @@ const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 
 // 心宠服务器同步 API
 const { pullPetState, pushPetState, fetchPetEvents, fetchPetQuiz } = require('../../api/pet-server');
-const { triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
+const { fetchPetDiary, triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
 
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
@@ -1588,6 +1588,7 @@ Page({
     if (!result.success) {
       console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
       this.initDiaryData(false); // 网络失败时从本地 storage 加载兜底
+      await this.loadDiaryFromSentinel();
       return;
     }
 
@@ -1651,6 +1652,7 @@ Page({
     // 同步完成后刷新日记数据（服务器数据为准，跳过本地过滤）
     this.initDiaryData(true);
     await this.backfillDiaryFromSentinel(offlineSeconds);
+    await this.loadDiaryFromSentinel();
 
     // 同步完成后加载帮助事件，与离线事件合并
     this.initHelpData();
@@ -3518,6 +3520,16 @@ Page({
     this.applyServerDiaryData(result.data, this.formatDateToStr(new Date()));
   },
 
+  async loadDiaryFromSentinel(dateStr = this.formatDateToStr(new Date())) {
+    const result = await fetchPetDiary(dateStr);
+
+    if (!result.success) {
+      return;
+    }
+
+    this.applyServerDiaryData(result.data, dateStr);
+  },
+
   async generateAiDiary() {
     await this.generateDatabaseDiary({ force: true });
   },
@@ -3924,8 +3936,9 @@ ${activities || '今天没有发生什么特别的事情'}
   },
 
   // 点击日记
-  onDiaryTap() {
+  async onDiaryTap() {
     this.switchView('diary');
+    await this.loadDiaryFromSentinel(this.data.diarySelectedDate || this.formatDateToStr(new Date()));
     // 重新生成日历
     const { currentYear, currentMonth } = this.data;
     if (currentYear && currentMonth) {
@@ -3934,7 +3947,7 @@ ${activities || '今天没有发生什么特别的事情'}
   },
 
   // 选择日记日期
-  onDiaryDateSelect(e) {
+  async onDiaryDateSelect(e) {
     const { date } = e.currentTarget.dataset;
     const { diaryDataMap, calendarDays } = this.data;
     const entries = diaryDataMap[date] || [];
@@ -3944,6 +3957,7 @@ ${activities || '今天没有发生什么特别的事情'}
       selectedDateText: this.formatDateText(date),
       selectedDateWeekday: this.getWeekdayText(date),
     });
+    await this.loadDiaryFromSentinel(date);
     // 更新当前周显示
     this.updateCalendarWeekDays(calendarDays);
   },
