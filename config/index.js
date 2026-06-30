@@ -18,10 +18,11 @@ const config = {
   petServiceUrl: 'http://localhost:3001',
 
   /** 心宠离线同步服务器地址
-   * - 本地: 'http://localhost:3002'
+   * - 阿里云: 'http://42.121.14.189:13002'
+   * - 本地: 'http://localhost:13002'
    * - 生产: 'https://pet-sync.psytwin.com'
    */
-  petSyncUrl: 'http://localhost:3002',
+  petSyncUrl: 'http://42.121.14.189:13002',
 
   /**
    * 大模型 LLM 配置（OpenAI 兼容格式）

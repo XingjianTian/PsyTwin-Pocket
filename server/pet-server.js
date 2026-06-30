@@ -5,7 +5,7 @@
  * 小程序启动时拉取服务器计算的当前状态，关闭时推送状态到服务器。
  *
  * 启动: node pet-server.js
- * 默认端口: 3002
+ * 默认端口: 13002
  */
 
 const express = require('express');
@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 13002;
 // 数据文件放在用户主目录下，避免被微信开发者工具的文件监听触发热重载
 const DATA_DIR = path.join(require('os').homedir(), '.psytwin-pet');
 const DATA_FILE = path.join(DATA_DIR, 'pet-data.json');
@@ -1411,7 +1411,7 @@ server.on('error', (err) => {
     console.error('   可能是之前的服务器进程还在运行。');
     console.error('');
     console.error('   解决方案（在 PowerShell 中执行）：');
-    console.error('   Get-NetTCPConnection -LocalPort 3002 | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }');
+    console.error(`   Get-NetTCPConnection -LocalPort ${PORT} | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }`);
     console.error('');
     console.error('   或者手动结束所有 node.exe 进程，然后重新启动服务器。\n');
     process.exit(1);

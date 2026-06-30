@@ -13,7 +13,7 @@ PsyTwin-Pocket 在 PsyTwin 生态里承担 API Consumer 和移动交互层职责
 | PsyTwin-Sentinel | 主要后端。小程序通过 `config/index.js` 的 `baseUrl` 访问 `http://localhost:3000/api/pocket` 这一类接口。真实字段以 Sentinel 契约为准。 |
 | PsyTwin-OpenClaw | AI 编排中心。AI 对话可以经 Sentinel 代理到 `/api/openclaw/pocket/chat`。 |
 | PsyTwin-Companion | VR/边缘采集网关。Pocket 主要展示预约、VR 记录和干预入口，不直接维护采集服务。 |
-| 本项目 `server/` | 心宠持续运行与离线同步服务，默认 `http://localhost:3002`。 |
+| 本项目 `server/` | 心宠持续运行与离线同步服务，默认部署在 `http://42.121.14.189:13002`。 |
 | 本项目 `desktop/` | Tauri + Vue 桌面版演示壳，复刻部分小程序页面和接口消费方式。 |
 
 重要边界：
@@ -65,7 +65,7 @@ baseUrl: 'http://localhost:3000/api/pocket'
 
 ### 3. 心宠持续运行服务
 
-心宠主页、背包、日记、帮助事件会调用 `petSyncUrl`，默认端口 `3002`。
+心宠主页、背包、日记、帮助事件会调用 `petSyncUrl`。当前小程序默认连接阿里云服务 `http://42.121.14.189:13002`，服务端默认端口 `13002`。
 
 ```bash
 cd server
@@ -82,7 +82,7 @@ npm run dev
 可用环境变量：
 
 ```bash
-PORT=3002
+PORT=13002
 MINIMAX_BASE_URL=https://api.minimaxi.com
 MINIMAX_API_KEY=你的本地密钥
 MINIMAX_MODEL=MiniMax-M2.7
@@ -91,8 +91,8 @@ MINIMAX_MODEL=MiniMax-M2.7
 常用检查：
 
 ```bash
-curl http://localhost:3002/health
-curl "http://localhost:3002/api/pet/status?userId=<petUserId>"
+curl http://42.121.14.189:13002/health
+curl "http://42.121.14.189:13002/api/pet/status?userId=<petUserId>"
 ```
 
 ### 4. 桌面端演示
@@ -220,7 +220,7 @@ TabBar 还监听全局事件：
 | `isMock` | `false` | 是否拦截通用请求并返回本地 mock。 |
 | `baseUrl` | `http://localhost:3000/api/pocket` | Sentinel Pocket API。 |
 | `petServiceUrl` | `http://localhost:3001` | 预留心宠服务地址。 |
-| `petSyncUrl` | `http://localhost:3002` | 当前心宠持续运行服务地址。 |
+| `petSyncUrl` | `http://42.121.14.189:13002` | 当前心宠持续运行服务地址。 |
 | `llm.enabled` | `true` | AI/日记是否优先使用自有 LLM。 |
 | `llm.baseUrl` | `https://api.minimaxi.com` | Anthropic 兼容接口地址。 |
 | `llm.model` | `MiniMax-M2.7` | 当前 LLM 模型名。 |
