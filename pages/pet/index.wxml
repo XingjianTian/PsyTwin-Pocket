@@ -1,47 +1,61 @@
 <view class="pet-container {{isFullscreen ? 'fullscreen' : ''}}">
   <!-- 状态栏 -->
   <view class="status-bar">
-    <view class="status-card">
+    <view class="status-card status-hud">
+      <view class="hud-avatar-wrap">
+        <image class="hud-avatar" src="{{mainPetAvatar}}" mode="aspectFill" wx:if="{{mainPetAvatar}}" />
+        <view class="hud-avatar-placeholder" wx:else>
+          <text class="hud-avatar-eye">●</text>
+          <text class="hud-avatar-eye">●</text>
+        </view>
+      </view>
+
       <!-- 心情 -->
-      <view class="status-item">
+      <view class="status-item hud-status-item">
         <view class="status-icon-wrapper">
           <text class="status-icon {{mood < 30 ? 'warning' : ''}}">❤️</text>
         </view>
-        <text class="status-label">心情</text>
-        <view class="progress-wrapper">
+        <view class="status-content">
+          <view class="status-meta">
+            <text class="status-label">心情</text>
+            <text class="status-value {{mood < 30 ? 'warning-text' : ''}}">{{mood}}</text>
+          </view>
           <view class="progress-track">
             <view class="progress-fill mood-fill" style="width: {{mood}}%"></view>
           </view>
         </view>
-        <text class="status-value {{mood < 30 ? 'warning-text' : ''}}">{{mood}}</text>
       </view>
 
       <!-- 能量 -->
-      <view class="status-item">
+      <view class="status-item hud-status-item">
         <view class="status-icon-wrapper">
           <text class="status-icon {{energy < 30 ? 'warning' : ''}}">⚡</text>
         </view>
-        <text class="status-label">能量</text>
-        <view class="progress-wrapper">
+        <view class="status-content">
+          <view class="status-meta">
+            <text class="status-label">能量</text>
+            <text class="status-value {{energy < 30 ? 'warning-text' : ''}}">{{energy}}</text>
+          </view>
           <view class="progress-track">
             <view class="progress-fill energy-fill" style="width: {{energy}}%"></view>
           </view>
         </view>
-        <text class="status-value {{energy < 30 ? 'warning-text' : ''}}">{{energy}}</text>
       </view>
 
       <!-- 社交 -->
-      <view class="status-item">
+      <view class="status-item hud-status-item">
         <view class="status-icon-wrapper">
           <text class="status-icon {{social < 30 ? 'warning' : ''}}">👥</text>
         </view>
-        <text class="status-label">社交</text>
-        <view class="progress-wrapper">
+        <view class="status-content">
+          <view class="status-meta">
+            <text class="status-label">社交</text>
+            <text class="status-value {{social < 30 ? 'warning-text' : ''}}">{{social}}</text>
+          </view>
           <view class="progress-track">
             <view class="progress-fill social-fill" style="width: {{social}}%"></view>
           </view>
         </view>
-        <text class="status-value {{social < 30 ? 'warning-text' : ''}}">{{social}}</text>
       </view>
     </view>
 
