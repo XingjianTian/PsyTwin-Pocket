@@ -23,6 +23,18 @@ PsyTwin-Pocket 在 PsyTwin 生态里承担 API Consumer 和移动交互层职责
 - 如果契约没有字段，不要在 Pocket 侧脑补字段，应该让 Sentinel 补充契约。
 - 不要在 README、截图、提交说明中公开真实 API Key。当前配置文件里已有 LLM 配置项，后续应迁移到本地私有配置或环境变量。
 
+## 近期更新概览
+
+以下是 2026-06 以来几次主要更新在当前代码中的落点，便于从旧版本接手时快速定位差异：
+
+| 时间 | 更新方向 | 当前状态 |
+| --- | --- | --- |
+| 2026-06-01 | 心宠背包与帮助事件修复 | 背包独立页和心宠主页都会优先拉取服务端状态，失败时回退到 `petBagItems`；帮助事件会在服务端、主页状态和 `petHelpEvents` 本地缓存之间去重合并，已解决“离开页面后事件丢失”和“物品字段不一致”的问题。 |
+| 2026-06-15 | 心宠日记接入 Sentinel | 新增 [api/pet-diary.js](./api/pet-diary.js)，通过 Sentinel 的 `/pet/diary`、`/pet/diary/trigger`、`/pet/diary/test`、`/pet/diary/backfill` 管理模板化日记；心宠服务仍保存 `diaryDataMap`，小程序同步后会回补近 7 天日记。 |
+| 2026-06-27 | 桌面端演示壳 | 新增 `desktop/` Tauri + Vue 实现，用于不打开微信开发者工具时演示登录、心墙、AI、预约、工作台、通知、发布等页面；它是独立运行时，不会自动复用小程序页面。 |
+| 2026-06-30 | 心宠同步服务部署口径 | `petSyncUrl` 改为 `http://42.121.14.189:13002`，`server/` 默认端口同步为 `13002`，方便多人共享演示同一套心宠离线状态服务。 |
+| 2026-06-30 | 心宠游戏 HUD 优化 | `pages/pet/index` 顶部三行状态卡改为单行半透明玻璃 HUD：左侧头像，右侧横向展示心情、能量、社交三项指标，减少对地图视野的占用。 |
+
 ## 技术栈
 
 | 模块 | 技术 |
@@ -137,11 +149,11 @@ PsyTwin-Pocket/
 | 页面 | 入口 | 当前职责 |
 | --- | --- | --- |
 | 心墙 | `pages/home/index` | 拉取 `/student/home/feed`，格式化帖子数据，做双列瀑布流展示，进入帖子详情和发布页。 |
-| 心宠 | `pages/pet/index` | 当前最大模块。包含心宠动画、地图、场景切换、状态模拟、其他心宠、对话、背包、金币、日记、帮助事件和测评。 |
+| 心宠 | `pages/pet/index` | 当前最大模块。包含单行玻璃 HUD、心宠动画、地图、场景切换、状态模拟、其他心宠、对话、背包、金币、日记、帮助事件和测评。 |
 | 心宠地图 | `pages/pet/map/index` | 旧版/独立地图页，保留地块选择与进入逻辑。 |
-| 心宠事件 | `pages/pet/events/index` | 从心宠服务拉取帮助事件，失败时读本地缓存。 |
-| 心宠背包 | `pages/pet/bag/index` | 从服务端状态或本地缓存读取物品，使用 `utils/itemDatabase.js` 补齐物品属性。 |
-| 心宠日记 | `pages/pet/diary/index` | 读取 `diaryDataMap`，按近 7 天展示日记。 |
+| 心宠事件 | `pages/pet/events/index` | 从心宠服务拉取帮助事件，失败时读本地缓存；用户选择方案后会把事件标记为已解决并写回 `petHelpEvents`。 |
+| 心宠背包 | `pages/pet/bag/index` | 从服务端状态或本地缓存读取物品，使用 `utils/itemDatabase.js` 的 104 个物品模板补齐名称、图标、稀有度、效果等属性。 |
+| 心宠日记 | `pages/pet/diary/index` | 读取服务端 `diaryDataMap`，失败时回退到 `petDiaryMap`，按近 7 天展示日记。 |
 | AI | `pages/message/index` | AI 入口页，展示问候语、建议 chip、最近会话，跳转聊天页。 |
 | 我的 | `pages/my/index` | 学生/教师双角色个人中心，学生展示心理概览，教师展示资质和工作统计。 |
 | 工作台 | `pages/dataCenter/index` | 教师端工作台，预警统计、今日日程、快捷入口、工作统计。 |
@@ -213,6 +225,18 @@ TabBar 还监听全局事件：
 | `api/pet-server.js` | 心宠服务的 pull/push/events/quiz。 |
 | `api/pet-diary.js` | Sentinel 侧心宠日记触发、测试、回补接口。 |
 
+### 心宠日记接口拆分
+
+当前心宠日记同时涉及 Pocket 自带 `server/` 和 Sentinel：
+
+| 能力 | 请求封装 | 服务端 | 说明 |
+| --- | --- | --- | --- |
+| 心宠状态里的日记缓存 | `api/pet-server.js` | `petSyncUrl` | `pull/push` 会同步 `diaryDataMap`，用于离线状态合并和独立日记页展示。 |
+| 模板化日记读取 | `api/pet-diary.js` | `baseUrl` / Sentinel | `GET /pet/diary` 读取指定日期或默认日期的日记。 |
+| 场景触发日记 | `api/pet-diary.js` | `baseUrl` / Sentinel | `POST /pet/diary/trigger` 根据 `sceneId/date/hour` 尝试创建日记。 |
+| 手动测试日记 | `api/pet-diary.js` | `baseUrl` / Sentinel | `POST /pet/diary/test` 供开发调试按钮使用。 |
+| 离线回补日记 | `api/pet-diary.js` | `baseUrl` / Sentinel | `POST /pet/diary/backfill` 在心宠同步成功后补齐最近离线日期，默认最多 7 天。 |
+
 ### 配置项
 
 | 配置 | 默认值 | 用途 |
@@ -231,18 +255,20 @@ TabBar 还监听全局事件：
 
 ### 核心能力
 
+- 单行玻璃 HUD：左侧显示主心宠头像，右侧横向展示心情、能量、社交，低数值自动高亮警示。
 - 45 帧心宠动画：从 `static/pet/ExportedSprites/` 的 315 张 PNG 中采样。
 - 三维状态：`mood`、`energy`、`social`。
 - 时间调度：工作日/周末按小时加权选择场景。
 - 场景系统：5 个一级地图，二十多个二级场景。
 - 行为系统：固定场景、半固定场景、可变场景对应不同活动持续时间。
 - 其他心宠：随机生成名字、头像、移动和对话。
-- 背包系统：物品、稀有度、类型、来源、效果、容量、筛选。
+- 背包系统：104 个大学校园物品模板，包含稀有度、类型、来源、效果、容量、筛选，并支持服务端状态与本地缓存互补。
 - 金币系统：获得/消费记录。
 - 活动日志：记录场景、事件、物品发现等行为。
-- 心情日记：本地生成、服务端生成、MiniMax AI 日记、Sentinel 日记回补。
-- 帮助事件：离线过久、状态偏低或随机事件触发“需要帮助”。
-- 测评题库：PHQ-9、GAD-7、社交回避简版被包装成“帮助心宠做选择”。
+- 心情日记：本地日记、心宠服务 AI 日记、Sentinel 模板日记和离线回补共存，近 7 天在页面展示，服务端保留最近 30 天 `diaryDataMap`。
+- 帮助事件：离线过久、状态偏低或随机事件触发“需要帮助”，服务端和本地按事件 ID 去重合并。
+- 测评题库：PHQ-9、GAD-7、社交回避简版被包装成“帮助心宠做选择”，每类 4 题，完成后给出分数、等级和建议。
+- 共享演示同步：小程序默认连接阿里云 `42.121.14.189:13002`，多人可访问同一心宠同步服务；本地开发可改 `config/index.js` 的 `petSyncUrl`。
 
 ### 地图与资源
 
@@ -261,6 +287,8 @@ TabBar 还监听全局事件：
 - 规范化场景图: 25
 - 二级地图: 5
 - 二级场景背景文件: 31
+- 心宠头像: 5
+- 背包物品模板: 104
 
 ### 心宠服务端
 
@@ -273,6 +301,8 @@ TabBar 还监听全局事件：
 - 每 5 秒对活跃心宠运行一次 tick。
 - 记录活动日志、状态变化、背包发现、帮助事件。
 - 异步队列触发 AI 日记生成。
+- 保存前会清理异常状态：三维数值限制在 0-100，日记保留最近 30 天，过期帮助事件会被过滤。
+- `push` 合并时会按日记 ID、活动日志 key、帮助事件 ID 去重，避免多端或离线回传产生重复数据。
 - 每 30 秒打印所有心宠状态。
 
 接口：
@@ -286,6 +316,8 @@ TabBar 还监听全局事件：
 | `POST` | `/api/pet/test-diary` | 调试 AI 日记生成。 |
 | `GET` | `/api/pet/status?userId=xxx` | 查看指定用户状态。 |
 | `GET` | `/health` | 健康检查。 |
+
+当前 HTTP 接口是心宠同步的主路径；[utils/petWebSocket.js](./utils/petWebSocket.js) 保留了 WebSocket 客户端、自动重连和事件分发逻辑，适合作为后续实时同步扩展入口，但当前 `server/` 主要暴露的是上述 REST 接口。
 
 ### 心宠本地缓存键
 
@@ -403,6 +435,7 @@ npm run dev
 - 部分教师端页面仍使用内联 mock 数据，真实联调前需要按 Sentinel 契约接入接口。
 - `pages/post-detail/index.js` 中点赞、评论发送仍是占位逻辑。
 - `pages/search/index.js` 仍请求旧路径 `/api/searchHistory`、`/api/searchPopular`，和当前 `/api/pocket` 契约风格不完全一致。
+- `pages/pet/bag/index.js` 的 `formatEffect` 仍检查 `effect.sociability`，而当前物品模板使用 `effect.social`；展示社交效果时可能需要后续统一字段名。
 - `desktop/` 不是小程序构建产物，更新小程序页面时不会自动同步桌面端。
 
 ## 更多文档
