@@ -11,9 +11,12 @@ function unwrapPetDiaryResponse(response, fallbackMessage) {
   };
 }
 
-export async function fetchPetDiary(date) {
+export async function fetchPetDiary(date, { ensure = false } = {}) {
   try {
-    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    const params = [];
+    if (date) params.push(`date=${encodeURIComponent(date)}`);
+    if (ensure) params.push('ensure=true');
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
     const response = await request(`/pet/diary${query}`, 'GET');
     return unwrapPetDiaryResponse(response, '获取心宠日记失败');
   } catch (err) {

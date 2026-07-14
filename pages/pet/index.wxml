@@ -470,6 +470,9 @@ mode="aspectFill"
     <block wx:if="{{currentView === 'help'}}">
       <view class="view-header">
         <text class="view-title">{{hasEvent ? '需要帮助' : '暂无求助'}}</text>
+        <view class="demo-help-btn" bindtap="onDemoHelpTap">
+          <text class="demo-help-text">演示求助</text>
+        </view>
       </view>
       <scroll-view class="view-content help-view" scroll-y>
         <view wx:if="{{helpLoading}}" class="view-loading">

@@ -60,6 +60,7 @@ const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase')
 
 // 心理答题题库
 const { getScaleForCategory, calculateScore } = require('../../utils/quizDatabase');
+const { createDemoHelpEvent } = require('../../utils/demoHelpEvents');
 
 
 // 其他心宠名字列表（60个）
@@ -3520,8 +3521,8 @@ Page({
     this.applyServerDiaryData(result.data, this.formatDateToStr(new Date()));
   },
 
-  async loadDiaryFromSentinel(dateStr = this.formatDateToStr(new Date())) {
-    const result = await fetchPetDiary(dateStr);
+  async loadDiaryFromSentinel(dateStr = this.formatDateToStr(new Date()), { ensure = false } = {}) {
+    const result = await fetchPetDiary(dateStr, { ensure });
 
     if (!result.success) {
       return;
@@ -3938,7 +3939,7 @@ ${activities || '今天没有发生什么特别的事情'}
   // 点击日记
   async onDiaryTap() {
     this.switchView('diary');
-    await this.loadDiaryFromSentinel(this.data.diarySelectedDate || this.formatDateToStr(new Date()));
+    await this.loadDiaryFromSentinel(this.data.diarySelectedDate || this.formatDateToStr(new Date()), { ensure: true });
     // 重新生成日历
     const { currentYear, currentMonth } = this.data;
     if (currentYear && currentMonth) {
@@ -3957,7 +3958,7 @@ ${activities || '今天没有发生什么特别的事情'}
       selectedDateText: this.formatDateText(date),
       selectedDateWeekday: this.getWeekdayText(date),
     });
-    await this.loadDiaryFromSentinel(date);
+    await this.loadDiaryFromSentinel(date, { ensure: true });
     // 更新当前周显示
     this.updateCalendarWeekDays(calendarDays);
   },
@@ -4073,6 +4074,22 @@ ${activities || '今天没有发生什么特别的事情'}
   },
 
   // 点击帮助事件卡片
+  onDemoHelpTap() {
+    wx.showActionSheet({
+      itemList: ['高危：预约咨询', '中危：心理测评', '低危：陪伴提示'],
+      success: (res) => {
+        const severity = ['high', 'medium', 'low'][res.tapIndex];
+        const demoEvent = createDemoHelpEvent(severity);
+        this.setData({
+          helpEvents: [demoEvent, ...this.data.helpEvents],
+          hasEvent: true,
+          currentView: 'help',
+        });
+        wx.showToast({ title: '已添加演示求助事件', icon: 'none' });
+      },
+    });
+  },
+
   onHelpEventTap(e) {
     const { index } = e.currentTarget.dataset;
     const event = this.data.helpEvents[index];
@@ -4089,7 +4106,7 @@ ${activities || '今天没有发生什么特别的事情'}
         cancelText: '再观察',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/appointment/index' });
+            wx.switchTab({ url: '/pages/appointment/index' });
           }
         },
       });
