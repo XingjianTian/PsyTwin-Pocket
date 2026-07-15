@@ -5,10 +5,12 @@
   "main": "pet-server.js",
   "scripts": {
     "start": "node pet-server.js",
-    "dev": "node pet-server.js"
+    "dev": "node pet-server.js",
+    "test": "node --test pet-state.test.cjs"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "ws": "^8.21.0"
   }
 }

@@ -12,6 +12,13 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { WebSocketServer, WebSocket } = require('ws');
+const {
+  getDefaultState,
+  restoreState,
+  serializeState,
+  toStatusPayload,
+} = require('./pet-state');
 
 const app = express();
 const PORT = process.env.PORT || 13002;
@@ -410,16 +417,8 @@ function loadData() {
       const map = new Map();
       for (const [key, value] of Object.entries(parsed)) {
         // 数据分离：JSON 只存持久化数据，实时状态用默认值
-        const state = getDefaultState(key);
-        state.diaryDataMap = value.diaryDataMap || {};
-        state.bagItems = value.bagItems || [];
-        state.helpEvents = value.helpEvents || [];
-        state.coins = typeof value.coins === 'number' ? value.coins : 0;
-        state.activityLog = value.activityLog || {};
+        const state = restoreState(key, value);
         // 兼容旧格式：如果 JSON 中有合理的 lastSyncAt，使用它
-        if (value.lastSyncAt && value.lastSyncAt > 0 && value.lastSyncAt < Date.now() + 60000) {
-          state.lastSyncAt = value.lastSyncAt;
-        }
         sanitizeState(state);
         map.set(key, state);
       }
@@ -451,19 +450,11 @@ function saveData(dataMap) {
         sanitizeState(state);
         // 只保存持久化数据：日记、物品、金币、活动日志
         // 实时状态（mood/energy/social/sceneId/activity）不写入 JSON
-        persistent[userId] = {
-          userId: state.userId,
-          diaryDataMap: state.diaryDataMap || {},
-          bagItems: state.bagItems || [],
-          helpEvents: state.helpEvents || [],
-          coins: state.coins || 0,
-          activityLog: state.activityLog || {},
-        };
+        persistent[userId] = serializeState(state);
       }
       const tempFile = DATA_FILE + '.tmp';
       fs.writeFileSync(tempFile, JSON.stringify(persistent, null, 2), 'utf-8');
       fs.renameSync(tempFile, DATA_FILE);
-      console.log('[Data] 持久化数据已保存到', DATA_FILE);
     } catch (err) {
       console.error('[Data] 保存数据失败:', err.message);
     }
@@ -473,6 +464,46 @@ function saveData(dataMap) {
 
 // 内存存储
 const petData = loadData();
+
+// userId -> WebSocket clients. WebSocket 只负责广播服务端已经计算完成的完整状态。
+const petClients = new Map();
+
+function getPetClientSet(userId) {
+  if (!petClients.has(userId)) petClients.set(userId, new Set());
+  return petClients.get(userId);
+}
+
+function getRealtimeStatus(state) {
+  const payload = toStatusPayload(state);
+  return {
+    userId: state.userId,
+    status: payload.state || state,
+    serverTime: payload.serverTime,
+    updatedAt: payload.updatedAt,
+    stateVersion: payload.stateVersion,
+  };
+}
+
+function sendPetStatus(socket, state) {
+  if (socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({
+    type: 'pet_status',
+    payload: getRealtimeStatus(state),
+  }));
+}
+
+function broadcastPetStatus(userId, state) {
+  const clients = petClients.get(userId);
+  if (!clients || clients.size === 0) return;
+
+  for (const socket of clients) {
+    if (socket.readyState === WebSocket.OPEN) {
+      sendPetStatus(socket, state);
+    } else {
+      clients.delete(socket);
+    }
+  }
+}
 
 // ========== 持续运行引擎 ==========
 
@@ -531,6 +562,8 @@ function runSingleTick(state, nowMs) {
   }
 
   ctx.tickCount++;
+  state.stateVersion = (state.stateVersion || 0) + 1;
+  state.updatedAt = nowMs;
   const date = new Date(nowMs);
   const hour = date.getHours();
   const minute = date.getMinutes();
@@ -631,6 +664,7 @@ function runSingleTick(state, nowMs) {
     }
   }
   state.lastSyncAt = nowMs;
+  state.updatedAt = nowMs;
 
   // 每次 tick 后自动清理过期数据，防止数据无限增长
   sanitizeState(state);
@@ -750,26 +784,6 @@ async function simulateOfflineProgress(state, nowMs) {
 
 // ========== 默认初始状态 ==========
 
-function getDefaultState(userId) {
-  const now = Date.now();
-  return {
-    userId,
-    mood: 60,
-    energy: 75,
-    social: 45,
-    sceneId: 'bedroom',
-    activity: '在温暖的床上休息',
-    activityStartTime: now,
-    activityDuration: 10,
-    activityLog: {},
-    coins: 0,
-    bagItems: [],
-    helpEvents: [],
-    diaryDataMap: {},
-    lastSyncAt: now,
-  };
-}
-
 // ========== API 路由 ==========
 
 /**
@@ -800,11 +814,17 @@ app.post('/api/pet/pull', async (req, res) => {
   const result = await simulateOfflineProgress(state, nowMs);
   const generatedEvents = generateOfflineHelpEvents(state, idleMin);
 
+  console.log(
+    `[PetSync] 小程序连接 pull | userId=${userId} | client=${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown'} | `
+      + `stateVersion=${result.state.stateVersion} | scene=${result.state.sceneId} | activity=${result.state.activity} | `
+      + `mood=${result.state.mood} energy=${result.state.energy} social=${result.state.social}`,
+  );
+
   res.json({
     code: 0,
     message: 'success',
     data: {
-      state: result.state,
+      ...toStatusPayload(result.state, nowMs),
       diaryGenerated: result.diaryGenerated || [],
       generatedEvents,
       helpEvents: result.state.helpEvents || [],
@@ -817,7 +837,14 @@ app.post('/api/pet/pull', async (req, res) => {
  * POST /api/pet/push
  * 小程序关闭/隐藏时调用，同步当前状态到服务器
  */
-app.post('/api/pet/push', (req, res) => {
+app.post('/api/pet/push', (_req, res) => {
+  res.status(405).json({
+    code: 405,
+    message: '心宠状态由服务端统一维护，当前版本不接受客户端写入',
+  });
+});
+
+app.post('/api/pet/push-legacy', (req, res) => {
   const { userId, state } = req.body;
   if (!userId || !state) {
     return res.status(400).json({ code: 400, message: '缺少 userId 或 state' });
@@ -899,11 +926,18 @@ app.get('/api/pet/status', (req, res) => {
   if (!userId) {
     return res.status(400).json({ code: 400, message: '缺少 userId' });
   }
-  const state = petData.get(userId);
+  let state = petData.get(userId);
   if (!state) {
-    return res.status(404).json({ code: 404, message: '用户未找到' });
+    state = getDefaultState(userId);
+    petData.set(userId, state);
+    saveData(petData);
   }
-  res.json({ code: 0, data: state });
+  console.log(
+    `[PetSync] 小程序连接 status | userId=${userId} | client=${req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown'} | `
+      + `stateVersion=${state.stateVersion} | scene=${state.sceneId} | activity=${state.activity} | `
+      + `mood=${state.mood} energy=${state.energy} social=${state.social}`,
+  );
+  res.json({ code: 0, data: toStatusPayload(state) });
 });
 
 /**
@@ -1361,6 +1395,7 @@ app.get('/health', (req, res) => {
       if (now - state.lastSyncAt > 24 * 3600 * 1000) continue;
 
       const result = runSingleTick(state, now);
+      broadcastPetStatus(userId, state);
       if (result.diaryTriggered) {
         diaryQueue.push({ userId, state, dateStr: result.dateStr });
         processDiaryQueue();
@@ -1403,6 +1438,72 @@ const server = app.listen(PORT, () => {
   console.log(`  GET  http://localhost:${PORT}/api/pet/status?userId=xxx  - 查看状态`);
   console.log(`  GET  http://localhost:${PORT}/health                 - 健康检查`);
   console.log('');
+});
+
+const webSocketServer = new WebSocketServer({ server, path: '/ws/pet' });
+
+webSocketServer.on('connection', (socket, request) => {
+  const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+  let userId = requestUrl.searchParams.get('userId');
+
+  const registerClient = (nextUserId) => {
+    if (!nextUserId) return false;
+    if (userId && userId !== nextUserId) {
+      petClients.get(userId)?.delete(socket);
+    }
+    userId = nextUserId;
+    getPetClientSet(userId).add(socket);
+    return true;
+  };
+
+  if (!registerClient(userId)) {
+    socket.send(JSON.stringify({
+      type: 'auth_failed',
+      payload: { message: '缺少 userId' },
+    }));
+    socket.close(1008, 'userId required');
+    return;
+  }
+
+  let state = petData.get(userId);
+  if (!state) {
+    state = getDefaultState(userId);
+    petData.set(userId, state);
+    saveData(petData);
+  }
+
+  console.log(`[PetSync] WebSocket连接 | userId=${userId} | clientType=${requestUrl.searchParams.get('clientType') || 'unknown'}`);
+  socket.send(JSON.stringify({
+    type: 'auth_success',
+    payload: { userId },
+  }));
+  sendPetStatus(socket, state);
+
+  socket.on('message', (rawMessage) => {
+    try {
+      const message = JSON.parse(rawMessage.toString());
+      if (message.type === 'auth') {
+        const nextUserId = message.payload?.userId || userId;
+        if (!registerClient(nextUserId)) return;
+        state = petData.get(userId) || getDefaultState(userId);
+        socket.send(JSON.stringify({ type: 'auth_success', payload: { userId } }));
+        sendPetStatus(socket, state);
+      } else if (message.type === 'heartbeat') {
+        socket.send(JSON.stringify({ type: 'heartbeat_ack', payload: { timestamp: Date.now() } }));
+      }
+    } catch (error) {
+      console.warn(`[PetSync] WebSocket消息解析失败: ${error.message}`);
+    }
+  });
+
+  socket.on('close', () => {
+    petClients.get(userId)?.delete(socket);
+    console.log(`[PetSync] WebSocket断开 | userId=${userId}`);
+  });
+
+  socket.on('error', (error) => {
+    console.warn(`[PetSync] WebSocket错误 | userId=${userId} | ${error.message}`);
+  });
 });
 
 server.on('error', (err) => {

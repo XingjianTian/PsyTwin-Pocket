@@ -34,6 +34,7 @@ PsyTwin-Pocket 在 PsyTwin 生态里承担 API Consumer 和移动交互层职责
 | 2026-06-27 | 桌面端演示壳 | 新增 `desktop/` Tauri + Vue 实现，用于不打开微信开发者工具时演示登录、心墙、AI、预约、工作台、通知、发布等页面；它是独立运行时，不会自动复用小程序页面。 |
 | 2026-06-30 | 心宠同步服务部署口径 | `petSyncUrl` 改为 `http://42.121.14.189:13002`，`server/` 默认端口同步为 `13002`，方便多人共享演示同一套心宠离线状态服务。 |
 | 2026-06-30 | 心宠游戏 HUD 优化 | `pages/pet/index` 顶部三行状态卡改为单行半透明玻璃 HUD：左侧头像，右侧横向展示心情、能量、社交三项指标，减少对地图视野的占用。 |
+| 2026-07-14 | 心宠跨端状态同步 | 服务端成为唯一状态源；小程序使用 `petDemoUserId` 每 5 秒只读拉取 `/api/pet/status`，服务端持久化完整状态，Unity 接入契约见 [`docs/PET_CROSS_PLATFORM_SYNC.md`](./docs/PET_CROSS_PLATFORM_SYNC.md)。 |
 
 ## 技术栈
 
@@ -245,6 +246,7 @@ TabBar 还监听全局事件：
 | `baseUrl` | `http://localhost:3000/api/pocket` | Sentinel Pocket API。 |
 | `petServiceUrl` | `http://localhost:3001` | 预留心宠服务地址。 |
 | `petSyncUrl` | `http://42.121.14.189:13002` | 当前心宠持续运行服务地址。 |
+| `petDemoUserId` | `demo_pet` | Unity 与小程序共享的演示心宠 ID。 |
 | `llm.enabled` | `true` | AI/日记是否优先使用自有 LLM。 |
 | `llm.baseUrl` | `https://api.minimaxi.com` | Anthropic 兼容接口地址。 |
 | `llm.model` | `MiniMax-M2.7` | 当前 LLM 模型名。 |
@@ -310,11 +312,11 @@ TabBar 还监听全局事件：
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | `POST` | `/api/pet/pull` | 小程序启动/显示时拉取实时状态，并补偿离线进度。 |
-| `POST` | `/api/pet/push` | 小程序隐藏/退出时推送状态，服务端合并日记、日志、事件和背包。 |
+| `POST` | `/api/pet/push` | 旧接口已进入只读模式，不再接受客户端状态写入。 |
 | `POST` | `/api/pet/events` | 根据当前状态生成帮助事件。 |
 | `POST` | `/api/pet/quiz` | 根据事件分类返回随机量表题。 |
 | `POST` | `/api/pet/test-diary` | 调试 AI 日记生成。 |
-| `GET` | `/api/pet/status?userId=xxx` | 查看指定用户状态。 |
+| `GET` | `/api/pet/status?userId=xxx` | 读取服务端权威状态，返回 `stateVersion`、`updatedAt` 和完整心宠状态。 |
 | `GET` | `/health` | 健康检查。 |
 
 当前 HTTP 接口是心宠同步的主路径；[utils/petWebSocket.js](./utils/petWebSocket.js) 保留了 WebSocket 客户端、自动重连和事件分发逻辑，适合作为后续实时同步扩展入口，但当前 `server/` 主要暴露的是上述 REST 接口。

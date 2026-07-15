@@ -6,7 +6,7 @@
 
 import config from '../config/index';
 
-const { petSyncUrl } = config;
+const { petSyncUrl, petDemoUserId } = config;
 
 /**
  * 从服务器拉取心宠当前状态（包含离线进度计算）
@@ -45,6 +45,48 @@ export async function pullPetState(userId) {
     console.error('[PetServer] pull 失败:', err);
     return { success: false, error: err.message || '网络请求失败' };
   }
+}
+
+/**
+ * 读取服务端权威心宠状态。
+ * @param {string} userId 演示心宠用户 ID
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export async function fetchPetStatus(userId = petDemoUserId) {
+  if (!userId) {
+    return { success: false, error: '缺少 userId' };
+  }
+
+  try {
+    const response = await new Promise((resolve, reject) => {
+      wx.request({
+        url: `${petSyncUrl}/api/pet/status`,
+        method: 'GET',
+        data: { userId },
+        dataType: 'json',
+        header: { 'content-type': 'application/json' },
+        success(res) {
+          resolve(res.data);
+        },
+        fail(err) {
+          reject(err);
+        },
+      });
+    });
+
+    if (response.code !== 0) {
+      return { success: false, error: response.message || '读取状态失败' };
+    }
+
+    return { success: true, data: response.data };
+  } catch (err) {
+    console.error('[PetServer] status 读取失败:', err);
+    return { success: false, error: err.message || '网络请求失败' };
+  }
+}
+
+export function getConfiguredPetUserId() {
+  return petDemoUserId;
 }
 
 /**
@@ -167,7 +209,9 @@ export async function fetchPetQuiz(category) {
 
 export default {
   pullPetState,
+  fetchPetStatus,
   pushPetState,
   fetchPetEvents,
   fetchPetQuiz,
+  getConfiguredPetUserId,
 };

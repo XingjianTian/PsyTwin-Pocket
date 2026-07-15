@@ -22,7 +22,10 @@ const config = {
    * - 本地: 'http://localhost:13002'
    * - 生产: 'https://pet-sync.psytwin.com'
    */
-  petSyncUrl: 'http://42.121.14.189:13002',
+  petSyncUrl: 'http://localhost:13002',
+
+  /** 演示用共享心宠 ID，Unity 与小程序必须使用同一个值 */
+  petDemoUserId: 'demo_pet',
 
   /**
    * 大模型 LLM 配置（OpenAI 兼容格式）

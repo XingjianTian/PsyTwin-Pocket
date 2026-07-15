@@ -52,8 +52,14 @@ const ANIMATION_FRAME_INTERVAL = 1000; // ms
 const ANIMATION_FRAME_COUNT = PET_ANIMATION_FRAMES.length; // 45
 
 // 心宠服务器同步 API
-const { pullPetState, pushPetState, fetchPetEvents, fetchPetQuiz } = require('../../api/pet-server');
+const {
+  fetchPetStatus,
+  fetchPetEvents,
+  fetchPetQuiz,
+  getConfiguredPetUserId,
+} = require('../../api/pet-server');
 const { fetchPetDiary, triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
+const { PET_SYNC_INTERVAL, normalizePetStatus, shouldApplyPetStatus } = require('../../utils/pet-sync');
 
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
@@ -959,6 +965,7 @@ Page({
     mood: 60,
     energy: 75,
     social: 45,
+    petStateVersion: 0,
     // 当前活动
     currentActivity: '在温暖的床上休息',
     currentScene: '卧室',
@@ -1474,9 +1481,11 @@ Page({
       const { status } = payload || {};
       if (status) {
         this.setData({
-          mood: status.mood || this.data.mood,
-          energy: status.energy || this.data.energy,
-          social: status.sociability || this.data.social,
+          mood: typeof status.mood === 'number' ? status.mood : this.data.mood,
+          energy: typeof status.energy === 'number' ? status.energy : this.data.energy,
+          social: typeof status.social === 'number'
+            ? status.social
+            : (typeof status.sociability === 'number' ? status.sociability : this.data.social),
         });
       }
     });
@@ -1505,7 +1514,7 @@ Page({
     });
 
     // 建立连接
-    ws.connect();
+    ws.connect(this.getPetUserId());
   },
 
   /**
@@ -1528,9 +1537,7 @@ Page({
     this.updateTimeDisplay();
     // 从服务器同步心宠状态（包含离线进度）
     this.syncFromServer();
-    // 根据当前时间初始化心宠位置
-    this.forceUpdateSceneByTime();
-    this.startStatusAnimation();
+    this.startStatusSync();
     this._initWebSocket();
     this.initCoins();
     this.initBagData();
@@ -1542,19 +1549,22 @@ Page({
     this.initActivityLog();
   },
 
+  onShow() {
+    this.syncFromServer();
+    this.startStatusSync();
+  },
+
   onHide() {
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
-    // 隐藏时同步状态到服务器
-    this.syncToServer();
+    this.stopStatusSync();
   },
 
   onUnload() {
     if (this.statusTimer) {
       clearInterval(this.statusTimer);
     }
-    // 页面卸载时同步状态到服务器
-    this.syncToServer();
+    this.stopStatusSync();
     if (this.moveTimer) {
       clearInterval(this.moveTimer);
     }
@@ -1572,12 +1582,7 @@ Page({
 
   /** 获取或生成用户ID */
   getPetUserId() {
-    let userId = wx.getStorageSync('petUserId');
-    if (!userId) {
-      userId = `pet_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      wx.setStorageSync('petUserId', userId);
-    }
-    return userId;
+    return getConfiguredPetUserId();
   },
 
   /** 从服务器拉取状态（小程序启动时调用） */
@@ -1585,7 +1590,7 @@ Page({
     const userId = this.getPetUserId();
     console.log('[PetSync] 开始从服务器拉取状态, userId=', userId);
 
-    const result = await pullPetState(userId);
+    const result = await fetchPetStatus(userId);
     if (!result.success) {
       console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
       this.initDiaryData(false); // 网络失败时从本地 storage 加载兜底
@@ -1593,10 +1598,16 @@ Page({
       return;
     }
 
-    const { state, offlineSeconds, diaryGenerated } = result.data;
-    const generatedEvents = result.data.generatedEvents || [];
-    const persistedEvents = result.data.helpEvents || [];
-    console.log(`[PetSync] 拉取成功, 离线 ${offlineSeconds}s, 日记 ${diaryGenerated ? diaryGenerated.length : 0} 篇`);
+    const status = normalizePetStatus(result.data);
+    if (!shouldApplyPetStatus(this.data.petStateVersion, status.stateVersion)) {
+      return;
+    }
+    const { state } = status;
+    const offlineSeconds = 0;
+    const diaryGenerated = [];
+    const generatedEvents = [];
+    const persistedEvents = state.helpEvents || [];
+    console.log(`[PetSync] 拉取成功, stateVersion=${status.stateVersion}, serverTime=${status.serverTime}`);
 
     // 用服务器状态覆盖本地
     const sceneInfo = this.getSceneInfo(state.sceneId);
@@ -1613,6 +1624,7 @@ Page({
       mood: state.mood,
       energy: state.energy,
       social: state.social,
+      petStateVersion: status.stateVersion,
       currentSceneId: state.sceneId,
       currentScene: sceneName,
       currentSceneIcon: sceneInfo ? sceneInfo.icon : '🏠',
@@ -1659,29 +1671,17 @@ Page({
     this.initHelpData();
   },
 
-  /** 推送状态到服务器（小程序关闭/隐藏时调用） */
-  async syncToServer() {
-    const userId = this.getPetUserId();
-    const state = {
-      mood: this.data.mood,
-      energy: this.data.energy,
-      social: this.data.social,
-      sceneId: this.data.petSceneId || this.data.currentSceneId,
-      activity: this.data.petActivity,
-      activityStartTime: this.data.activityStartTime,
-      activityDuration: this.data.currentActivityDuration,
-      activityLog: this.data.activityLog,
-      coins: this.data.coins,
-      bagItems: this.data.bagItems,
-      diaryDataMap: this.data.diaryDataMap,
-    };
+  startStatusSync() {
+    this.stopStatusSync();
+    this.statusTimer = setInterval(() => {
+      this.syncFromServer();
+    }, PET_SYNC_INTERVAL);
+  },
 
-    console.log('[PetSync] 开始推送状态到服务器, userId=', userId);
-    const result = await pushPetState(userId, state);
-    if (result.success) {
-      console.log('[PetSync] 推送成功');
-    } else {
-      console.log('[PetSync] 推送失败:', result.error);
+  stopStatusSync() {
+    if (this.statusTimer) {
+      clearInterval(this.statusTimer);
+      this.statusTimer = null;
     }
   },
 
@@ -2336,73 +2336,7 @@ Page({
 
   // 状态动画
   startStatusAnimation() {
-    let lastCheckedHour = -1;
-    let lastCheckedMinute = -1;
-    let lastActivityCheck = -1; // 上次检查行为变化的时间（分钟）
-
-    // 状态值波动和场景调度检查
-    this.statusTimer = setInterval(() => {
-      const now = new Date();
-      const hour = now.getHours();
-      const minute = now.getMinutes();
-
-      // 每分钟更新一次时间显示
-      if (minute !== lastCheckedMinute) {
-        lastCheckedMinute = minute;
-        this.updateTimeDisplay();
-      }
-
-      // 每5秒波动一次状态值
-      const oldMood = this.data.mood;
-      const oldEnergy = this.data.energy;
-      const oldSocial = this.data.social;
-      const newMood = this.fluctuateValue(oldMood, 15, 90);
-      const newEnergy = this.fluctuateValue(oldEnergy, 20, 95);
-      const newSocial = this.fluctuateValue(oldSocial, 10, 85);
-      this.setData({
-        mood: newMood,
-        energy: newEnergy,
-        social: newSocial,
-      });
-      // 只有显著变化才记录日志（避免日志过于频繁）
-      if (Math.abs(newMood - oldMood) >= 3 || Math.abs(newEnergy - oldEnergy) >= 3 || Math.abs(newSocial - oldSocial) >= 3) {
-        this.logActivity('status_change', {
-          moodDelta: newMood - oldMood,
-          energyDelta: newEnergy - oldEnergy,
-          socialDelta: newSocial - oldSocial,
-          mood: newMood,
-          energy: newEnergy,
-          social: newSocial,
-        });
-      }
-
-      // 每小时检查一次时间调度（整点切换场景）
-      if (hour !== lastCheckedHour) {
-        lastCheckedHour = hour;
-        this.switchPetScene();
-      }
-
-      // 每5分钟检查一次行为是否需要变化
-      if (minute % 5 === 0 && minute !== lastActivityCheck) {
-        lastActivityCheck = minute;
-        this.checkActivityChange();
-      }
-
-      // 模拟事件（每30秒可能触发一次）
-      if (Math.random() < 0.1) {
-        this.setData({
-          hasEvent: true,
-          eventCount: Math.floor(Math.random() * 3) + 1,
-        });
-        // 记录事件日志
-        const eventTypes = ['遇到了小惊喜', '碰到了一点小麻烦', '发现了一些有趣的东西', '感到有点孤单', '突然想吃东西'];
-        const eventDesc = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-        this.logActivity('event', {
-          desc: eventDesc,
-          moodDelta: Math.floor((Math.random() - 0.5) * 10),
-        });
-      }
-    }, 5000);
+    this.startStatusSync();
   },
 
   // 检查行为是否需要变化

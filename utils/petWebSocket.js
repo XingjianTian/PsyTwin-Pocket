@@ -9,7 +9,7 @@ import config from '../config';
 // WebSocket URL - 直接使用 petServiceUrl 配置
 // petServiceUrl: http://localhost:3002 -> ws://localhost:3002/ws/pet
 const petUrl = config.petSyncUrl || 'http://localhost:3002';
-const WS_URL = petUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/pet';
+const WS_BASE_URL = petUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/pet';
 
 // 重连退避策略: 1s→2s→4s→8s→16s→30s (max)
 const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
@@ -49,16 +49,19 @@ class PetWebSocket {
   /**
    * 建立WebSocket连接
    */
-  connect() {
+  connect(userId = config.petDemoUserId || 'demo_pet') {
     if (this.socket && this.isConnected) {
       console.log('[PetWebSocket] Already connected');
       return;
     }
 
-    console.log('[PetWebSocket] Connecting to:', WS_URL);
+    this.userId = userId;
+    const separator = WS_BASE_URL.includes('?') ? '&' : '?';
+    const wsUrl = `${WS_BASE_URL}${separator}userId=${encodeURIComponent(userId)}&clientType=pocket`;
+    console.log('[PetWebSocket] Connecting to:', wsUrl);
 
     const socketTask = wx.connectSocket({
-      url: WS_URL,
+      url: wsUrl,
       success: () => {
         console.log('[PetWebSocket] Socket task created');
         this.socket = socketTask;
@@ -118,10 +121,6 @@ class PetWebSocket {
    */
   _sendAuth() {
     const token = wx.getStorageSync('access_token');
-    if (!token) {
-      console.error('[PetWebSocket] No token found, cannot auth');
-      return;
-    }
 
     const authMsg = {
       type: MSG_TYPE.AUTH,
@@ -129,6 +128,7 @@ class PetWebSocket {
       timestamp: Date.now(),
       payload: {
         token,
+        userId: this.userId,
         clientType: 'pocket',
         version: '1.0.0',
       },
@@ -324,9 +324,9 @@ class PetWebSocket {
    */
   reconnect() {
     this.reconnectAttempts = 0;
-    this.autoReconnect = true;
     this.disconnect();
-    setTimeout(() => this.connect(), 100);
+    this.autoReconnect = true;
+    setTimeout(() => this.connect(this.userId), 100);
   }
 }
 
