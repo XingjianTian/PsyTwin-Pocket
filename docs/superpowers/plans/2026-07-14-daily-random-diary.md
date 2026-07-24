@@ -120,3 +120,5 @@
 - [x] **Step 5: Report usage and configuration.** *(已在任务汇报中说明)*
 
   Explain that Sentinel must be running, the template seed must exist, and Pocket `config.baseUrl` must point to Sentinel.
+
+- [x] **Step 6: Retire the legacy MiniMax diary path from the Pocket sync server.** *(已于 2026-07-24 移除 MiniMax 配置、自动生成队列、离线生成和调试接口；日记统一由 Sentinel 模板库提供)*

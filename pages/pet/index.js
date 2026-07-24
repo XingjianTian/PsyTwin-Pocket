@@ -59,7 +59,13 @@ const {
   getConfiguredPetUserId,
 } = require('../../api/pet-server');
 const { fetchPetDiary, triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
-const { PET_SYNC_INTERVAL, normalizePetStatus, shouldApplyPetStatus } = require('../../utils/pet-sync');
+const {
+  PET_SYNC_INTERVAL,
+  createDemoObserverPatch,
+  createPetLocationPatch,
+  normalizePetStatus,
+  shouldApplyPetStatus,
+} = require('../../utils/pet-sync');
 
 // 物品数据库
 const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase');
@@ -1478,16 +1484,18 @@ Page({
     // 监听心宠状态更新
     ws.on('pet_status', (payload) => {
       console.log('[Pet] Pet status update:', payload);
-      const { status } = payload || {};
-      if (status) {
-        this.setData({
-          mood: typeof status.mood === 'number' ? status.mood : this.data.mood,
-          energy: typeof status.energy === 'number' ? status.energy : this.data.energy,
-          social: typeof status.social === 'number'
-            ? status.social
-            : (typeof status.sociability === 'number' ? status.sociability : this.data.social),
-        });
+      const { status: state, serverTime, updatedAt, stateVersion } = payload || {};
+      if (!state) {
+        return;
       }
+
+      const status = normalizePetStatus({
+        state,
+        serverTime,
+        updatedAt,
+        stateVersion: Math.max(Number(stateVersion) || 0, Number(state.stateVersion) || 0),
+      });
+      this.applyAuthoritativePetStatus(status);
     });
 
     // 监听事件触发（帮助按钮闪烁）
@@ -1585,6 +1593,34 @@ Page({
     return getConfiguredPetUserId();
   },
 
+  /** 应用服务端权威状态，不改变玩家当前观察的场景。 */
+  applyAuthoritativePetStatus(status, extraPatch = {}) {
+    if (!shouldApplyPetStatus(this.data.petStateVersion, status.stateVersion)) {
+      return false;
+    }
+
+    const { state } = status;
+    const sceneInfo = this.getSceneInfo(state.sceneId);
+    const locationPatch = createPetLocationPatch(state, sceneInfo);
+    const observerPatch = createDemoObserverPatch(this.getPetUserId(), state, sceneInfo);
+
+    this.setData({
+      mood: typeof state.mood === 'number' ? state.mood : this.data.mood,
+      energy: typeof state.energy === 'number' ? state.energy : this.data.energy,
+      social: typeof state.social === 'number' ? state.social : this.data.social,
+      petStateVersion: status.stateVersion,
+      ...locationPatch,
+      ...observerPatch,
+      ...extraPatch,
+    }, () => {
+      if (locationPatch.petSceneId) {
+        this.updatePetMarker();
+      }
+    });
+
+    return true;
+  },
+
   /** 从服务器拉取状态（小程序启动时调用） */
   async syncFromServer() {
     const userId = this.getPetUserId();
@@ -1609,10 +1645,6 @@ Page({
     const persistedEvents = state.helpEvents || [];
     console.log(`[PetSync] 拉取成功, stateVersion=${status.stateVersion}, serverTime=${status.serverTime}`);
 
-    // 用服务器状态覆盖本地
-    const sceneInfo = this.getSceneInfo(state.sceneId);
-    const sceneName = sceneInfo ? sceneInfo.name : state.sceneId;
-
     // 合并离线事件和持久化事件，按 id 去重
     const idSet = new Set();
     const syncedHelpEvents = [];
@@ -1620,27 +1652,19 @@ Page({
       if (!idSet.has(e.id)) { idSet.add(e.id); syncedHelpEvents.push(e); }
     }
 
-    this.setData({
-      mood: state.mood,
-      energy: state.energy,
-      social: state.social,
-      petStateVersion: status.stateVersion,
-      currentSceneId: state.sceneId,
-      currentScene: sceneName,
-      currentSceneIcon: sceneInfo ? sceneInfo.icon : '🏠',
-      petSceneId: state.sceneId,
-      petSceneName: sceneName,
-      petActivity: state.activity,
-      activityStartTime: state.activityStartTime,
-      currentActivityDuration: state.activityDuration,
+    const applied = this.applyAuthoritativePetStatus(status, {
       activityLog: state.activityLog || this.data.activityLog,
-      coins: state.coins || this.data.coins,
+      coins: typeof state.coins === 'number' ? state.coins : this.data.coins,
       bagItems: this.enrichBagItems(state.bagItems || this.data.bagItems),
       diaryDataMap: state.diaryDataMap || this.data.diaryDataMap,
       helpEvents: syncedHelpEvents.length > 0 ? syncedHelpEvents : this.data.helpEvents,
       hasEvent: syncedHelpEvents.length > 0 || this.data.helpEvents.length > 0,
       helpLoading: false,
     });
+
+    if (!applied) {
+      return;
+    }
 
     // 把服务器数据持久化到本地存储，保证离线时也能看到完整数据
     if (state.diaryDataMap) {

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:pet-sync": "node --test server/pet-state.test.cjs utils/pet-sync.test.cjs",
+    "test:pet-sync": "node --test server/pet-state.test.cjs server/pet-demo-scene.test.cjs server/pet-server-tick.test.cjs utils/pet-sync.test.cjs",
     "lint": "npx eslint ./ --no-eslintrc -c ./.eslintrc.js",
     "lint:fix": "npm run lint:fix-eslint && npm run lint:fix-prettier",
     "lint:fix-eslint": "eslint --ext .js,.ts ./ --max-warnings 0 --ignore-path .gitignore --ignore-path .eslintignore --fix",

@@ -12,6 +12,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const readline = require('node:readline');
 const { WebSocketServer, WebSocket } = require('ws');
 const {
   getDefaultState,
@@ -19,9 +20,14 @@ const {
   serializeState,
   toStatusPayload,
 } = require('./pet-state');
+const {
+  createPetDemoSceneController,
+  shouldStopDemoOnClientDisconnect,
+} = require('./pet-demo-scene');
 
 const app = express();
 const PORT = process.env.PORT || 13002;
+const TICK_INTERVAL_MS = 4000;
 // 数据文件放在用户主目录下，避免被微信开发者工具的文件监听触发热重载
 const DATA_DIR = path.join(require('os').homedir(), '.psytwin-pet');
 const DATA_FILE = path.join(DATA_DIR, 'pet-data.json');
@@ -218,138 +224,13 @@ function formatDateToStr(date) {
 }
 
 function formatTimeStr(date) {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-
-// ========== MiniMax API 配置（需与 config/index.js 保持一致）==========
-
-const MINIMAX_CONFIG = {
-  baseUrl: process.env.MINIMAX_BASE_URL || 'https://api.minimaxi.com',
-  apiKey: process.env.MINIMAX_API_KEY || 'sk-cp-dPU72No3ZJtfuj-3M1mBlq1AuQU--4T51F3a2Wttss59sGVOGuM7UTW07odTBHkOh2uOsHyZc4uLo7gzekqzCH6MHokSaSk7rxif7xX2YDQpHel3O9DA2iY',
-  model: process.env.MINIMAX_MODEL || 'MiniMax-M2.7',
-  systemPrompt:
-    '你是一只陪伴大学生的心理支持宠物，温暖、可爱、略带幽默。你会用第一人称和主人交流，给他情感支持和鼓励。',
-};
-
-/**
- * 调用 MiniMax Anthropic 兼容 API
- */
-function callMiniMax(prompt) {
-  return new Promise((resolve, reject) => {
-    const { baseUrl, apiKey, model, systemPrompt } = MINIMAX_CONFIG;
-    if (!apiKey) {
-      return reject(new Error('MINIMAX_API_KEY 未配置'));
-    }
-
-    const body = JSON.stringify({
-      model,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 4096,
-      temperature: 0.8,
-    });
-
-    const parsed = new (require('url').URL)(`${baseUrl}/anthropic/v1/messages`);
-    const req = require('https').request(
-      {
-        hostname: parsed.hostname,
-        path: parsed.pathname,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Api-Key': apiKey,
-          'Content-Length': Buffer.byteLength(body),
-        },
-        timeout: 30000,
-      },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          try {
-            const json = JSON.parse(data);
-            console.log('[MiniMax] 原始响应:', JSON.stringify(json).substring(0, 1200));
-            if (json.base_resp && json.base_resp.status_code !== 0) {
-              return reject(new Error(json.base_resp.status_msg || `错误码 ${json.base_resp.status_code}`));
-            }
-            if (json.content && Array.isArray(json.content)) {
-              const textBlock = json.content.find((c) => c.type === 'text');
-              if (textBlock) {
-                console.log('[MiniMax] textBlock 内容:', textBlock.text ? textBlock.text.substring(0, 200) : '【空】');
-                return resolve(textBlock.text || '');
-              }
-              console.log('[MiniMax] 未找到 text 类型 content 块');
-              return resolve('');
-            }
-            console.log('[MiniMax] 响应中无 content 数组');
-            resolve('');
-          } catch (e) {
-            reject(e);
-          }
-        });
-      }
-    );
-    req.on('error', reject);
-    req.on('timeout', () => req.destroy(new Error('请求超时')));
-    req.write(body);
-    req.end();
-  });
-}
-
-/**
- * 构建日记 Prompt
- */
-function buildDiaryPrompt(state, dateStr) {
-  const todayLog = state.activityLog[dateStr] || [];
-  const meaningfulLogs = todayLog
-    .filter((a) => a.type === 'scene_change' || a.type === 'event' || Math.abs(a.moodDelta || 0) >= 5)
-    .slice(0, 8);
-
-  const activities = meaningfulLogs
-    .map((a) => {
-      switch (a.type) {
-        case 'scene_change':
-          return `• ${a.time} 来到了${a.scene}`;
-        case 'event':
-          return `• ${a.time} ${a.desc}${a.moodDelta > 0 ? `（心情+${a.moodDelta}）` : ''}`;
-        default:
-          return `• ${a.time} ${a.desc || a.type}`;
-      }
-    })
-    .join('\n');
-
-  return `你是"心宠"，一只可爱的虚拟心理伴侣，现在用第一人称写今天的日记。
-
-今天发生了这些事情：
-${activities || '• 今天平平淡淡地度过了一天'}
-
-写完后我的心情是：心情${state.mood}分，能量${state.energy}分，社交${state.social}分。
-
-请以第一人称，用温暖、可爱、略带幽默的语气，写一篇150-250字的日记。可以包含小感慨、小期待。只输出日记正文，不要加标题和格式标记。`;
-}
-
-/**
- * 调用 MiniMax 生成日记
- */
-async function generateAiDiary(state, dateStr) {
-  try {
-    const prompt = buildDiaryPrompt(state, dateStr);
-    const text = await callMiniMax(prompt);
-    if (!text || text.trim().length < 20) {
-      console.log('[Diary] 生成内容过短，视为失败');
-      return null;
-    }
-    console.log(`[Diary] ${dateStr} 日记生成成功, 长度=${text.length}`);
-    return text.trim();
-  } catch (err) {
-    console.error('[Diary] 生成失败:', err.message);
-    return null;
-  }
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
 }
 
 // ========== 数据持久化 ==========
 
 const MAX_LOG_RETENTION_DAYS = 7;      // activityLog 保留天数
+const MAX_ACTIVITY_LOGS_PER_DAY = 500; // 四秒实时事件仅保留当天最近约半小时
 const MAX_DIARY_RETENTION_DAYS = 30;   // diaryDataMap 保留天数
 
 /**
@@ -441,6 +322,7 @@ function loadData() {
 
 // 保存防抖：500ms 内多次调用只写一次
 let saveTimer = null;
+let demoSceneController = null;
 function saveData(dataMap) {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
@@ -450,7 +332,10 @@ function saveData(dataMap) {
         sanitizeState(state);
         // 只保存持久化数据：日记、物品、金币、活动日志
         // 实时状态（mood/energy/social/sceneId/activity）不写入 JSON
-        persistent[userId] = serializeState(state);
+        const persistableState = demoSceneController
+          ? demoSceneController.getPersistableState(userId, state)
+          : state;
+        persistent[userId] = serializeState(persistableState);
       }
       const tempFile = DATA_FILE + '.tmp';
       fs.writeFileSync(tempFile, JSON.stringify(persistent, null, 2), 'utf-8');
@@ -505,49 +390,20 @@ function broadcastPetStatus(userId, state) {
   }
 }
 
+demoSceneController = createPetDemoSceneController({
+  getState: (userId) => petData.get(userId),
+  getClientCount: (userId) => {
+    const clients = petClients.get(userId);
+    return clients ? clients.size : 0;
+  },
+  broadcast: broadcastPetStatus,
+  getActivity: getActivityByScene,
+  getActivityDuration,
+});
+
 // ========== 持续运行引擎 ==========
 
-const tickContexts = new Map(); // userId -> { tickCount, lastTickHour, lastTickMinute, lastEventTickCount }
-const diaryQueue = [];
-let isProcessingDiary = false;
-
-/**
- * 异步日记队列处理：在后台逐个调用 MiniMax 生成日记
- * 不阻塞 tick 定时器
- */
-async function processDiaryQueue() {
-  if (isProcessingDiary || diaryQueue.length === 0) return;
-  isProcessingDiary = true;
-
-  while (diaryQueue.length > 0) {
-    const { userId, state, dateStr } = diaryQueue.shift();
-    console.log(`[DiaryQueue] 为 ${userId} 生成 ${dateStr} 的日记...`);
-    const content = await generateAiDiary(state, dateStr);
-    if (content) {
-      if (!state.diaryDataMap) state.diaryDataMap = {};
-      if (!state.diaryDataMap[dateStr]) state.diaryDataMap[dateStr] = [];
-      state.diaryDataMap[dateStr].push({
-        id: `diary_${dateStr}_${Date.now()}`,
-        time: formatTimeStr(new Date()),
-        type: 'AI_DIARY',
-        content,
-        sceneId: state.sceneId,
-        moodBefore: Math.max(10, state.mood - 5),
-        moodAfter: state.mood,
-        energyBefore: Math.max(10, state.energy - 5),
-        energyAfter: state.energy,
-        socialBefore: Math.max(10, state.social - 5),
-        socialAfter: state.social,
-        generatedAt: new Date().toISOString(),
-        aiGenerated: true,
-      });
-      saveData(petData);
-      console.log(`[DiaryQueue] ✓ ${userId} 的 ${dateStr} 日记生成完成，长度 ${content.length}`);
-    }
-  }
-
-  isProcessingDiary = false;
-}
+const tickContexts = new Map(); // userId -> tick state and last emitted activity
 
 /**
  * 单次 tick：更新心宠一个时间步的状态
@@ -557,7 +413,7 @@ function runSingleTick(state, nowMs) {
   const userId = state.userId;
   let ctx = tickContexts.get(userId);
   if (!ctx) {
-    ctx = { tickCount: 0, lastTickHour: -1, lastTickMinute: -1, lastEventTickCount: -Infinity };
+    ctx = { tickCount: 0, lastTickHour: -1, lastTickMinute: -1, lastEventDescription: null };
     tickContexts.set(userId, ctx);
   }
 
@@ -574,7 +430,7 @@ function runSingleTick(state, nowMs) {
   state.social = fluctuateValue(state.social, 10, 85);
 
   // 2. 每小时场景切换（整点tick）
-  if (hour !== ctx.lastTickHour) {
+  if (!demoSceneController.isLocationLocked(userId) && hour !== ctx.lastTickHour) {
     ctx.lastTickHour = hour;
     const newScene = getSceneBySchedule(date);
     if (newScene !== state.sceneId) {
@@ -589,6 +445,7 @@ function runSingleTick(state, nowMs) {
       if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
       state.activityLog[dateStr].push({
         time: formatTimeStr(date),
+        timestamp: nowMs,
         type: 'scene_change',
         scene: newScene,
       });
@@ -606,32 +463,36 @@ function runSingleTick(state, nowMs) {
     }
   }
 
-  // 4. 随机事件（每6个tick即30秒，10%概率）
-  if (ctx.tickCount - ctx.lastEventTickCount >= 6 && Math.random() < 0.1) {
-    ctx.lastEventTickCount = ctx.tickCount;
-    const eventDesc = EVENT_TYPES[Math.floor(Math.random() * EVENT_TYPES.length)];
-    const moodDelta = Math.floor((Math.random() - 0.5) * 10);
-    state.mood = Math.max(15, Math.min(90, state.mood + moodDelta));
+  // 4. 每个 tick 生成一条真实活动日志，并避免连续两次文案完全相同
+  const eventCandidates = EVENT_TYPES.filter((description) => description !== ctx.lastEventDescription);
+  const eventDesc = eventCandidates[Math.floor(Math.random() * eventCandidates.length)];
+  ctx.lastEventDescription = eventDesc;
+  const moodDelta = Math.floor((Math.random() - 0.5) * 10);
+  state.mood = Math.max(15, Math.min(90, state.mood + moodDelta));
 
-    const dateStr = formatDateToStr(date);
-    console.log(`  ${formatTimeStr(date)} ${eventDesc}`);
-    if (!state.activityLog) state.activityLog = {};
-    if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
-    state.activityLog[dateStr].push({
-      time: formatTimeStr(date),
-      type: 'event',
-      desc: eventDesc,
-      moodDelta,
-    });
+  const eventDateStr = formatDateToStr(date);
+  console.log(`  ${formatTimeStr(date)} ${eventDesc}`);
+  if (!state.activityLog) state.activityLog = {};
+  if (!state.activityLog[eventDateStr]) state.activityLog[eventDateStr] = [];
+  state.activityLog[eventDateStr].push({
+    time: formatTimeStr(date),
+    timestamp: nowMs,
+    type: 'event',
+    desc: eventDesc,
+    moodDelta,
+  });
+  if (state.activityLog[eventDateStr].length > MAX_ACTIVITY_LOGS_PER_DAY) {
+    state.activityLog[eventDateStr] = state.activityLog[eventDateStr].slice(-MAX_ACTIVITY_LOGS_PER_DAY);
   }
 
-  // 5. 每分钟记录状态快照（每12个tick）
-  if (ctx.tickCount > 0 && ctx.tickCount % 12 === 0) {
+  // 5. 每分钟记录状态快照（每15个四秒 tick）
+  if (ctx.tickCount > 0 && ctx.tickCount % 15 === 0) {
     const dateStr = formatDateToStr(date);
     if (!state.activityLog) state.activityLog = {};
     if (!state.activityLog[dateStr]) state.activityLog[dateStr] = [];
     state.activityLog[dateStr].push({
       time: formatTimeStr(date),
+      timestamp: nowMs,
       type: 'status_change',
       mood: state.mood,
       energy: state.energy,
@@ -639,24 +500,7 @@ function runSingleTick(state, nowMs) {
     });
   }
 
-  // 6. 日记触发检查（晚间20-23点，安静场景，有活动日志，今天没写过，40%概率）
-  let diaryTriggered = false;
-  let diaryDateStr = null;
-  if (hour >= 20 && hour <= 23) {
-    const dateStr = formatDateToStr(date);
-    const writingScenes = ['bedroom', 'dormitory', 'library', 'study_room', 'kitchen', 'garden'];
-    const isWritingScene = writingScenes.includes(state.sceneId);
-    const todayLog = state.activityLog[dateStr] || [];
-    const hasDiary = state.diaryDataMap && state.diaryDataMap[dateStr] && state.diaryDataMap[dateStr].length > 0;
-    if (isWritingScene && !hasDiary && todayLog.length >= 2 && Math.random() < 0.4) {
-      console.log(`  ${formatTimeStr(date)} 心宠想写日记了（今天有 ${todayLog.length} 件事可以写）`);
-      diaryTriggered = true;
-      diaryDateStr = dateStr;
-    }
-  }
-
-
-  // 7. 物品发现（每3个tick即15秒，20%概率）
+  // 6. 物品发现（每3个tick即15秒，20%概率）
   if (ctx.tickCount > 0 && ctx.tickCount % 3 === 0 && Math.random() < 0.2) {
     const discovered = discoverItem(state);
     if (discovered) {
@@ -669,7 +513,7 @@ function runSingleTick(state, nowMs) {
   // 每次 tick 后自动清理过期数据，防止数据无限增长
   sanitizeState(state);
 
-  return { diaryTriggered, dateStr: diaryDateStr };
+  return {};
 }
 
 
@@ -723,7 +567,7 @@ function discoverItem(state) {
  * 内部调用 runSingleTick 多次
  */
 async function simulateOfflineProgress(state, nowMs) {
-  const TICK_MS = 5000;
+  const TICK_MS = TICK_INTERVAL_MS;
   const deltaMs = nowMs - state.lastSyncAt;
 
   if (deltaMs <= 0 || state.lastSyncAt <= 0) {
@@ -739,47 +583,14 @@ async function simulateOfflineProgress(state, nowMs) {
 
   console.log(`【${state.userId}】服务器停机了 ${Math.round(deltaMs / 60000)} 分钟，为心宠补偿 ${ticks} 个 tick...`);
 
-  const diaryPending = new Set();
-
   for (let i = 0; i < ticks; i++) {
     const tickTime = state.lastSyncAt + (i + 1) * TICK_MS;
-    const result = runSingleTick(state, tickTime);
-    if (result.diaryTriggered) {
-      diaryPending.add(result.dateStr);
-    }
-  }
-
-  // 离线补偿结束后，统一生成待处理的日记
-  const diaryGenerated = [];
-  for (const dateStr of diaryPending) {
-    console.log(`  正在帮心宠写 ${dateStr} 的日记...`);
-    const diaryContent = await generateAiDiary(state, dateStr);
-    if (diaryContent) {
-      if (!state.diaryDataMap) state.diaryDataMap = {};
-      if (!state.diaryDataMap[dateStr]) state.diaryDataMap[dateStr] = [];
-      state.diaryDataMap[dateStr].push({
-        id: `diary_${dateStr}_${Date.now()}`,
-        time: formatTimeStr(new Date()),
-        type: 'AI_DIARY',
-        content: diaryContent,
-        sceneId: state.sceneId,
-        moodBefore: Math.max(10, state.mood - 5),
-        moodAfter: state.mood,
-        energyBefore: Math.max(10, state.energy - 5),
-        energyAfter: state.energy,
-        socialBefore: Math.max(10, state.social - 5),
-        socialAfter: state.social,
-        generatedAt: new Date().toISOString(),
-        aiGenerated: true,
-      });
-      diaryGenerated.push(dateStr);
-      console.log(`  ✓ 日记写好了！`);
-    }
+    runSingleTick(state, tickTime);
   }
 
   state.lastSyncAt = nowMs;
-  console.log(`【${state.userId}】补偿完成，共执行 ${ticks} 个 tick，生成 ${diaryGenerated.length} 篇日记`);
-  return { state, generatedEvents: [], ticks, diaryGenerated };
+  console.log(`【${state.userId}】补偿完成，共执行 ${ticks} 个 tick`);
+  return { state, generatedEvents: [], ticks, diaryGenerated: [] };
 }
 
 // ========== 默认初始状态 ==========
@@ -810,7 +621,7 @@ app.post('/api/pet/pull', async (req, res) => {
 
   console.log(`【${userId}】主人打开了小程序，拉取心宠实时状态 | 在${state.sceneId}「${state.activity}」| 心情${state.mood} 精力${state.energy} 社交${state.social} | 离线${idleMin}分钟`);
 
-  // 模拟离线期间心宠活动，生成日记和求助事件
+  // 模拟离线期间心宠活动，并生成求助事件
   const result = await simulateOfflineProgress(state, nowMs);
   const generatedEvents = generateOfflineHelpEvents(state, idleMin);
 
@@ -938,78 +749,6 @@ app.get('/api/pet/status', (req, res) => {
       + `mood=${state.mood} energy=${state.energy} social=${state.social}`,
   );
   res.json({ code: 0, data: toStatusPayload(state) });
-});
-
-/**
- * POST /api/pet/test-diary
- * 调试接口：直接测试 MiniMax API 日记生成
- */
-app.post('/api/pet/test-diary', async (req, res) => {
-  const { userId } = req.body;
-  const testUserId = userId || 'test_user';
-  const today = formatDateToStr(new Date());
-
-  // 获取或创建用户的实际状态（不是临时变量）
-  let state = petData.get(testUserId);
-  if (!state) {
-    state = getDefaultState(testUserId);
-    petData.set(testUserId, state);
-  }
-
-  // 确保今天有活动日志（如果没有，用测试数据填充）
-  if (!state.activityLog) state.activityLog = {};
-  if (!state.activityLog[today] || state.activityLog[today].length === 0) {
-    state.activityLog[today] = [
-      { time: '09:00', type: 'scene_change', scene: '图书馆' },
-      { time: '11:30', type: 'event', desc: '完成了一份作业', moodDelta: 5 },
-      { time: '12:00', type: 'scene_change', scene: '食堂' },
-      { time: '14:00', type: 'event', desc: '和朋友聊了会儿天', moodDelta: 3 },
-      { time: '16:00', type: 'scene_change', scene: '操场' },
-      { time: '18:00', type: 'scene_change', scene: 'bedroom' },
-    ];
-  }
-
-  console.log(`[Test] 开始为 ${testUserId} 生成 ${today} 的日记...`);
-  const startTime = Date.now();
-  const diaryContent = await generateAiDiary(state, today);
-  const elapsed = Date.now() - startTime;
-
-  if (diaryContent) {
-    // 保存到服务器内存并持久化
-    if (!state.diaryDataMap) state.diaryDataMap = {};
-    if (!state.diaryDataMap[today]) state.diaryDataMap[today] = [];
-    state.diaryDataMap[today].push({
-      id: `diary_${today}_${Date.now()}`,
-      time: formatTimeStr(new Date()),
-      type: 'AI_DIARY',
-      content: diaryContent,
-      sceneId: state.sceneId,
-      moodBefore: Math.max(10, state.mood - 5),
-      moodAfter: state.mood,
-      energyBefore: Math.max(10, state.energy - 5),
-      energyAfter: state.energy,
-      socialBefore: Math.max(10, state.social - 5),
-      socialAfter: state.social,
-      generatedAt: new Date().toISOString(),
-      aiGenerated: true,
-    });
-    saveData(petData);
-
-    console.log(`[Test] 日记生成成功, 耗时 ${elapsed}ms, 长度 ${diaryContent.length}`);
-    res.json({
-      code: 0,
-      message: 'success',
-      data: {
-        diaryContent,
-        userId: testUserId,
-        date: today,
-        elapsedMs: elapsed,
-      },
-    });
-  } else {
-    console.log(`[Test] 日记生成失败, 耗时 ${elapsed}ms`);
-    res.json({ code: 500, message: '日记生成失败', data: null });
-  }
 });
 
 /**
@@ -1385,24 +1124,20 @@ app.get('/health', (req, res) => {
   }
   saveData(petData);
 
-  console.log('[Engine] 停机补偿完成，启动实时 tick 定时器（每 5 秒）');
+  console.log('[Engine] 停机补偿完成，启动实时 tick 定时器（每 4 秒）');
 
-  // 每 5 秒为所有活跃心宠执行一次 tick
+  // 每 4 秒为所有活跃心宠执行一次 tick
   setInterval(() => {
     const now = Date.now();
     for (const [userId, state] of petData) {
       // 跳过超过 24 小时不活跃的用户
       if (now - state.lastSyncAt > 24 * 3600 * 1000) continue;
 
-      const result = runSingleTick(state, now);
+      runSingleTick(state, now);
       broadcastPetStatus(userId, state);
-      if (result.diaryTriggered) {
-        diaryQueue.push({ userId, state, dateStr: result.dateStr });
-        processDiaryQueue();
-      }
     }
     saveData(petData);
-  }, 5000);
+  }, TICK_INTERVAL_MS);
 })();
 
 // ========== 定时状态播报 ==========
@@ -1416,21 +1151,50 @@ setInterval(() => {
     console.log(`  ${userId.slice(0, 16)} | 在${state.sceneId}「${state.activity}」| 心情${state.mood} 精力${state.energy} 社交${state.social} | 日记${diaryCount}篇 | 离线${idleMin}分钟`);
   }
   console.log('');
-}, 30000);
+}, TICK_INTERVAL_MS);
 
 // ========== 启动 ==========
+let demoHotkeyRegistered = false;
+
+function registerDemoHotkey() {
+  if (demoHotkeyRegistered) return;
+  if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== 'function') {
+    console.log('[PetDemo] 标准输入不是 TTY，已跳过 F9 快捷键');
+    return;
+  }
+
+  demoHotkeyRegistered = true;
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.on('keypress', (input, key = {}) => {
+    const keyName = key.name || input;
+    if (key.ctrl && keyName === 'c') {
+      process.stdin.setRawMode(false);
+      process.stdin.pause();
+      process.exit(0);
+    }
+
+    if (key.name === 'f9') {
+      const started = demoSceneController.trigger();
+      if (!started) {
+        console.warn('[PetDemo] 操作未执行');
+      }
+    }
+  });
+}
+
 const server = app.listen(PORT, () => {
   console.log(`===============================================`);
   console.log(`  心宠持续运行服务器已启动`);
   console.log(`  端口: ${PORT}`);
   console.log(`  数据文件: ${DATA_FILE}`);
   console.log(`  当前用户: ${petData.size}`);
-  console.log(`  引擎模式: 全局 setInterval，每 5 秒 tick`);
-  console.log(`  日记模式: 异步队列，触发后后台调用 MiniMax`);
+  console.log(`  引擎模式: 全局 setInterval，每 4 秒 tick`);
+  console.log(`  日记模式: Sentinel 模板库（本服务不生成日记）`);
   console.log(`===============================================`);
   console.log('');
   console.log('API 端点:');
-  console.log(`  POST http://localhost:${PORT}/api/pet/test-diary     - 测试日记生成`);
   console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取实时状态（直接读取内存）`);
   console.log(`  POST http://localhost:${PORT}/api/pet/push           - 推送状态`);
   console.log(`  POST http://localhost:${PORT}/api/pet/events         - 获取帮助事件列表（预警模拟）`);
@@ -1438,18 +1202,40 @@ const server = app.listen(PORT, () => {
   console.log(`  GET  http://localhost:${PORT}/api/pet/status?userId=xxx  - 查看状态`);
   console.log(`  GET  http://localhost:${PORT}/health                 - 健康检查`);
   console.log('');
+  registerDemoHotkey();
 });
 
 const webSocketServer = new WebSocketServer({ server, path: '/ws/pet' });
 
 webSocketServer.on('connection', (socket, request) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+  const clientType = requestUrl.searchParams.get('clientType') || 'unknown';
   let userId = requestUrl.searchParams.get('userId');
+
+  socket.petClientType = clientType;
+
+  const unregisterClient = (previousUserId) => {
+    const clients = petClients.get(previousUserId);
+    if (clients) {
+      clients.delete(socket);
+    }
+
+    if (previousUserId !== 'demo_pet') {
+      return;
+    }
+
+    const remainingClientTypes = clients
+      ? Array.from(clients).map((client) => client.petClientType || 'unknown')
+      : [];
+    if (shouldStopDemoOnClientDisconnect(clientType, remainingClientTypes)) {
+      demoSceneController.stop('client_disconnected');
+    }
+  };
 
   const registerClient = (nextUserId) => {
     if (!nextUserId) return false;
     if (userId && userId !== nextUserId) {
-      petClients.get(userId)?.delete(socket);
+      unregisterClient(userId);
     }
     userId = nextUserId;
     getPetClientSet(userId).add(socket);
@@ -1497,7 +1283,7 @@ webSocketServer.on('connection', (socket, request) => {
   });
 
   socket.on('close', () => {
-    petClients.get(userId)?.delete(socket);
+    unregisterClient(userId);
     console.log(`[PetSync] WebSocket断开 | userId=${userId}`);
   });
 
