@@ -38,6 +38,7 @@ class PetWebSocket {
   constructor() {
     this.socket = null;
     this.isConnected = false;
+    this.isConnecting = false;
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     this.heartbeatTimer = null;
@@ -50,11 +51,13 @@ class PetWebSocket {
    * 建立WebSocket连接
    */
   connect(userId = config.petDemoUserId || 'demo_pet') {
-    if (this.socket && this.isConnected) {
-      console.log('[PetWebSocket] Already connected');
+    if (this.socket && (this.isConnected || this.isConnecting)) {
+      console.log('[PetWebSocket] Already connected or connecting');
       return;
     }
 
+    this.autoReconnect = true;
+    this.isConnecting = true;
     this.userId = userId;
     const separator = WS_BASE_URL.includes('?') ? '&' : '?';
     const wsUrl = `${WS_BASE_URL}${separator}userId=${encodeURIComponent(userId)}&clientType=pocket`;
@@ -64,24 +67,27 @@ class PetWebSocket {
       url: wsUrl,
       success: () => {
         console.log('[PetWebSocket] Socket task created');
-        this.socket = socketTask;
-        this._setupSocketListeners();
       },
       fail: (err) => {
         console.error('[PetWebSocket] Connect failed:', err);
-        this.socket = null;
+        if (this.socket === socketTask) this.socket = null;
+        this.isConnecting = false;
         this._scheduleReconnect();
       },
     });
+    this.socket = socketTask;
+    this._setupSocketListeners(socketTask);
   }
 
   /**
    * 设置Socket监听器
    */
-  _setupSocketListeners() {
+  _setupSocketListeners(socketTask) {
     // 连接打开
-    this.socket.onOpen(() => {
+    socketTask.onOpen(() => {
+      if (this.socket !== socketTask) return;
       console.log('[PetWebSocket] Socket opened');
+      this.isConnecting = false;
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this._sendAuth();
@@ -90,7 +96,8 @@ class PetWebSocket {
     });
 
     // 收到消息
-    this.socket.onMessage((res) => {
+    socketTask.onMessage((res) => {
+      if (this.socket !== socketTask) return;
       try {
         const data = JSON.parse(res.data);
         console.log('[PetWebSocket] Received:', data.type);
@@ -101,8 +108,10 @@ class PetWebSocket {
     });
 
     // 连接关闭
-    this.socket.onClose(() => {
+    socketTask.onClose(() => {
+      if (this.socket !== socketTask) return;
       console.log('[PetWebSocket] Socket closed');
+      this.socket = null;
       this._cleanup();
       if (this.autoReconnect) {
         this._scheduleReconnect();
@@ -110,8 +119,10 @@ class PetWebSocket {
     });
 
     // 错误
-    this.socket.onError((err) => {
+    socketTask.onError((err) => {
+      if (this.socket !== socketTask) return;
       console.error('[PetWebSocket] Socket error:', err);
+      this.isConnecting = false;
       this.eventBus.emit('error', err);
     });
   }
@@ -270,6 +281,7 @@ class PetWebSocket {
    */
   _cleanup() {
     this.isConnected = false;
+    this.isConnecting = false;
     this._stopHeartbeat();
 
     if (this.reconnectTimer) {

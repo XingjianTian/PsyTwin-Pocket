@@ -8,11 +8,12 @@
  * 默认端口: 13002
  */
 
-const express = require('express');
-const cors = require('cors');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const readline = require('node:readline');
+const cors = require('cors');
+const express = require('express');
 const { WebSocketServer, WebSocket } = require('ws');
 const {
   getDefaultState,
@@ -24,12 +25,18 @@ const {
   createPetDemoSceneController,
   shouldStopDemoOnClientDisconnect,
 } = require('./pet-demo-scene');
+const {
+  addClient,
+  removeClient,
+  startHeartbeat,
+} = require('./pet-connections');
 
 const app = express();
 const PORT = process.env.PORT || 13002;
 const TICK_INTERVAL_MS = 4000;
+const WS_HEARTBEAT_INTERVAL_MS = 30000;
 // 数据文件放在用户主目录下，避免被微信开发者工具的文件监听触发热重载
-const DATA_DIR = path.join(require('os').homedir(), '.psytwin-pet');
+const DATA_DIR = path.join(os.homedir(), '.psytwin-pet');
 const DATA_FILE = path.join(DATA_DIR, 'pet-data.json');
 
 // 确保目录存在
@@ -352,11 +359,6 @@ const petData = loadData();
 
 // userId -> WebSocket clients. WebSocket 只负责广播服务端已经计算完成的完整状态。
 const petClients = new Map();
-
-function getPetClientSet(userId) {
-  if (!petClients.has(userId)) petClients.set(userId, new Set());
-  return petClients.get(userId);
-}
 
 function getRealtimeStatus(state) {
   const payload = toStatusPayload(state);
@@ -1215,18 +1217,14 @@ webSocketServer.on('connection', (socket, request) => {
   socket.petClientType = clientType;
 
   const unregisterClient = (previousUserId) => {
-    const clients = petClients.get(previousUserId);
-    if (clients) {
-      clients.delete(socket);
-    }
+    const remainingClients = removeClient(petClients, previousUserId, socket);
 
     if (previousUserId !== 'demo_pet') {
       return;
     }
 
-    const remainingClientTypes = clients
-      ? Array.from(clients).map((client) => client.petClientType || 'unknown')
-      : [];
+    const remainingClientTypes = remainingClients
+      .map((client) => client.petClientType || 'unknown');
     if (shouldStopDemoOnClientDisconnect(clientType, remainingClientTypes)) {
       demoSceneController.stop('client_disconnected');
     }
@@ -1238,7 +1236,7 @@ webSocketServer.on('connection', (socket, request) => {
       unregisterClient(userId);
     }
     userId = nextUserId;
-    getPetClientSet(userId).add(socket);
+    addClient(petClients, userId, socket);
     return true;
   };
 
@@ -1269,7 +1267,7 @@ webSocketServer.on('connection', (socket, request) => {
     try {
       const message = JSON.parse(rawMessage.toString());
       if (message.type === 'auth') {
-        const nextUserId = message.payload?.userId || userId;
+        const nextUserId = (message.payload && message.payload.userId) || userId;
         if (!registerClient(nextUserId)) return;
         state = petData.get(userId) || getDefaultState(userId);
         socket.send(JSON.stringify({ type: 'auth_success', payload: { userId } }));
@@ -1291,6 +1289,9 @@ webSocketServer.on('connection', (socket, request) => {
     console.warn(`[PetSync] WebSocket错误 | userId=${userId} | ${error.message}`);
   });
 });
+
+const stopWebSocketHeartbeat = startHeartbeat(webSocketServer, WS_HEARTBEAT_INTERVAL_MS);
+webSocketServer.on('close', stopWebSocketHeartbeat);
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

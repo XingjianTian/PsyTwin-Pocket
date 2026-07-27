@@ -63,29 +63,24 @@ test('broadcasts the outdoor conversation before entering the counseling room', 
   assert.equal(fixture.state.sceneId, 'picnic_lawn');
   assert.equal(fixture.state.activity, 'activity:picnic_lawn');
   assert.equal(fixture.state.stateVersion, 8);
-  assert.deepEqual(fixture.timers.map((timer) => timer.delay), [1800, 5200, 10000]);
-  assert.equal(fixture.state.demoConversation.phase, 'meeting');
-
-  fixture.setNow(2200);
-  fixture.timers[0].callback();
+  assert.deepEqual(fixture.timers.map((timer) => timer.delay), [5200, 10000]);
   assert.equal(fixture.state.demoConversation.phase, 'line_1');
   assert.equal(fixture.state.demoConversation.speaker, 'main');
   assert.equal(fixture.state.demoConversation.text, '小暖，今天的风好舒服呀。');
 
   fixture.setNow(4600);
-  fixture.timers[1].callback();
+  fixture.timers[0].callback();
   assert.equal(fixture.state.demoConversation.phase, 'line_2');
   assert.equal(fixture.state.demoConversation.speaker, 'companion');
   assert.equal(fixture.state.demoConversation.text, '是呀，和你聊一会儿，心情都变好了。');
-  assert.equal(fixture.timers[2].delay - fixture.timers[1].delay, 4800);
+  assert.equal(fixture.timers[1].delay - fixture.timers[0].delay, 4800);
 
   fixture.setNow(7500);
-  fixture.timers[2].callback();
+  fixture.timers[1].callback();
   assert.equal(fixture.state.sceneId, 'psychological_room');
   assert.equal(fixture.state.activity, 'activity:psychological_room');
-  assert.equal(fixture.state.stateVersion, 11);
+  assert.equal(fixture.state.stateVersion, 10);
   assert.deepEqual(fixture.broadcasts.map((entry) => entry.sceneId), [
-    'picnic_lawn',
     'picnic_lawn',
     'picnic_lawn',
     'psychological_room',
@@ -137,7 +132,7 @@ test('starts without Unity or any other active demo pet client', () => {
   assert.equal(fixture.controller.trigger(), true);
   assert.equal(fixture.state.sceneId, 'picnic_lawn');
   assert.equal(fixture.broadcasts.length, 1);
-  assert.equal(fixture.timers.length, 3);
+  assert.equal(fixture.timers.length, 2);
 });
 
 test('cancels the delayed counseling switch when the demo stops early', () => {

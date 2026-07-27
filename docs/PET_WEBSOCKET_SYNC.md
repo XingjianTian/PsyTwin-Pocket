@@ -11,6 +11,7 @@ ws://localhost:13002/ws/pet?userId=demo_pet&clientType=unity
 Clients replace their displayed state when receiving `pet_status` and ignore older `stateVersion` values. HTTP status remains the initial snapshot and reconnect fallback.
 
 - [x] Server broadcasts after every tick.
+- [x] Server removes empty per-user socket sets and terminates connections that miss a heartbeat response. *(Implemented and tested on 2026-07-27.)*
 - [x] Server activity logs and terminal summaries refresh every four seconds, include precise timestamps, and avoid consecutive duplicate event text. *(Implemented and Sentinel-linked on 2026-07-24.)*
 - [x] WeChat mini program connects with `demo_pet` and receives `pet_status`.
 - [x] Unity connects with `demo_pet` and receives `pet_status`.

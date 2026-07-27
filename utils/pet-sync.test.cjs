@@ -144,6 +144,9 @@ test('uses the dedicated large-pet F9 stage and hides ambient pets during the co
   assert.match(wxml, /demo-stage-main-image/);
   assert.match(wxml, /demo-stage-companion-image/);
   assert.match(less, /\.demo-stage-line\s*\{[^}]*font-size:\s*30rpx/s);
+  assert.match(less, /\.demo-stage-pet\s*\{[^}]*width:\s*230rpx;[^}]*height:\s*270rpx;/s);
+  assert.match(less, /\.demo-stage-main-image\s*\{[^}]*width:\s*152rpx;[^}]*height:\s*236rpx;/s);
+  assert.match(less, /\.pet-frame-stack\s*\{[^}]*width:\s*230rpx;[^}]*height:\s*270rpx;/s);
   assert.doesNotMatch(wxml, /class="demo-companion-dialog"/);
 });
 
@@ -165,4 +168,14 @@ test('keeps the F9 conversation exclusive from ambient random dialogue', () => {
   assert.match(pageSource, /const ambientPets = isDemoConversationActive/);
   assert.match(pageSource, /mainPetDialogReplyText: '',\s*otherPets: ambientPets/);
   assert.match(pageSource, /Object\.hasOwn\(state, 'demoConversation'\)/);
+});
+
+test('registers websocket listeners immediately so the first realtime status is not missed', () => {
+  const socketSource = fs.readFileSync(path.join(__dirname, '../utils/petWebSocket.js'), 'utf8');
+  const socketAssignmentIndex = socketSource.indexOf('this.socket = socketTask;');
+  const listenerSetupIndex = socketSource.indexOf('this._setupSocketListeners(socketTask);');
+
+  assert.ok(socketAssignmentIndex >= 0);
+  assert.ok(listenerSetupIndex > socketAssignmentIndex);
+  assert.match(socketSource, /if \(this\.socket && \(this\.isConnected \|\| this\.isConnecting\)\)/);
 });

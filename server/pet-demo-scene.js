@@ -1,7 +1,6 @@
 const DEMO_USER_ID = 'demo_pet';
 const OUTDOOR_SCENE_ID = 'picnic_lawn';
 const COUNSELING_SCENE_ID = 'psychological_room';
-const DEMO_DIALOGUE_FIRST_LINE_MS = 1800;
 const DEMO_DIALOGUE_SECOND_LINE_MS = 5200;
 const DEMO_DELAY_MS = 10000;
 const DEMO_COMPANION = {
@@ -94,14 +93,7 @@ function createPetDemoSceneController(options) {
 
     sequence += 1;
     const currentSequence = sequence;
-    applyScene(state, OUTDOOR_SCENE_ID, buildConversation('meeting'));
-    timers.push(setTimer(() => {
-      if (!snapshot || currentSequence !== sequence) return;
-      const currentState = getState(DEMO_USER_ID);
-      if (!currentState) return;
-      currentState.demoConversation = buildConversation('line_1', DEMO_DIALOGUE[0]);
-      broadcastState(currentState);
-    }, DEMO_DIALOGUE_FIRST_LINE_MS));
+    applyScene(state, OUTDOOR_SCENE_ID, buildConversation('line_1', DEMO_DIALOGUE[0]));
     timers.push(setTimer(() => {
       if (!snapshot || currentSequence !== sequence) return;
       const currentState = getState(DEMO_USER_ID);
@@ -172,7 +164,6 @@ module.exports = {
   COUNSELING_SCENE_ID,
   DEMO_COMPANION,
   DEMO_DIALOGUE,
-  DEMO_DIALOGUE_FIRST_LINE_MS,
   DEMO_DIALOGUE_SECOND_LINE_MS,
   DEMO_DELAY_MS,
   DEMO_USER_ID,
