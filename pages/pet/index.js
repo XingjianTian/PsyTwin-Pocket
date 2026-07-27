@@ -996,8 +996,12 @@ Page({
     // 主心宠头像
     mainPetAvatar: '',
     // 主心宠动画帧
-    petAnimationFrame: '',              // 当前动画帧图片路径
+    petAnimationFrame: '',
     petAnimationIndex: 0,               // 当前动画帧索引
+    petFrameA: '',
+    petFrameB: '',
+    petActiveFrameSlot: 'a',
+    petAnimationReady: false,
     // 行为计时器
     activityStartTime: Date.now(),      // 当前行为开始时间
     currentActivityDuration: 10,        // 当前行为持续时间（分钟），默认10分钟
@@ -1009,6 +1013,11 @@ Page({
     mainPetDialogPhase: 0,              // 主心宠对话阶段：0=无，1=正在说，2=回应中
     mainPetDialogPartnerId: '',         // 主心宠对话伙伴ID
     mainPetDialogReplyText: '',         // 主心宠对话回复内容（给伙伴的）
+    demoConversationActive: false,
+    demoCompanionName: '',
+    demoCompanionAvatar: '',
+    demoCompanionTalking: false,
+    demoCompanionDialogText: '',
     // 地图中心宠标记位置（一级地图用，初始在梦境小屋）
     petMarkerPrimaryStyle: 'left: calc(22% - 80rpx); top: 26%;',
     // 地图中心宠标记位置（二级地图用，初始不在任何二级地图里）
@@ -1603,6 +1612,59 @@ Page({
     const sceneInfo = this.getSceneInfo(state.sceneId);
     const locationPatch = createPetLocationPatch(state, sceneInfo);
     const observerPatch = createDemoObserverPatch(this.getPetUserId(), state, sceneInfo);
+    const demoConversation = state.demoConversation;
+    const isDemoConversationActive = Boolean(
+      demoConversation && demoConversation.active && state.sceneId === 'picnic_lawn',
+    );
+    const isMainPetSpeaking = isDemoConversationActive && demoConversation.speaker === 'main';
+    const isCompanionSpeaking = isDemoConversationActive && demoConversation.speaker === 'companion';
+    const { companion = {} } = demoConversation || {};
+    const ambientPets = isDemoConversationActive
+      ? this.data.otherPets.map((pet) => ({
+        ...pet,
+        isTalking: false,
+        isInConversation: false,
+        dialogText: '',
+        dialogPartner: null,
+        dialogEndTime: null,
+        dialogPhase: 0,
+        dialogText2: '',
+        dialogPartnerId: '',
+      }))
+      : this.data.otherPets;
+    let demoConversationPatch = {};
+    if (isDemoConversationActive) {
+      demoConversationPatch = {
+        demoConversationActive: true,
+        demoCompanionName: companion.name || '小暖',
+        demoCompanionAvatar: companion.avatar || '/static/pet/demo_companion_xiaonuan.png',
+        demoCompanionTalking: isCompanionSpeaking,
+        demoCompanionDialogText: isCompanionSpeaking ? demoConversation.text : '',
+        mainPetTalking: isMainPetSpeaking,
+        mainPetDialogText: isMainPetSpeaking ? demoConversation.text : '',
+        mainPetDialogPartner: companion.name || '小暖',
+        mainPetDialogEndTime: null,
+        mainPetDialogPhase: 0,
+        mainPetDialogPartnerId: '',
+        mainPetDialogReplyText: '',
+        otherPets: ambientPets,
+      };
+    } else if (Object.hasOwn(state, 'demoConversation')) {
+      demoConversationPatch = {
+        demoConversationActive: false,
+        demoCompanionName: '',
+        demoCompanionAvatar: '',
+        demoCompanionTalking: false,
+        demoCompanionDialogText: '',
+        mainPetTalking: false,
+        mainPetDialogText: '',
+        mainPetDialogPartner: null,
+        mainPetDialogEndTime: null,
+        mainPetDialogPhase: 0,
+        mainPetDialogPartnerId: '',
+        mainPetDialogReplyText: '',
+      };
+    }
 
     this.setData({
       mood: typeof state.mood === 'number' ? state.mood : this.data.mood,
@@ -1611,6 +1673,7 @@ Page({
       petStateVersion: status.stateVersion,
       ...locationPatch,
       ...observerPatch,
+      ...demoConversationPatch,
       ...extraPatch,
     }, () => {
       if (locationPatch.petSceneId) {
@@ -1753,46 +1816,68 @@ Page({
     this.initOtherPets();
   },
 
-  // 启动主心宠帧动画（带预加载）
+  // 启动主心宠双图层帧动画。隐藏层先加载，成功后再显示，避免直接替换 src 闪烁。
   startPetAnimation() {
-    // 先停止之前的动画
     this.stopPetAnimation();
-
-    // 预加载所有帧图片到缓存，避免切换时闪烁
-    const preloadPromises = PET_ANIMATION_FRAMES.map((src) =>
-      new Promise((resolve) => {
-        wx.getImageInfo({
-          src,
-          success: resolve,
-          fail: resolve, // 即使失败也不阻塞，避免动画无法启动
-        });
-      }),
-    );
-
-    Promise.all(preloadPromises).then(() => {
-      // 所有图片预加载完成，初始化并启动动画
-      this.setData({
-        petAnimationFrame: PET_ANIMATION_FRAMES[0],
-        petAnimationIndex: 0,
-      });
-
-      // 启动定时器：15fps（每67ms切换一帧）
-      this.animationTimer = setInterval(() => {
-        const nextIndex = (this.data.petAnimationIndex + 1) % ANIMATION_FRAME_COUNT;
-        this.setData({
-          petAnimationFrame: PET_ANIMATION_FRAMES[nextIndex],
-          petAnimationIndex: nextIndex,
-        });
-      }, ANIMATION_FRAME_INTERVAL);
+    this.pendingPetFrameSlot = null;
+    this.pendingPetFrameIndex = null;
+    this.setData({
+      petAnimationFrame: PET_ANIMATION_FRAMES[0],
+      petAnimationIndex: 0,
+      petFrameA: PET_ANIMATION_FRAMES[0],
+      petFrameB: '',
+      petActiveFrameSlot: 'a',
+      petAnimationReady: false,
     });
+  },
+
+  onPetFrameALoad() {
+    this.onPetFrameLoaded('a');
+  },
+
+  onPetFrameBLoad() {
+    this.onPetFrameLoaded('b');
+  },
+
+  onPetFrameLoaded(slot) {
+    if (!this.data.petAnimationReady && slot === 'a') {
+      this.setData({ petAnimationReady: true });
+      this.scheduleNextPetFrame();
+      return;
+    }
+
+    if (this.pendingPetFrameSlot !== slot) return;
+    const nextIndex = this.pendingPetFrameIndex;
+    this.pendingPetFrameSlot = null;
+    this.pendingPetFrameIndex = null;
+    this.setData({
+      petActiveFrameSlot: slot,
+      petAnimationFrame: PET_ANIMATION_FRAMES[nextIndex],
+      petAnimationIndex: nextIndex,
+    }, () => this.scheduleNextPetFrame());
+  },
+
+  scheduleNextPetFrame() {
+    if (this.animationTimer) clearTimeout(this.animationTimer);
+    this.animationTimer = setTimeout(() => {
+      const nextIndex = (this.data.petAnimationIndex + 1) % ANIMATION_FRAME_COUNT;
+      const nextSlot = this.data.petActiveFrameSlot === 'a' ? 'b' : 'a';
+      this.pendingPetFrameSlot = nextSlot;
+      this.pendingPetFrameIndex = nextIndex;
+      this.setData({
+        [nextSlot === 'a' ? 'petFrameA' : 'petFrameB']: PET_ANIMATION_FRAMES[nextIndex],
+      });
+    }, ANIMATION_FRAME_INTERVAL);
   },
 
   // 停止主心宠帧动画
   stopPetAnimation() {
     if (this.animationTimer) {
-      clearInterval(this.animationTimer);
+      clearTimeout(this.animationTimer);
       this.animationTimer = null;
     }
+    this.pendingPetFrameSlot = null;
+    this.pendingPetFrameIndex = null;
   },
 
   // 获取其他心宠可用的场景（排除梦境小屋下的所有二级场景）
@@ -1913,6 +1998,8 @@ Page({
 
   // 更新所有其他心宠的状态
   updateOtherPets() {
+    if (this.data.demoConversationActive) return;
+
     const { otherPets, petSceneId, petSpriteX, petSpriteY } = this.data;
     const updatedPets = [...otherPets];
     let hasDialogChange = false;

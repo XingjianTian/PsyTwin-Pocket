@@ -43,6 +43,7 @@ function serializeState(state) {
     activity: state.activity,
     activityStartTime: state.activityStartTime,
     activityDuration: state.activityDuration,
+    ...(state.demoConversation ? { demoConversation: state.demoConversation } : {}),
     stateVersion: state.stateVersion || 0,
     updatedAt: state.updatedAt || state.lastSyncAt || Date.now(),
     lastSyncAt: state.lastSyncAt,

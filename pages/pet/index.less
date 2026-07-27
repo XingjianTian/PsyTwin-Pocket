@@ -597,12 +597,148 @@
 }
 
 .other-pet-body {
+  /* Demo companion uses the same scene layer but keeps a stable showcase position. */
   width: 36rpx;
   height: 36rpx;
   background: #fff;
   border-radius: 8rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
   border: 2rpx solid rgba(255, 255, 255, 0.8);
+}
+
+.pet-frame-stack {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  opacity: 0;
+}
+
+.pet-frame-stack.pet-frame-ready {
+  opacity: 1;
+}
+
+.pet-frame-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 80ms ease-out;
+}
+
+.pet-frame-layer.pet-frame-active {
+  opacity: 1;
+}
+
+.demo-stage-main-frame-stack {
+  position: relative;
+  width: 250rpx;
+  height: 290rpx;
+}
+
+.demo-dialogue-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.demo-dialogue-character {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.demo-dialogue-companion {
+  left: 7%;
+  bottom: 330rpx;
+}
+
+.demo-dialogue-main {
+  right: 6%;
+  bottom: 205rpx;
+}
+
+.demo-stage-pet {
+  width: 230rpx;
+  height: 270rpx;
+  filter: drop-shadow(0 12rpx 12rpx rgba(47, 35, 54, 0.3));
+}
+
+.demo-stage-main-image {
+  width: 250rpx;
+  height: 290rpx;
+}
+
+.demo-stage-bubble {
+  position: absolute;
+  bottom: 290rpx;
+  width: 330rpx;
+  min-height: 126rpx;
+  box-sizing: border-box;
+  padding: 22rpx 26rpx 24rpx;
+  border-radius: 24rpx;
+  background: #fff;
+  box-shadow: 0 10rpx 24rpx rgba(54, 38, 63, 0.2);
+  animation: demoDialogueEnter 0.24s ease-out;
+}
+
+.demo-stage-bubble-companion {
+  left: 60rpx;
+  background: #fff2f5;
+}
+
+.demo-stage-bubble-main {
+  right: 54rpx;
+  background: #eef5ff;
+}
+
+.demo-stage-speaker,
+.demo-stage-line {
+  display: block;
+}
+
+.demo-stage-speaker {
+  margin-bottom: 8rpx;
+  color: #7b5a85;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.demo-stage-line {
+  color: #352d3b;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.demo-stage-bubble-tail {
+  position: absolute;
+  bottom: -20rpx;
+  width: 0;
+  height: 0;
+  border-left: 22rpx solid transparent;
+  border-right: 22rpx solid transparent;
+  border-top: 22rpx solid #fff2f5;
+}
+
+.demo-stage-bubble-companion .demo-stage-bubble-tail {
+  left: 48rpx;
+}
+
+.demo-stage-bubble-main .demo-stage-bubble-tail {
+  right: 48rpx;
+  border-top-color: #eef5ff;
+}
+
+@keyframes demoDialogueEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12rpx) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .other-pet-name {

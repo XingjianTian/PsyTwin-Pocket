@@ -39,7 +39,6 @@ function createDemoObserverPatch(userId, state = {}, sceneInfo = null) {
   }
 
   return {
-    currentView: 'game',
     currentSceneId: state.sceneId,
     currentScene: sceneInfo ? sceneInfo.name : state.sceneId,
     currentSceneIcon: sceneInfo ? sceneInfo.icon : '🌲',

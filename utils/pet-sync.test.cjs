@@ -99,7 +99,7 @@ test('routes server status through the authoritative apply method without changi
   assert.doesNotMatch(pageSource, /currentSceneId:\s*state\.sceneId/);
 });
 
-test('forces demo_pet to the picnic lawn game view', () => {
+test('follows demo_pet to the picnic lawn without closing the active feature view', () => {
   assert.deepEqual(
     createDemoObserverPatch(
       'demo_pet',
@@ -107,7 +107,6 @@ test('forces demo_pet to the picnic lawn game view', () => {
       { name: '野餐草坪', icon: '🧺' },
     ),
     {
-      currentView: 'game',
       currentSceneId: 'picnic_lawn',
       currentScene: '野餐草坪',
       currentSceneIcon: '🧺',
@@ -117,7 +116,7 @@ test('forces demo_pet to the picnic lawn game view', () => {
   );
 });
 
-test('forces demo_pet to the school counseling room game view', () => {
+test('follows demo_pet to the school counseling room without closing the active feature view', () => {
   const patch = createDemoObserverPatch(
     'demo_pet',
     { sceneId: 'psychological_room' },
@@ -126,11 +125,44 @@ test('forces demo_pet to the school counseling room game view', () => {
 
   assert.equal(patch.currentSceneId, 'psychological_room');
   assert.equal(patch.activePrimarySceneId, 'school');
-  assert.equal(patch.currentView, 'game');
+  assert.equal(Object.hasOwn(patch, 'currentView'), false);
   assert.equal(patch.mapLevel, 'secondary');
 });
 
 test('does not force the observer for normal users or normal scenes', () => {
   assert.deepEqual(createDemoObserverPatch('another_user', { sceneId: 'picnic_lawn' }), {});
   assert.deepEqual(createDemoObserverPatch('demo_pet', { sceneId: 'library' }), {});
+});
+
+test('uses the dedicated large-pet F9 stage and hides ambient pets during the conversation', () => {
+  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/index.wxml'), 'utf8');
+  const less = fs.readFileSync(path.join(__dirname, '../pages/pet/index.less'), 'utf8');
+
+  assert.match(wxml, /class="demo-dialogue-stage"/);
+  assert.match(wxml, /currentView === 'game' && !demoConversationActive/);
+  assert.match(wxml, /petSceneId === currentSceneId && !demoConversationActive/);
+  assert.match(wxml, /demo-stage-main-image/);
+  assert.match(wxml, /demo-stage-companion-image/);
+  assert.match(less, /\.demo-stage-line\s*\{[^}]*font-size:\s*30rpx/s);
+  assert.doesNotMatch(wxml, /class="demo-companion-dialog"/);
+});
+
+test('does not render the legacy CSS pet and swaps animation frames only after image load', () => {
+  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/index.js'), 'utf8');
+  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/index.wxml'), 'utf8');
+
+  assert.doesNotMatch(wxml, /<view class="pet-body" wx:else>/);
+  assert.match(wxml, /bindload="onPetFrameALoad"/);
+  assert.match(wxml, /bindload="onPetFrameBLoad"/);
+  assert.match(pageSource, /pendingPetFrameSlot !== slot/);
+  assert.match(pageSource, /scheduleNextPetFrame\(\)/);
+});
+
+test('keeps the F9 conversation exclusive from ambient random dialogue', () => {
+  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/index.js'), 'utf8');
+
+  assert.match(pageSource, /updateOtherPets\(\) \{\s*if \(this\.data\.demoConversationActive\) return;/);
+  assert.match(pageSource, /const ambientPets = isDemoConversationActive/);
+  assert.match(pageSource, /mainPetDialogReplyText: '',\s*otherPets: ambientPets/);
+  assert.match(pageSource, /Object\.hasOwn\(state, 'demoConversation'\)/);
 });

@@ -28,6 +28,9 @@ function createFixture({ clientCount = 2 } = {}) {
       userId,
       sceneId: nextState.sceneId,
       stateVersion: nextState.stateVersion,
+      demoConversation: nextState.demoConversation
+        ? JSON.parse(JSON.stringify(nextState.demoConversation))
+        : null,
     }),
     getActivity: (sceneId) => `activity:${sceneId}`,
     getActivityDuration: (sceneId) => (sceneId === 'psychological_room' ? 30 : 10),
@@ -53,22 +56,37 @@ function createFixture({ clientCount = 2 } = {}) {
   };
 }
 
-test('broadcasts picnic lawn immediately and counseling room after three seconds', () => {
+test('broadcasts the outdoor conversation before entering the counseling room', () => {
   const fixture = createFixture();
 
   assert.equal(fixture.controller.trigger(), true);
   assert.equal(fixture.state.sceneId, 'picnic_lawn');
   assert.equal(fixture.state.activity, 'activity:picnic_lawn');
   assert.equal(fixture.state.stateVersion, 8);
-  assert.equal(fixture.timers[0].delay, 3000);
+  assert.deepEqual(fixture.timers.map((timer) => timer.delay), [1800, 5200, 10000]);
+  assert.equal(fixture.state.demoConversation.phase, 'meeting');
 
-  fixture.setNow(4000);
+  fixture.setNow(2200);
   fixture.timers[0].callback();
+  assert.equal(fixture.state.demoConversation.phase, 'line_1');
+  assert.equal(fixture.state.demoConversation.speaker, 'main');
+  assert.equal(fixture.state.demoConversation.text, '小暖，今天的风好舒服呀。');
 
+  fixture.setNow(4600);
+  fixture.timers[1].callback();
+  assert.equal(fixture.state.demoConversation.phase, 'line_2');
+  assert.equal(fixture.state.demoConversation.speaker, 'companion');
+  assert.equal(fixture.state.demoConversation.text, '是呀，和你聊一会儿，心情都变好了。');
+  assert.equal(fixture.timers[2].delay - fixture.timers[1].delay, 4800);
+
+  fixture.setNow(7500);
+  fixture.timers[2].callback();
   assert.equal(fixture.state.sceneId, 'psychological_room');
   assert.equal(fixture.state.activity, 'activity:psychological_room');
-  assert.equal(fixture.state.stateVersion, 9);
+  assert.equal(fixture.state.stateVersion, 11);
   assert.deepEqual(fixture.broadcasts.map((entry) => entry.sceneId), [
+    'picnic_lawn',
+    'picnic_lawn',
     'picnic_lawn',
     'psychological_room',
   ]);
@@ -113,24 +131,24 @@ test('persists the original location while the in-memory demo override is active
   assert.notEqual(persisted, fixture.state);
 });
 
-test('does not start without an active demo pet client', () => {
+test('starts without Unity or any other active demo pet client', () => {
   const fixture = createFixture({ clientCount: 0 });
 
-  assert.equal(fixture.controller.trigger(), false);
-  assert.equal(fixture.state.sceneId, 'library');
-  assert.equal(fixture.broadcasts.length, 0);
-  assert.equal(fixture.timers.length, 0);
+  assert.equal(fixture.controller.trigger(), true);
+  assert.equal(fixture.state.sceneId, 'picnic_lawn');
+  assert.equal(fixture.broadcasts.length, 1);
+  assert.equal(fixture.timers.length, 3);
 });
 
 test('cancels the delayed counseling switch when the demo stops early', () => {
   const fixture = createFixture();
 
   fixture.controller.trigger();
-  const timer = fixture.timers[0];
+  const timers = [...fixture.timers];
   fixture.controller.stop('client_disconnected');
-  timer.callback();
+  timers.forEach((timer) => timer.callback());
 
-  assert.equal(timer.cancelled, true);
+  assert.equal(timers.every((timer) => timer.cancelled), true);
   assert.equal(fixture.state.sceneId, 'library');
   assert.deepEqual(fixture.broadcasts.map((entry) => entry.sceneId), [
     'picnic_lawn',

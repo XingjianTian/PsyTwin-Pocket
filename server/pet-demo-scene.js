@@ -1,7 +1,18 @@
 const DEMO_USER_ID = 'demo_pet';
 const OUTDOOR_SCENE_ID = 'picnic_lawn';
 const COUNSELING_SCENE_ID = 'psychological_room';
-const DEMO_DELAY_MS = 3000;
+const DEMO_DIALOGUE_FIRST_LINE_MS = 1800;
+const DEMO_DIALOGUE_SECOND_LINE_MS = 5200;
+const DEMO_DELAY_MS = 10000;
+const DEMO_COMPANION = {
+  id: 'demo_companion',
+  name: '小暖',
+  avatar: '/static/pet/demo_companion_xiaonuan.png',
+};
+const DEMO_DIALOGUE = [
+  { speaker: 'main', text: '小暖，今天的风好舒服呀。' },
+  { speaker: 'companion', text: '是呀，和你聊一会儿，心情都变好了。' },
+];
 
 const LOCATION_FIELDS = [
   'sceneId',
@@ -25,7 +36,6 @@ function shouldStopDemoOnClientDisconnect(clientType, remainingClientTypes) {
 function createPetDemoSceneController(options) {
   const {
     getState,
-    getClientCount,
     broadcast,
     getActivity,
     getActivityDuration,
@@ -35,23 +45,41 @@ function createPetDemoSceneController(options) {
   } = options;
 
   let snapshot = null;
-  let timer = null;
+  let timers = [];
   let sequence = 0;
 
-  const applyScene = (state, sceneId) => {
+  const broadcastState = (state) => {
     const timestamp = now();
-    state.sceneId = sceneId;
-    state.activity = getActivity(sceneId);
-    state.activityStartTime = timestamp;
-    state.activityDuration = getActivityDuration(sceneId);
     state.stateVersion = (state.stateVersion || 0) + 1;
     state.updatedAt = timestamp;
     broadcast(DEMO_USER_ID, state);
   };
 
+  const applyScene = (state, sceneId, demoConversation = null) => {
+    const timestamp = now();
+    state.sceneId = sceneId;
+    state.activity = getActivity(sceneId);
+    state.activityStartTime = timestamp;
+    state.activityDuration = getActivityDuration(sceneId);
+    state.demoConversation = demoConversation;
+    broadcastState(state);
+  };
+
+  const clearTimers = () => {
+    timers.forEach((activeTimer) => clearTimer(activeTimer));
+    timers = [];
+  };
+
+  const buildConversation = (phase, line = null) => ({
+    active: true,
+    phase,
+    companion: DEMO_COMPANION,
+    ...(line || {}),
+  });
+
   const trigger = () => {
     const state = getState(DEMO_USER_ID);
-    if (!state || getClientCount(DEMO_USER_ID) === 0) {
+    if (!state) {
       return false;
     }
 
@@ -62,24 +90,36 @@ function createPetDemoSceneController(options) {
       }), {});
     }
 
-    if (timer) {
-      clearTimer(timer);
-    }
+    clearTimers();
 
     sequence += 1;
     const currentSequence = sequence;
-    applyScene(state, OUTDOOR_SCENE_ID);
-    timer = setTimer(() => {
+    applyScene(state, OUTDOOR_SCENE_ID, buildConversation('meeting'));
+    timers.push(setTimer(() => {
+      if (!snapshot || currentSequence !== sequence) return;
+      const currentState = getState(DEMO_USER_ID);
+      if (!currentState) return;
+      currentState.demoConversation = buildConversation('line_1', DEMO_DIALOGUE[0]);
+      broadcastState(currentState);
+    }, DEMO_DIALOGUE_FIRST_LINE_MS));
+    timers.push(setTimer(() => {
+      if (!snapshot || currentSequence !== sequence) return;
+      const currentState = getState(DEMO_USER_ID);
+      if (!currentState) return;
+      currentState.demoConversation = buildConversation('line_2', DEMO_DIALOGUE[1]);
+      broadcastState(currentState);
+    }, DEMO_DIALOGUE_SECOND_LINE_MS));
+    timers.push(setTimer(() => {
       if (!snapshot || currentSequence !== sequence) {
         return;
       }
 
-      timer = null;
+      timers = [];
       const currentState = getState(DEMO_USER_ID);
       if (currentState) {
-        applyScene(currentState, COUNSELING_SCENE_ID);
+        applyScene(currentState, COUNSELING_SCENE_ID, null);
       }
-    }, DEMO_DELAY_MS);
+    }, DEMO_DELAY_MS));
 
     return true;
   };
@@ -90,16 +130,14 @@ function createPetDemoSceneController(options) {
     }
 
     sequence += 1;
-    if (timer) {
-      clearTimer(timer);
-      timer = null;
-    }
+    clearTimers();
 
     const currentSnapshot = snapshot;
     snapshot = null;
     const state = getState(DEMO_USER_ID);
     if (state) {
       Object.assign(state, currentSnapshot);
+      delete state.demoConversation;
       state.stateVersion = (state.stateVersion || 0) + 1;
       state.updatedAt = now();
       broadcast(DEMO_USER_ID, state);
@@ -113,10 +151,12 @@ function createPetDemoSceneController(options) {
       return state;
     }
 
-    return {
+    const persistableState = {
       ...state,
       ...snapshot,
     };
+    delete persistableState.demoConversation;
+    return persistableState;
   };
 
   return {
@@ -130,6 +170,10 @@ function createPetDemoSceneController(options) {
 
 module.exports = {
   COUNSELING_SCENE_ID,
+  DEMO_COMPANION,
+  DEMO_DIALOGUE,
+  DEMO_DIALOGUE_FIRST_LINE_MS,
+  DEMO_DIALOGUE_SECOND_LINE_MS,
   DEMO_DELAY_MS,
   DEMO_USER_ID,
   OUTDOOR_SCENE_ID,

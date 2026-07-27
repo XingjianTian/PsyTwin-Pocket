@@ -95,20 +95,33 @@
       </view>
 
       <!-- 心宠精灵层（仅当在当前场景时显示） -->
-      <view wx:if="{{currentView === 'game' && petSceneId === currentSceneId}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
-        <!-- 主心宠动画帧 -->
-        <image class="pet-animation-frame" src="{{petAnimationFrame}}" mode="aspectFit" wx:if="{{petAnimationFrame}}" />
-        <!-- 备用：当动画帧未加载时使用CSS绘制 -->
-        <view class="pet-body" wx:else>
-          <view class="pet-face">
-            <view class="pet-eye pet-eye-left"></view>
-            <view class="pet-eye pet-eye-right"></view>
-            <view class="pet-blush pet-blush-left"></view>
-            <view class="pet-blush pet-blush-right"></view>
-            <view class="pet-mouth"></view>
+      <view wx:if="{{currentView === 'game' && demoConversationActive}}" class="demo-dialogue-stage">
+        <view class="demo-dialogue-character demo-dialogue-companion">
+          <view wx:if="{{demoCompanionTalking}}" class="demo-stage-bubble demo-stage-bubble-companion">
+            <text class="demo-stage-speaker">{{demoCompanionName}}</text>
+            <text class="demo-stage-line">{{demoCompanionDialogText}}</text>
+            <view class="demo-stage-bubble-tail"></view>
           </view>
-          <view class="pet-ear pet-ear-left">💕</view>
-          <view class="pet-ear pet-ear-right">💕</view>
+          <image class="demo-stage-pet demo-stage-companion-image" src="{{demoCompanionAvatar}}" mode="aspectFit"></image>
+        </view>
+
+        <view class="demo-dialogue-character demo-dialogue-main">
+          <view wx:if="{{mainPetTalking}}" class="demo-stage-bubble demo-stage-bubble-main">
+            <text class="demo-stage-speaker">我的心宠</text>
+            <text class="demo-stage-line">{{mainPetDialogText}}</text>
+            <view class="demo-stage-bubble-tail"></view>
+          </view>
+          <view class="demo-stage-main-frame-stack">
+            <image class="demo-stage-pet demo-stage-main-image pet-frame-layer {{petActiveFrameSlot === 'a' ? 'pet-frame-active' : ''}}" src="{{petFrameA}}" mode="aspectFit" bindload="onPetFrameALoad"></image>
+            <image wx:if="{{petFrameB}}" class="demo-stage-pet demo-stage-main-image pet-frame-layer {{petActiveFrameSlot === 'b' ? 'pet-frame-active' : ''}}" src="{{petFrameB}}" mode="aspectFit" bindload="onPetFrameBLoad"></image>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{currentView === 'game' && petSceneId === currentSceneId && !demoConversationActive}}" class="pet-sprite" style="left: {{petSpriteX}}px; top: {{petSpriteY}}px;" animation="{{petAnimation}}">
+        <view class="pet-frame-stack {{petAnimationReady ? 'pet-frame-ready' : ''}}">
+          <image class="pet-animation-frame pet-frame-layer {{petActiveFrameSlot === 'a' ? 'pet-frame-active' : ''}}" src="{{petFrameA}}" mode="aspectFit" bindload="onPetFrameALoad"></image>
+          <image wx:if="{{petFrameB}}" class="pet-animation-frame pet-frame-layer {{petActiveFrameSlot === 'b' ? 'pet-frame-active' : ''}}" src="{{petFrameB}}" mode="aspectFit" bindload="onPetFrameBLoad"></image>
         </view>
         
         <!-- 主心宠对话气泡（特殊样式） -->
@@ -122,7 +135,7 @@
       </view>
 
       <!-- 其他心宠层（仅在同一场景时显示） -->
-      <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet" wx:if="{{currentView === 'game'}}">
+      <view wx:for="{{otherPets}}" wx:key="id" wx:for-item="otherPet" wx:if="{{currentView === 'game' && !demoConversationActive}}">
         <view wx:if="{{otherPet.sceneId === currentSceneId}}" class="other-pet" style="left: {{otherPet.x}}px; top: {{otherPet.y}}px; transition: all 2s ease-in-out;">
           <image class="other-pet-avatar" src="{{otherPet.avatar}}" mode="aspectFill" wx:if="{{otherPet.avatar}}" />
           <view class="other-pet-body" wx:else></view>

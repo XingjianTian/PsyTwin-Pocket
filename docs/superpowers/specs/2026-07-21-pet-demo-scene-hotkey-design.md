@@ -46,8 +46,9 @@ Unity 的实际场景切换映射由 Unity 端维护；服务器与小程序只�
 
 小程序继续通过现有 HTTP 与 WebSocket 权威状态入口消费 `sceneId`。新增一个只对 `demo_pet` 生效的演示视角规则：
 
-- 收到 `picnic_lawn` 时，更新心宠真实位置，并强制设置 `currentSceneId = picnic_lawn`、`mapLevel = secondary`、`activePrimarySceneId = open_wilderness`；
-- 收到 `psychological_room` 时，更新心宠真实位置，并强制设置 `currentSceneId = psychological_room`、`mapLevel = secondary`、`activePrimarySceneId = school`；
+- 收到 `picnic_lawn` 时，更新心宠真实位置，并设置 `currentSceneId = picnic_lawn`、`mapLevel = secondary`、`activePrimarySceneId = open_wilderness`；
+- 收到 `psychological_room` 时，更新心宠真实位置，并设置 `currentSceneId = psychological_room`、`mapLevel = secondary`、`activePrimarySceneId = school`；
+- 场景同步不得写入 `currentView`，避免轮询或 WebSocket 状态把玩家从背包、日记、求助等功能视图强制切回游戏；
 - 其他场景仍沿用“心宠位置与玩家观察视角分离”的正式规则；
 - 非 `demo_pet` 用户永远不触发强制观察视角。
 
@@ -85,6 +86,7 @@ Unity 由新增的独立 `PetSceneSyncReceiver` 消费同一 `pet_status.payload
 - [x] 小程序收到 `psychological_room` 后强制显示学校的心理咨询室。*(已于 2026-07-21 通过小程序自动化测试)*
 - [x] 服务器控制台不显示 F9 的账号、地点及切换时序；触发失败时仅显示模糊提示。*(已于 2026-07-21 通过服务端自动化测试)*
 - [x] 非 `demo_pet` 的服务端位置更新不强制改变玩家观察视角。*(已于 2026-07-21 通过小程序自动化测试)*
+- [x] F9 演示场景同步不关闭背包、日记或求助视图。*(已于 2026-07-25 通过小程序自动化回归测试)*
 - [ ] Unity 依次收到相同版本序列的 `picnic_lawn` 与 `psychological_room`，并完成对应场景切换。
 
 ## 非目标
