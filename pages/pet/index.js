@@ -58,6 +58,7 @@ const {
   fetchPetQuiz,
   getConfiguredPetUserId,
 } = require('../../api/pet-server');
+const { triggerSadPetExpression } = require('../../api/pet-expression');
 const { fetchPetDiary, triggerPetDiary, testPetDiary, backfillPetDiary } = require('../../api/pet-diary');
 const {
   PET_SYNC_INTERVAL,
@@ -72,8 +73,9 @@ const { RARITY, ITEM_TYPE, ITEM_DATABASE } = require('../../utils/itemDatabase')
 
 // 心理答题题库
 const { getScaleForCategory, calculateScore } = require('../../utils/quizDatabase');
-const { createDemoHelpEvent } = require('../../utils/demoHelpEvents');
+const { createDemoHelpEvent, mergeHelpEvents } = require('../../utils/demoHelpEvents');
 
+const DEMO_HELP_EVENTS_STORAGE_KEY = 'petDemoHelpEvents';
 
 // 其他心宠名字列表（60个）
 const PET_NAMES = [
@@ -1549,6 +1551,7 @@ Page({
   },
 
   onLoad() {
+    this.restoreDemoHelpEvents();
     this.initGameView();
     // 初始化时间显示
     this.updateTimeDisplay();
@@ -1666,6 +1669,15 @@ Page({
       };
     }
 
+    const authoritativePatch = { ...extraPatch };
+    if (authoritativePatch.helpEvents) {
+      authoritativePatch.helpEvents = mergeHelpEvents(
+        authoritativePatch.helpEvents,
+        this.demoHelpEvents || [],
+      );
+      authoritativePatch.hasEvent = authoritativePatch.helpEvents.length > 0;
+    }
+
     this.setData({
       mood: typeof state.mood === 'number' ? state.mood : this.data.mood,
       energy: typeof state.energy === 'number' ? state.energy : this.data.energy,
@@ -1674,7 +1686,7 @@ Page({
       ...locationPatch,
       ...observerPatch,
       ...demoConversationPatch,
-      ...extraPatch,
+      ...authoritativePatch,
     }, () => {
       if (locationPatch.petSceneId) {
         this.updatePetMarker();
@@ -1709,11 +1721,10 @@ Page({
     console.log(`[PetSync] 拉取成功, stateVersion=${status.stateVersion}, serverTime=${status.serverTime}`);
 
     // 合并离线事件和持久化事件，按 id 去重
-    const idSet = new Set();
-    const syncedHelpEvents = [];
-    for (const e of [...generatedEvents, ...persistedEvents]) {
-      if (!idSet.has(e.id)) { idSet.add(e.id); syncedHelpEvents.push(e); }
-    }
+    const syncedHelpEvents = mergeHelpEvents(
+      [...generatedEvents, ...persistedEvents],
+      this.demoHelpEvents || [],
+    );
 
     const applied = this.applyAuthoritativePetStatus(status, {
       activityLog: state.activityLog || this.data.activityLog,
@@ -4047,6 +4058,25 @@ ${activities || '今天没有发生什么特别的事情'}
 
   // ========== 帮助事件 ==========
 
+  restoreDemoHelpEvents() {
+    const savedEvents = wx.getStorageSync(DEMO_HELP_EVENTS_STORAGE_KEY);
+    const now = Date.now();
+    this.demoHelpEvents = Array.isArray(savedEvents)
+      ? savedEvents.filter((event) => event.source === 'demo' && (!event.deadline || event.deadline > now))
+      : [];
+
+    if (this.demoHelpEvents.length > 0) {
+      this.setData({
+        helpEvents: mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
+        hasEvent: true,
+      });
+    }
+  },
+
+  saveDemoHelpEvents() {
+    wx.setStorageSync(DEMO_HELP_EVENTS_STORAGE_KEY, this.demoHelpEvents || []);
+  },
+
   // 初始化帮助数据（优先从服务器获取预警模拟数据）
   initHelpData() {
     // 不重置 helpLoading，避免覆盖 syncFromServer 已设置的状态
@@ -4055,11 +4085,14 @@ ${activities || '今天没有发生什么特别的事情'}
     fetchPetEvents(userId)
       .then((result) => {
         if (result.success && result.data && result.data.events && result.data.events.length > 0) {
-          const existingIds = new Set(this.data.helpEvents.map((e) => e.id));
-          const newEvents = result.data.events.filter((e) => !existingIds.has(e.id));
+          const currentServerEvents = this.data.helpEvents.filter((event) => event.source !== 'demo');
+          const helpEvents = mergeHelpEvents(
+            [...currentServerEvents, ...result.data.events],
+            this.demoHelpEvents || [],
+          );
           this.setData({
-            helpEvents: [...this.data.helpEvents, ...newEvents],
-            hasEvent: true,
+            helpEvents,
+            hasEvent: helpEvents.length > 0,
             helpLoading: false,
           });
           console.log('[Help] 从服务器加载事件:', result.data.events.length, '个');
@@ -4111,9 +4144,14 @@ ${activities || '今天没有发生什么特别的事情'}
     ];
 
     // 合并而不是覆盖，保留 syncFromServer 已加载的事件
+    const currentServerEvents = this.data.helpEvents.filter((event) => event.source !== 'demo');
+    const helpEvents = mergeHelpEvents(
+      [...currentServerEvents, ...mockEvents],
+      this.demoHelpEvents || [],
+    );
     this.setData({
-      helpEvents: [...this.data.helpEvents, ...mockEvents.filter((e) => !this.data.helpEvents.find((h) => h.id === e.id))],
-      hasEvent: true,
+      helpEvents,
+      hasEvent: helpEvents.length > 0,
       helpLoading: false,
     });
   },
@@ -4122,15 +4160,21 @@ ${activities || '今天没有发生什么特别的事情'}
   onDemoHelpTap() {
     wx.showActionSheet({
       itemList: ['高危：预约咨询', '中危：心理测评', '低危：陪伴提示'],
-      success: (res) => {
+      success: async (res) => {
         const severity = ['high', 'medium', 'low'][res.tapIndex];
         const demoEvent = createDemoHelpEvent(severity);
+        this.demoHelpEvents = [demoEvent, ...(this.demoHelpEvents || [])];
+        this.saveDemoHelpEvents();
         this.setData({
-          helpEvents: [demoEvent, ...this.data.helpEvents],
+          helpEvents: mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
           hasEvent: true,
           currentView: 'help',
         });
-        wx.showToast({ title: '已添加演示求助事件', icon: 'none' });
+        const expressionResult = await triggerSadPetExpression();
+        wx.showToast({
+          title: expressionResult.success ? '已添加事件，心宠正在难过' : '事件已添加，心宠动作发送失败',
+          icon: 'none',
+        });
       },
     });
   },
@@ -4283,6 +4327,14 @@ ${activities || '今天没有发生什么特别的事情'}
       return ev;
     });
 
+    this.demoHelpEvents = (this.demoHelpEvents || []).map((event) => (event.id === eventId
+      ? {
+        ...event,
+        status: 'resolved',
+        resolvedText: resolvedInfo.resolvedText || '已完成陪伴',
+      }
+      : event));
+    this.saveDemoHelpEvents();
     this.setData({ helpEvents });
   },
 });

@@ -35,6 +35,19 @@ function createDemoHelpEvent(severity = 'high') {
   };
 }
 
+function mergeHelpEvents(serverEvents = [], currentEvents = []) {
+  const eventsById = new Map();
+
+  [...serverEvents, ...currentEvents.filter((event) => event.source === 'demo')].forEach((event) => {
+    if (event && event.id && !eventsById.has(event.id)) {
+      eventsById.set(event.id, event);
+    }
+  });
+
+  return [...eventsById.values()];
+}
+
 module.exports = {
   createDemoHelpEvent,
+  mergeHelpEvents,
 };
