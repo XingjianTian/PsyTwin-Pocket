@@ -403,6 +403,15 @@ demoSceneController = createPetDemoSceneController({
   getActivityDuration,
 });
 
+function startDefaultPresentationMode() {
+  if (!petData.has('demo_pet')) {
+    petData.set('demo_pet', getDefaultState('demo_pet'));
+  }
+  return demoSceneController.togglePresentationMode();
+}
+
+const defaultPresentationStarted = startDefaultPresentationMode();
+
 // ========== 持续运行引擎 ==========
 
 const tickContexts = new Map(); // userId -> tick state and last emitted activity
@@ -1177,6 +1186,14 @@ function registerDemoHotkey() {
       process.exit(0);
     }
 
+    if (key.name === 'f8') {
+      const wasPresentationMode = demoSceneController.isPresentationMode();
+      const presentationEnabled = demoSceneController.togglePresentationMode();
+      if (presentationEnabled || wasPresentationMode) {
+        console.log(presentationEnabled ? '---启动---' : '---关闭---');
+      }
+    }
+
     if (key.name === 'f9') {
       const started = demoSceneController.trigger();
       if (!started) {
@@ -1195,6 +1212,9 @@ const server = app.listen(PORT, () => {
   console.log(`  引擎模式: 全局 setInterval，每 4 秒 tick`);
   console.log(`  日记模式: Sentinel 模板库（本服务不生成日记）`);
   console.log(`===============================================`);
+  if (defaultPresentationStarted) {
+    console.log('---启动---');
+  }
   console.log('');
   console.log('API 端点:');
   console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取实时状态（直接读取内存）`);

@@ -1,4 +1,5 @@
 const DEMO_USER_ID = 'demo_pet';
+const CLASSROOM_SCENE_ID = 'teaching_building';
 const OUTDOOR_SCENE_ID = 'picnic_lawn';
 const COUNSELING_SCENE_ID = 'psychological_room';
 const DEMO_DIALOGUE_SECOND_LINE_MS = 5200;
@@ -46,6 +47,7 @@ function createPetDemoSceneController(options) {
   let snapshot = null;
   let timers = [];
   let sequence = 0;
+  let mode = null;
 
   const broadcastState = (state) => {
     const timestamp = now();
@@ -92,6 +94,7 @@ function createPetDemoSceneController(options) {
     clearTimers();
 
     sequence += 1;
+    mode = 'scene_switch';
     const currentSequence = sequence;
     applyScene(state, OUTDOOR_SCENE_ID, buildConversation('line_1', DEMO_DIALOGUE[0]));
     timers.push(setTimer(() => {
@@ -126,6 +129,7 @@ function createPetDemoSceneController(options) {
 
     const currentSnapshot = snapshot;
     snapshot = null;
+    mode = null;
     const state = getState(DEMO_USER_ID);
     if (state) {
       Object.assign(state, currentSnapshot);
@@ -135,6 +139,26 @@ function createPetDemoSceneController(options) {
       broadcast(DEMO_USER_ID, state);
     }
 
+    return true;
+  };
+
+  const togglePresentationMode = () => {
+    if (snapshot) {
+      stop();
+      return false;
+    }
+
+    const state = getState(DEMO_USER_ID);
+    if (!state) {
+      return false;
+    }
+
+    snapshot = LOCATION_FIELDS.reduce((result, field) => ({
+      ...result,
+      [field]: state[field],
+    }), {});
+    mode = 'presentation';
+    applyScene(state, CLASSROOM_SCENE_ID, null);
     return true;
   };
 
@@ -153,14 +177,17 @@ function createPetDemoSceneController(options) {
 
   return {
     trigger,
+    togglePresentationMode,
     stop,
     isActive: () => snapshot !== null,
+    isPresentationMode: () => mode === 'presentation',
     isLocationLocked: (userId) => userId === DEMO_USER_ID && snapshot !== null,
     getPersistableState,
   };
 }
 
 module.exports = {
+  CLASSROOM_SCENE_ID,
   COUNSELING_SCENE_ID,
   DEMO_COMPANION,
   DEMO_DIALOGUE,

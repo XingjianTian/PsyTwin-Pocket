@@ -33,9 +33,9 @@ npm install
 npm start
 ```
 
-服务启动后保持该 PowerShell 窗口处于焦点，直接按 F9。Unity、Pocket 或 Sentinel 没有启动时也可以触发；客户端后续连接时会读取服务器当前阶段。
+服务启动后默认开启稳定演示模式，并打印 `---启动---`：`demo_pet` 始终位于教学楼（教室），但心情、能量和社交仍按服务器 tick 模拟。保持该 PowerShell 窗口处于焦点，按 F8 可关闭并打印 `---关闭---`，再次按 F8 则重新开启。按 F9 始终启动原有的场景切换模拟测试；若 F8 模式已开启，F9 会直接进入该测试序列，并在结束后恢复首次保存的位置。Unity、Pocket 或 Sentinel 没有启动时也可以触发；客户端后续连接时会读取服务器当前阶段。
 
-如果终端不支持 TTY 原始按键输入，服务器会跳过 F9 注册并在控制台给出提示。请使用普通 PowerShell 或 Windows Terminal 前台启动。
+如果终端不支持 TTY 原始按键输入，服务器会跳过 F8/F9 注册并在控制台给出提示。请使用普通 PowerShell 或 Windows Terminal 前台启动。
 
 ## 4. Pocket 配置
 

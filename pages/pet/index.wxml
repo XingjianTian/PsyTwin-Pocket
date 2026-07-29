@@ -185,16 +185,10 @@
         <image class="world-map-bg" src="/static/世界地图/worldmap.png" mode="aspectFill"></image>
         
         <view class="map-scroll-content">
-          <!-- 返回按钮和编辑按钮 -->
+          <!-- 二级地图返回按钮 -->
           <view class="map-actions-bar">
-            <view wx:if="{{mapLevel === 'secondary' && !isEditMode}}" class="back-btn-secondary" bindtap="backToPrimary">
+            <view wx:if="{{mapLevel === 'secondary'}}" class="back-btn-secondary" bindtap="backToPrimary">
               ← 返回
-            </view>
-            <view class="edit-btn {{isEditMode ? 'active' : ''}}" bindtap="toggleEditMode">
-              {{isEditMode ? '✓ 完成' : '✏️ 编辑'}}
-            </view>
-            <view wx:if="{{isEditMode}}" class="edit-btn export-btn" bindtap="exportSceneConfig">
-              📋 导出
             </view>
           </view>
 

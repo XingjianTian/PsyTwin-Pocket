@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const {
+  CLASSROOM_SCENE_ID,
   createPetDemoSceneController,
   shouldStopDemoOnClientDisconnect,
 } = require('./pet-demo-scene');
@@ -114,6 +115,33 @@ test('locks only the demo pet while active', () => {
   assert.equal(fixture.controller.isLocationLocked('another_user'), false);
 });
 
+test('toggles presentation mode while keeping the pet in the classroom', () => {
+  const fixture = createFixture();
+
+  assert.equal(fixture.controller.togglePresentationMode(), true);
+  assert.equal(fixture.controller.isPresentationMode(), true);
+  assert.equal(fixture.state.sceneId, CLASSROOM_SCENE_ID);
+  assert.equal(fixture.state.activity, `activity:${CLASSROOM_SCENE_ID}`);
+  assert.equal(fixture.timers.length, 0);
+  assert.equal(fixture.controller.isLocationLocked('demo_pet'), true);
+
+  assert.equal(fixture.controller.togglePresentationMode(), false);
+  assert.equal(fixture.controller.isPresentationMode(), false);
+  assert.equal(fixture.state.sceneId, 'library');
+});
+
+test('F9 scene switching supersedes the stable presentation location', () => {
+  const fixture = createFixture();
+
+  fixture.controller.togglePresentationMode();
+  assert.equal(fixture.controller.trigger(), true);
+
+  assert.equal(fixture.controller.isPresentationMode(), false);
+  assert.equal(fixture.state.sceneId, 'picnic_lawn');
+  fixture.controller.stop();
+  assert.equal(fixture.state.sceneId, 'library');
+});
+
 test('persists the original location while the in-memory demo override is active', () => {
   const fixture = createFixture();
 
@@ -161,6 +189,11 @@ test('server wires F9, tick locking, persistence protection, and disconnect clea
   const source = fs.readFileSync(path.join(__dirname, 'pet-server.js'), 'utf8');
 
   assert.match(source, /key\.name === 'f9'/);
+  assert.match(source, /key\.name === 'f8'/);
+  assert.match(source, /togglePresentationMode\(\)/);
+  assert.match(source, /presentationEnabled \? '---启动---' : '---关闭---'/);
+  assert.match(source, /const defaultPresentationStarted = startDefaultPresentationMode\(\);/);
+  assert.match(source, /if \(defaultPresentationStarted\) \{\s*console\.log\('---启动---'\);/);
   assert.match(source, /isLocationLocked\(userId\)/);
   assert.match(source, /getPersistableState\(userId, state\)/);
   assert.match(source, /demoSceneController\.stop\('client_disconnected'\)/);
