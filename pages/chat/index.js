@@ -8,7 +8,7 @@ Page({
   data: {
     myAvatar: '/static/chat/avatar.png',
     userId: null,
-    avatar: '/static/agents-icons/Therapist.png',
+    avatar: '/static/头像/dreamina_7637785329587539238_1778311461229.png',
     name: '',
     messages: [],
     input: '',

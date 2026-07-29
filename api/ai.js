@@ -22,7 +22,7 @@ function wrapRequestWithTimeout(promise, timeoutMs = 30000) {
 }
 
 /**
- * 调用自有 LLM（MiniMax Anthropic 兼容格式）
+ * 调用 OpenAI 兼容格式的大模型服务
  * @param {string} message 用户消息
  * @param {object} options 可选参数
  */
@@ -40,25 +40,18 @@ export async function sendToLLM(message, options = {}) {
     return { success: false, error: 'LLM 配置不完整，请检查 baseUrl 和 apiKey' };
   }
 
-  // 调试：打印 Key 前缀/后缀确认格式
-  const keyPreview = apiKey.length > 12
-    ? `${apiKey.slice(0, 6)}...${apiKey.slice(-6)} (${apiKey.length} chars)`
-    : 'Key 过短，请检查';
-  console.log('[LLM] API Key 预览:', keyPreview);
-
   if (!message || !message.trim()) {
     return { success: false, error: '消息内容不能为空' };
   }
 
-  // Anthropic 兼容格式 endpoint
-  const url = `${baseUrl.replace(/\/$/, '')}/anthropic/v1/messages`;
+  const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
   const body = {
     model: llm.model,
-    system: options.systemPrompt || llm.systemPrompt || '',
     messages: [
+      { role: 'system', content: options.systemPrompt || llm.systemPrompt || '' },
       { role: 'user', content: message.trim() },
     ],
-    temperature: options.temperature ?? llm.temperature ?? 1.0,
+    temperature: options.temperature ?? llm.temperature ?? 0.8,
     max_tokens: options.maxTokens ?? llm.maxTokens ?? 1024,
   };
 
@@ -74,10 +67,14 @@ export async function sendToLLM(message, options = {}) {
           dataType: 'json',
           header: {
             'content-type': 'application/json',
-            'X-Api-Key': apiKey,
+            Authorization: `Bearer ${apiKey}`,
           },
           success(res) {
             console.log('[LLM] wx.request success:', res.statusCode);
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+              reject(new Error((res.data && res.data.error && res.data.error.message) || `请求失败 (${res.statusCode})`));
+              return;
+            }
             resolve(res.data);
           },
           fail(err) {
@@ -93,11 +90,6 @@ export async function sendToLLM(message, options = {}) {
 
     if (!response || typeof response !== 'object') {
       return { success: false, error: '响应格式异常' };
-    }
-
-    // MiniMax 业务错误码
-    if (response.base_resp && response.base_resp.status_code !== 0) {
-      return { success: false, error: response.base_resp.status_msg || `错误码 ${response.base_resp.status_code}` };
     }
 
     if (response.error) {
@@ -116,9 +108,9 @@ export async function sendToTherapist(message, token = DEFAULT_TOKEN) {
     return { success: false, error: '消息内容不能为空' };
   }
 
-  // 如果启用了自有 LLM，优先走 LLM 通道
+  // 启用自有 LLM 后不回退到 OpenClaw，避免配置缺失时出现无关的网络错误
   const { llm } = config;
-  if (llm && llm.enabled && llm.baseUrl && llm.apiKey) {
+  if (llm && llm.enabled) {
     return sendToLLM(message, {
       systemPrompt: llm.systemPrompt,
     });

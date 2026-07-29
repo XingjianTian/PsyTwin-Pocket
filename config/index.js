@@ -29,15 +29,15 @@ const config = {
 
   /**
    * 大模型 LLM 配置（OpenAI 兼容格式）
-   * 支持：DeepSeek、通义千问、Kimi、智谱、SiliconFlow 等
+   * 当前使用阿里云百炼 OpenAI 兼容接口
    * 如果配置了此项，日记/AI 对话等功能会优先走 LLM，不再请求 OpenClaw
    */
   llm: {
     /** 是否启用自有 LLM 替代 OpenClaw */
     enabled: true,
 
-    /** API Base URL（必须以 /v1 结尾或包含完整路径）
-     * 当前配置: MiniMax
+    /** API Base URL（必须以 /v1 结尾）
+     * 当前配置：阿里云百炼
      * 其他可选：
      * - DeepSeek:   'https://api.deepseek.com/v1'
      * - 通义千问:   'https://dashscope.aliyuncs.com/compatible-mode/v1'
@@ -45,23 +45,15 @@ const config = {
      * - 智谱:       'https://open.bigmodel.cn/api/paas/v4'
      * - SiliconFlow: 'https://api.siliconflow.cn/v1'
      */
-    baseUrl: 'https://api.minimaxi.com',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
 
-    /** API Key - 请替换为你的 MiniMax Token Plan API Key (前缀 sk-cp-...) */
-    apiKey: 'sk-cp-dPU72No3ZJtfuj-3M1mBlq1AuQU--4T51F3a2Wttss59sGVOGuM7UTW07odTBHkOh2uOsHyZc4uLo7gzekqzCH6MHokSaSk7rxif7xX2YDQpHel3O9DA2iY',
+    /** API Key - 填入阿里云百炼 API Key */
+    apiKey: 'sk-ws-H.RYDPYYE.vLgs.MEMCIBufCVoX7IpJf_Zs42D3YSaNndT4e61MGcXp_bfYyzcMAh9v_ieUeNQaFAZgzB3SJHvtxa9TR0QpWovrzUp8LJHh',
 
-    /** 模型名称 (MiniMax Token Plan 支持的模型)
-     * - 'MiniMax-M2.7'           旗舰模型，递归自改进，约 60 tps
-     * - 'MiniMax-M2.7-highspeed' 同性能，更快，约 100 tps
-     * - 'MiniMax-M2.5'           极致性价比，复杂任务
-     * - 'MiniMax-M2.5-highspeed' 同性能，更快
-     * - 'MiniMax-M2.1'           多语言编程能力强
-     * - 'MiniMax-M2.1-highspeed' 同性能，更快
-     * - 'MiniMax-M2'             Agent 能力、高级推理
-     */
-    model: 'MiniMax-M2.7',
+    /** 百炼模型 Code */
+    model: 'qwen-plus',
 
-    /** 温度参数（MiniMax 推荐范围 (0.0, 1.0]，推荐值 1.0） */
+    /** 温度参数 */
     temperature: 0.8,
 
     /** 最大 Token 数 */
