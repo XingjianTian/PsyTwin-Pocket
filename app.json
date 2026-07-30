@@ -2,10 +2,6 @@
   "pages": [
     "pages/home/index",
     "pages/pet/index",
-    "pages/pet/map/index",
-    "pages/pet/events/index",
-    "pages/pet/bag/index",
-    "pages/pet/diary/index",
     "pages/message/index",
     "pages/my/index",
     "pages/dataCenter/index",
@@ -16,6 +12,16 @@
     "t-toast": "tdesign-miniprogram/toast/toast"
   },
   "subpackages": [
+    {
+      "root": "pages/home/feed",
+      "name": "homeFeed",
+      "pages": ["index"]
+    },
+    {
+      "root": "pages/pet/game",
+      "name": "petGame",
+      "pages": ["index", "map/index", "events/index", "bag/index", "diary/index"]
+    },
     {
       "root": "pages/search",
       "name": "search",

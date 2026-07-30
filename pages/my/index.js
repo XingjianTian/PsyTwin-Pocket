@@ -99,7 +99,7 @@ Page({
     if (role === 'teacher') {
       return {
         nickname: '王老师',
-        avatar: 'https://picsum.photos/80/80?random=99',
+        avatar: '/static/avatar1.png',
         role: 'teacher',
         teacherId: 'T2021001',
         department: '心理健康中心',

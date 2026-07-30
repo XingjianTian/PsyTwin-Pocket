@@ -1,6 +1,36 @@
 /* eslint-disable */
 var __request = wx.request;
-var Mock = require('./mock.js');
+
+function createGuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function replaceGuidChar(char) {
+    var random = Math.floor(Math.random() * 16);
+    var value = char === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function materializeTemplate(value) {
+  if (value === '@guid()') return createGuid();
+  if (Array.isArray(value)) return value.map(materializeTemplate);
+  if (value && typeof value === 'object') {
+    return Object.keys(value).reduce(function buildObject(result, key) {
+      result[key] = materializeTemplate(value[key]);
+      return result;
+    }, {});
+  }
+  return value;
+}
+
+var Mock = {
+  _mocked: {},
+  mock: function mock(pathOrTemplate, template) {
+    if (arguments.length > 1) {
+      this._mocked[pathOrTemplate] = { template: template };
+      return template;
+    }
+    return materializeTemplate(pathOrTemplate);
+  },
+};
 
 console.log('[WxMock] wx.request override installed');
 

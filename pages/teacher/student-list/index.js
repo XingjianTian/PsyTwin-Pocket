@@ -56,7 +56,7 @@ Page({
       {
         id: 's2021001',
         name: '张三',
-        avatar: 'https://picsum.photos/80/80?random=31',
+        avatar: '/static/avatar1.png',
         studentId: '2021001001',
         department: '计算机学院',
         className: '软件2101',
@@ -68,7 +68,7 @@ Page({
       {
         id: 's2021002',
         name: '李四',
-        avatar: 'https://picsum.photos/80/80?random=32',
+        avatar: '/static/avatar1.png',
         studentId: '2021001002',
         department: '电子工程学院',
         className: '通信2102',
@@ -80,7 +80,7 @@ Page({
       {
         id: 's2021003',
         name: '王五',
-        avatar: 'https://picsum.photos/80/80?random=33',
+        avatar: '/static/avatar1.png',
         studentId: '2021001003',
         department: '经济管理学院',
         className: '工商2101',
@@ -92,7 +92,7 @@ Page({
       {
         id: 's2021004',
         name: '赵六',
-        avatar: 'https://picsum.photos/80/80?random=34',
+        avatar: '/static/avatar1.png',
         studentId: '2021001004',
         department: '外国语学院',
         className: '英语2101',
@@ -104,7 +104,7 @@ Page({
       {
         id: 's2021005',
         name: '钱七',
-        avatar: 'https://picsum.photos/80/80?random=35',
+        avatar: '/static/avatar1.png',
         studentId: '2021001005',
         department: '机械工程学院',
         className: '机械2103',

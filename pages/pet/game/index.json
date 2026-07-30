@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "心宠",
+  "usingComponents": {
+    "app-tab-bar": "/custom-tab-bar/index"
+  }
+}

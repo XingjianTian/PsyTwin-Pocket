@@ -7,12 +7,12 @@ Page({
   data: {
     originFiles: [
       {
-        url: '/static/image1.png',
+        url: '/pages/release/assets/image1.png',
         name: 'uploaded1.png',
         type: 'image',
       },
       {
-        url: '/static/image2.png',
+        url: '/pages/release/assets/image2.png',
         name: 'uploaded2.png',
         type: 'image',
       },

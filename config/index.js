@@ -1,7 +1,9 @@
 /** 配置文件 */
 const config = {
+  /** Demo recording mode: keep all core data local and deterministic. */
+  demoMode: true,
   /** 是否使用 mock 数据代替真实 API */
-  isMock: false,
+  isMock: true,
 
   /** API 基础地址 (Sentinel - 登录/通用接口)
    * - Sentinel 本地: 'http://localhost:3000/api/pocket'
@@ -34,7 +36,7 @@ const config = {
    */
   llm: {
     /** 是否启用自有 LLM 替代 OpenClaw */
-    enabled: true,
+    enabled: false,
 
     /** API Base URL（必须以 /v1 结尾）
      * 当前配置：阿里云百炼
@@ -48,7 +50,7 @@ const config = {
     baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
 
     /** API Key - 填入阿里云百炼 API Key */
-    apiKey: 'sk-ws-H.RYDPYYE.vLgs.MEMCIBufCVoX7IpJf_Zs42D3YSaNndT4e61MGcXp_bfYyzcMAh9v_ieUeNQaFAZgzB3SJHvtxa9TR0QpWovrzUp8LJHh',
+    apiKey: '',
 
     /** 百炼模型 Code */
     model: 'qwen-plus',

@@ -1,14 +1,14 @@
 // pages/chat/index.js
-import { sendToTherapist, extractResponseText } from '../../api/ai';
+import { sendToTherapist, extractResponseText } from './ai';
 
 const app = getApp();
 const { socket } = app.globalData;
 
 Page({
   data: {
-    myAvatar: '/static/chat/avatar.png',
+    myAvatar: '/pages/chat/assets/avatar.png',
     userId: null,
-    avatar: '/static/头像/dreamina_7637785329587539238_1778311461229.png',
+    avatar: '/pages/chat/assets/pet-avatar.jpg',
     name: '',
     messages: [],
     input: '',

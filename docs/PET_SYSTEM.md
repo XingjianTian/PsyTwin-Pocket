@@ -72,7 +72,7 @@ Page({
 
 | 视图 | 功能 | 核心文件 |
 |------|------|----------|
-| **game** | 主游戏视图，展示心宠、场景、状态 | `pages/pet/index.js` |
+| **game** | 主游戏视图，展示心宠、场景、状态 | `pages/pet/game/index.js`（`petGame` 分包） |
 | **map** | 世界地图，场景切换和位置标记 | `pages/pet/index.js` |
 | **bag** | 背包系统，物品管理 | `pages/pet/index.js` + `pages/pet/bag/index` |
 | **diary** | 日记系统，活动记录 | `pages/pet/index.js` + `pages/pet/diary/index` |
@@ -220,9 +220,9 @@ Page({
 
 | 目录 | 内容 |
 |------|------|
-| `static/scenes/` | 25 个 JPEG 场景背景图（质量 85，保留原始分辨率） |
-| `static/世界地图/` | JPEG 世界地图背景 |
-| `static/二级地图/` | 5 个 JPEG 一级场景的二级地图 |
+| `pages/pet/game/assets/scenes/` | `petGame` 分包内的 25 个 JPEG 场景背景图（质量 85） |
+| `pages/pet/game/assets/世界地图/` | `petGame` 分包内的 JPEG 世界地图背景 |
+| `pages/pet/game/assets/二级地图/` | `petGame` 分包内的 5 个 JPEG 二级地图 |
 | `static/二级场景背景图/` | 按一级场景分类的 AI 生成背景 |
 
 ### 5.3 场景切换

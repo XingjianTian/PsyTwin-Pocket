@@ -9,7 +9,7 @@ const {
   createPetLocationPatch,
   normalizePetStatus,
   shouldApplyPetStatus,
-} = require('./pet-sync');
+} = require('../pages/pet/game/lib/pet-sync');
 
 test('uses the same four-second polling interval as the server tick', () => {
   assert.equal(PET_SYNC_INTERVAL, 4000);
@@ -91,7 +91,7 @@ test('normalizes a websocket status payload for the shared apply path', () => {
 
 test('routes server status through the authoritative apply method without changing observer scene', () => {
   const pageSource = fs.readFileSync(
-    path.join(__dirname, '..', 'pages', 'pet', 'index.js'),
+    path.join(__dirname, '..', 'pages', 'pet', 'game', 'index.js'),
     'utf8',
   );
 
@@ -135,8 +135,8 @@ test('does not force the observer for normal users or normal scenes', () => {
 });
 
 test('uses the dedicated large-pet F9 stage and hides ambient pets during the conversation', () => {
-  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/index.wxml'), 'utf8');
-  const less = fs.readFileSync(path.join(__dirname, '../pages/pet/index.less'), 'utf8');
+  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/game/index.wxml'), 'utf8');
+  const less = fs.readFileSync(path.join(__dirname, '../pages/pet/game/index.less'), 'utf8');
 
   assert.match(wxml, /class="demo-dialogue-stage"/);
   assert.match(wxml, /currentView === 'game' && !demoConversationActive/);
@@ -151,8 +151,8 @@ test('uses the dedicated large-pet F9 stage and hides ambient pets during the co
 });
 
 test('does not render the legacy CSS pet and swaps animation frames only after image load', () => {
-  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/index.js'), 'utf8');
-  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/index.wxml'), 'utf8');
+  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/game/index.js'), 'utf8');
+  const wxml = fs.readFileSync(path.join(__dirname, '../pages/pet/game/index.wxml'), 'utf8');
 
   assert.doesNotMatch(wxml, /<view class="pet-body" wx:else>/);
   assert.match(wxml, /bindload="onPetFrameALoad"/);
@@ -162,7 +162,7 @@ test('does not render the legacy CSS pet and swaps animation frames only after i
 });
 
 test('keeps the F9 conversation exclusive from ambient random dialogue', () => {
-  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/index.js'), 'utf8');
+  const pageSource = fs.readFileSync(path.join(__dirname, '../pages/pet/game/index.js'), 'utf8');
 
   assert.match(pageSource, /updateOtherPets\(\) \{\s*if \(this\.data\.demoConversationActive\) return;/);
   assert.match(pageSource, /const ambientPets = isDemoConversationActive/);
@@ -171,7 +171,7 @@ test('keeps the F9 conversation exclusive from ambient random dialogue', () => {
 });
 
 test('registers websocket listeners immediately so the first realtime status is not missed', () => {
-  const socketSource = fs.readFileSync(path.join(__dirname, '../utils/petWebSocket.js'), 'utf8');
+  const socketSource = fs.readFileSync(path.join(__dirname, '../pages/pet/game/lib/petWebSocket.js'), 'utf8');
   const socketAssignmentIndex = socketSource.indexOf('this.socket = socketTask;');
   const listenerSetupIndex = socketSource.indexOf('this._setupSocketListeners(socketTask);');
 

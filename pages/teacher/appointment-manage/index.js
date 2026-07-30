@@ -46,7 +46,7 @@ Page({
       {
         id: 'a1',
         studentName: '张三',
-        avatar: 'https://picsum.photos/80/80?random=41',
+        avatar: '/static/avatar1.png',
         studentId: '2021001001',
         type: 'counseling',
         date: '2026-03-07',
@@ -60,7 +60,7 @@ Page({
       {
         id: 'a2',
         studentName: '李四',
-        avatar: 'https://picsum.photos/80/80?random=42',
+        avatar: '/static/avatar1.png',
         studentId: '2021001002',
         type: 'counseling',
         date: '2026-03-07',
@@ -74,7 +74,7 @@ Page({
       {
         id: 'a3',
         studentName: '王五',
-        avatar: 'https://picsum.photos/80/80?random=43',
+        avatar: '/static/avatar1.png',
         studentId: '2021001003',
         type: 'vr',
         date: '2026-03-06',
@@ -88,7 +88,7 @@ Page({
       {
         id: 'a4',
         studentName: '赵六',
-        avatar: 'https://picsum.photos/80/80?random=44',
+        avatar: '/static/avatar1.png',
         studentId: '2021001004',
         type: 'counseling',
         date: '2026-03-08',

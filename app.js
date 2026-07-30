@@ -29,6 +29,11 @@ if (config.isMock) {
 
 App({
   onLaunch() {
+    if (config.demoMode) {
+      wx.setStorageSync('access_token', wx.getStorageSync('access_token') || 'demo-video-token');
+      wx.setStorageSync('user_role', wx.getStorageSync('user_role') || 'student');
+    }
+
     // 检查登录状态，未登录则跳转登录页
     const token = wx.getStorageSync('access_token');
     if (!token) {

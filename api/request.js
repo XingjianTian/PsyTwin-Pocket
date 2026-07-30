@@ -364,10 +364,10 @@ const studentInfo = {
 };
 
 // ========== 首页数据 ==========
-const homeSwipers = ['/static/home/swiper0.png'];
+const homeSwipers = ['/pages/home/feed/assets/swiper0.png'];
 const homeCards = [
   {
-    url: '/static/home/card0.png',
+    url: '/pages/home/feed/assets/card0.png',
     desc: '少年,星空与梦想',
     tags: [
       { text: 'AI绘画', theme: 'primary' },
@@ -375,7 +375,7 @@ const homeCards = [
     ],
   },
   {
-    url: '/static/home/card1.png',
+    url: '/pages/home/feed/assets/card1.png',
     desc: '仰望星空的少女',
     tags: [
       { text: 'AI绘画', theme: 'primary' },
@@ -424,14 +424,23 @@ const mockResponses = {
 
   // 预约相关
   '/student/appointment/services': {
+    code: 0,
     success: true,
     message: '获取成功',
-    data: services,
+    data: {
+      teachers: [],
+      rooms: services.map((service) => ({
+        ...service,
+        status: service.status === 'busy' ? 'IN_USE' : service.status.toUpperCase(),
+        currentStudentId: service.currentUser ? service.currentUser.studentId : null,
+      })),
+    },
   },
   '/student/appointment/records': {
+    code: 0,
     success: true,
     message: '获取成功',
-    data: records,
+    data: { records },
   },
 
   // 消息会话
@@ -527,11 +536,153 @@ const mockResponses = {
     code: 0,
     message: '获取成功',
     data: {
-      list: [],
-      unreadCount: 0,
+      list: [
+        {
+          id: 'notice-demo-1',
+          type: 'APPOINTMENT',
+          title: '预约提醒',
+          content: '你预约的心理咨询将在明天下午 14:00 开始，请提前十分钟到达。',
+          isRead: false,
+          createdAt: '2026-07-30T09:30:00.000Z',
+          url: '/pages/appointment/index',
+        },
+        {
+          id: 'notice-demo-2',
+          type: 'SYSTEM',
+          title: '本周心理小贴士',
+          content: '给自己留十分钟安静呼吸，也是一种很有效的情绪照顾。',
+          isRead: false,
+          createdAt: '2026-07-29T11:00:00.000Z',
+          url: '',
+        },
+        {
+          id: 'notice-demo-3',
+          type: 'CHAT',
+          title: '咨询师回复',
+          content: '你的留言已经收到，我们可以在下一次咨询中继续聊聊。',
+          isRead: true,
+          createdAt: '2026-07-28T16:20:00.000Z',
+          url: '/pages/message/index',
+        },
+      ],
+      unreadCount: 2,
     },
   },
 };
+
+const DEMO_AVATAR = '/static/avatar1.png';
+const DEMO_CARD_IMAGES = [
+  '/pages/home/feed/assets/card0.png',
+  '/pages/home/feed/assets/card1.png',
+  '/pages/home/feed/assets/card2.png',
+  '/pages/home/feed/assets/card3.png',
+  '/pages/home/feed/assets/card4.png',
+];
+
+function localizeDemoAssets(value) {
+  if (Array.isArray(value)) return value.map(localizeDemoAssets);
+  if (value && typeof value === 'object') {
+    return Object.keys(value).reduce((result, key) => {
+      result[key] = localizeDemoAssets(value[key]);
+      return result;
+    }, {});
+  }
+  if (typeof value !== 'string' || !/^https?:\/\/picsum\.photos\//.test(value)) return value;
+  if (/\/400\//.test(value)) {
+    const random = Number((value.match(/random=(\d+)/) || [])[1]) || 0;
+    return DEMO_CARD_IMAGES[random % DEMO_CARD_IMAGES.length];
+  }
+  return DEMO_AVATAR;
+}
+
+function createDemoDiaryMap() {
+  const map = {};
+  const templates = [
+    ['08:20', 'ACTIVITY', '清晨散步', '今天在校园里慢慢走了一圈，空气很舒服。'],
+    ['12:40', 'ITEM_FOUND', '发现一片叶子', '捡到了一片形状很特别的叶子，想把它收藏起来。'],
+    ['18:30', 'SOCIAL', '遇见新朋友', '在草坪上认识了新的小伙伴，一起聊了很久。'],
+    ['21:10', 'AI_DIARY', '今天的小结', '今天有认真生活，也有好好休息，明天继续加油。'],
+  ];
+  for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+    const date = new Date();
+    date.setDate(date.getDate() - dayOffset);
+    const dateKey = date.toISOString().split('T')[0];
+    map[dateKey] = templates.slice(0, dayOffset % 2 === 0 ? 4 : 3).map((item, index) => ({
+      id: `demo-diary-${dayOffset}-${index}`,
+      time: item[0],
+      type: item[1],
+      title: item[2],
+      content: item[3],
+      sceneId: index % 2 === 0 ? 'bedroom' : 'picnic_lawn',
+      dateKey,
+      mood: 78,
+      energy: 72,
+      source: 'demo',
+    }));
+  }
+  return map;
+}
+
+function resolveDemoResponse(url, method, data) {
+  const path = url.split('?')[0];
+  if (mockResponses[url]) return mockResponses[url];
+  if (mockResponses[path]) return mockResponses[path];
+
+  if (path === '/auth/login/password' || path === '/auth/login/code') {
+    return { code: 0, success: true, message: '登录成功', data: { token: 'demo-video-token', role: 'student' } };
+  }
+  if (path === '/auth/sms/send') return { code: 0, success: true, message: '验证码已发送', data: null };
+  if (path === '/api/searchHistory') {
+    return { code: 200, data: { historyWords: ['睡眠改善', '考试压力', '情绪记录', '心理咨询'] } };
+  }
+  if (path === '/api/searchPopular') {
+    return { code: 200, data: { popularWords: ['如何缓解焦虑', '改善睡眠的方法', '考前压力管理', '人际关系困扰'] } };
+  }
+  if (/^\/student\/home\/posts\/[^/]+$/.test(path)) {
+    const postId = path.split('/').pop();
+    const post = followList.find((item) => String(item.id) === String(postId)) || followList[0];
+    return { code: 0, message: '获取成功', data: { ...post, isLiked: false, isCollected: true } };
+  }
+  if (/^\/student\/home\/posts\/[^/]+\/like$/.test(path)) {
+    return { code: 0, message: '点赞成功', data: { liked: true } };
+  }
+  if (/^\/student\/home\/posts\/[^/]+\/comments$/.test(path)) {
+    if (String(method).toUpperCase() === 'POST') {
+      return { code: 0, message: '评论成功', data: { id: `demo-comment-${Date.now()}`, content: data.content } };
+    }
+    return { code: 0, data: { comments: [] } };
+  }
+  if (/^\/student\/my\/notifications\/[^/]+\/read$/.test(path)) {
+    return { code: 0, message: '已标记为已读', data: { isRead: true } };
+  }
+  if (/^\/student\/chat\/[^/]+\/messages$/.test(path)) {
+    return { code: 0, data: { messages: [] } };
+  }
+  if (path === '/student/chat/emotion-tags') {
+    return { code: 0, data: ['平静', '焦虑', '疲惫', '开心'] };
+  }
+  if (path === '/pet/expression') {
+    return { code: 0, message: '演示表情已触发', data: { expression: data.expression || 'sad' } };
+  }
+  if (path === '/pet/diary' || path.startsWith('/pet/diary/')) {
+    const diaryDataMap = createDemoDiaryMap();
+    const dateMatch = url.match(/[?&]date=([^&]+)/);
+    const dateKey = dateMatch ? decodeURIComponent(dateMatch[1]) : new Date().toISOString().split('T')[0];
+    return {
+      code: 0,
+      message: '获取成功',
+      data: {
+        dateKey,
+        entries: diaryDataMap[dateKey] || [],
+        diaryDataMap,
+        generatedDates: Object.keys(diaryDataMap),
+        triggered: true,
+      },
+    };
+  }
+
+  return { code: 0, success: true, message: '演示数据已就绪', data: {} };
+}
 
 function request(url, method = 'GET', data = {}) {
   console.log('[Request] URL:', url);
@@ -541,14 +692,9 @@ function request(url, method = 'GET', data = {}) {
   if (isMock) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const mockData = mockResponses[url];
-        if (mockData) {
-          console.log('[Request] Mock response for:', url);
-          resolve(mockData);
-        } else {
-          console.log('[Request] No mock for:', url, '- returning default success');
-          resolve({ success: true, message: '操作成功', data: null });
-        }
+        const mockData = resolveDemoResponse(url, method, data);
+        console.log('[Request] Demo response for:', url);
+        resolve(localizeDemoAssets(mockData));
       }, delay);
     });
   }

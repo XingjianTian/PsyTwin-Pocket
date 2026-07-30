@@ -146,8 +146,8 @@ PsyTwin-Pocket/
 
 | 页面 | 入口 | 当前职责 |
 | --- | --- | --- |
-| 心墙 | `pages/home/index` | 拉取 `/student/home/feed`，格式化帖子数据，做双列瀑布流展示，进入帖子详情和发布页。 |
-| 心宠 | `pages/pet/index` | 当前最大模块。包含单行玻璃 HUD、心宠动画、地图、场景切换、状态模拟、其他心宠、对话、背包、金币、日记、帮助事件和测评。 |
+| 心墙 | `pages/home/index` → `pages/home/feed/index` | Tab 入口按需打开 `homeFeed` 分包；分包继续显示共享底部导航，并拉取 `/student/home/feed` 做双列瀑布流展示。 |
+| 心宠 | `pages/pet/index` → `pages/pet/game/index` | Tab 入口会按需打开 `petGame` 分包；分包继续显示共享底部导航，包含 HUD、动画、地图、场景切换、背包、日记与帮助事件。 |
 | 心宠地图 | `pages/pet/map/index` | 旧版/独立地图页，保留地块选择与进入逻辑。 |
 | 心宠事件 | `pages/pet/events/index` | 从心宠服务拉取帮助事件，失败时读本地缓存；用户选择方案后会把事件标记为已解决并写回 `petHelpEvents`。 |
 | 心宠背包 | `pages/pet/bag/index` | 从服务端状态或本地缓存读取物品，使用 `utils/itemDatabase.js` 的 104 个物品模板补齐名称、图标、稀有度、效果等属性。 |
@@ -163,7 +163,8 @@ PsyTwin-Pocket/
 | --- | --- | --- |
 | `pages/login` | `login` | 密码登录，选择学生/教师角色，保存 `access_token` 和 `user_role`。 |
 | `pages/loginCode` | `loginCode` | 短信验证码登录。 |
-| `pages/chat` | `index` | AI 或咨询师聊天页。AI 模式调用 `api/ai.js`。 |
+| `pages/home/feed` | `index` | 心墙真实页面及其专属组件、图片资源。 |
+| `pages/chat` | `index` | AI 或咨询师聊天页。AI 模式调用同分包的 `ai.js`。 |
 | `pages/search` | `index` | 搜索历史和热门词，当前仍使用旧 mock 路径。 |
 | `pages/release` | `index` | 发布动态 UI 原型，当前保存/发布后回首页提示。 |
 | `pages/post-detail` | `index` | 动态详情，读取帖子详情；点赞、评论发送仍是占位。 |
@@ -217,9 +218,15 @@ TabBar 还监听全局事件：
 
 | 文件 | 职责 |
 | --- | --- |
-| `api/ai.js` | AI 对话。优先走 `config.llm` 的 Anthropic 兼容接口；未启用时走 OpenClaw/Sentinel 代理。也包含聊天历史和情绪标签请求。 |
-| `api/post.js` | 动态详情、点赞、评论、评论列表。 |
-| `api/notification.js` | 通知列表、标记已读、未读数。 |
+| `pages/chat/ai.js` | AI 对话。随聊天分包加载，也包含聊天历史和情绪标签请求。 |
+| `pages/post-detail/post-api.js` | 动态详情、点赞、评论、评论列表，随帖子详情分包加载。 |
+| `pages/notification/notification-api.js` | 通知列表、标记已读、未读数，随通知分包加载。 |
+
+手机离线预览使用 `mock/WxMock.js` 的轻量拦截器；旧版完整 Mock.js 仅保留为开发参考，不参与小程序打包。
+
+录制演示使用 `codex/demo-video-offline` 分支。该分支在 `config/index.js` 中启用 `demoMode: true` 与 `isMock: true`，自动写入本地演示登录态；首页、心宠、AI、预约、通知和个人中心均使用固定本地数据与本地图片，不需要启动 Sentinel、心宠同步服务或公网接口。
+
+心宠手机包使用 `pages/pet/game/assets/mobile-*` 下的屏幕适配资源；原始高清资源保留在原目录，但不参与预览包上传。
 | `api/pet-server.js` | 心宠服务的 pull/push/events/quiz。 |
 | `api/pet-diary.js` | Sentinel 侧心宠日记触发、测试、回补接口。 |
 

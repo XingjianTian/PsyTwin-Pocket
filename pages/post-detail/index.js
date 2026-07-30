@@ -1,4 +1,4 @@
-import { getPostDetail } from '../../api/post';
+import { getPostDetail } from './post-api';
 
 Page({
   data: {

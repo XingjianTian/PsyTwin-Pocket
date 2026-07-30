@@ -23,7 +23,59 @@
         "type": "folder"
       },
       {
-        "value": "static/scenes/bedroom-compressed-preview.jpg",
+        "value": "pages/pet/game/assets/scenes/bedroom-compressed-preview.jpg",
+        "type": "file"
+      },
+      {
+        "value": "pages/pet/game/assets/pet/ExportedSprites",
+        "type": "folder"
+      },
+      {
+        "value": "pages/pet/game/assets/scenes",
+        "type": "folder"
+      },
+      {
+        "value": "pages/pet/game/assets/头像",
+        "type": "folder"
+      },
+      {
+        "value": "pages/pet/game/assets/二级地图",
+        "type": "folder"
+      },
+      {
+        "value": "pages/pet/game/assets/世界地图",
+        "type": "folder"
+      },
+      {
+        "value": "pages/pet/game/assets/b1.png",
+        "type": "file"
+      },
+      {
+        "value": "static/agents-icons",
+        "type": "folder"
+      },
+      {
+        "value": "static/Thumbs.db",
+        "type": "file"
+      },
+      {
+        "value": "static/.DS_Store",
+        "type": "file"
+      },
+      {
+        "value": "pages/home/feed/assets/Thumbs.db",
+        "type": "file"
+      },
+      {
+        "value": "static/chat/Thumbs.db",
+        "type": "file"
+      },
+      {
+        "value": "mock/mock.js",
+        "type": "file"
+      },
+      {
+        "value": "package-lock.json",
         "type": "file"
       },
       {

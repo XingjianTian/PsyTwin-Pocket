@@ -1,4 +1,4 @@
-import { getNotifications, markAsRead } from '../../api/notification';
+import { getNotifications, markAsRead } from './notification-api';
 import { formatNotificationTime } from '../../utils/util';
 
 Page({

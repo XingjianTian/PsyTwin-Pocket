@@ -99,11 +99,18 @@ Component({
       const pages = getCurrentPages();
       const curPage = pages[pages.length - 1];
       if (curPage) {
-        const nameRe = /pages\/(\w+)\/index/.exec(curPage.route);
-        if (nameRe === null) return;
-        if (nameRe[1] && nameRe) {
+        const routeToTab = [
+          { prefix: 'pages/home/', value: 'home' },
+          { prefix: 'pages/pet/', value: 'pet' },
+          { prefix: 'pages/message/', value: 'message' },
+          { prefix: 'pages/dataCenter/', value: 'dataCenter' },
+          { prefix: 'pages/appointment/', value: 'appointment' },
+          { prefix: 'pages/my/', value: 'my' },
+        ];
+        const currentTab = routeToTab.find((item) => curPage.route.startsWith(item.prefix));
+        if (currentTab) {
           this.setData({
-            value: nameRe[1],
+            value: currentTab.value,
           });
         }
       }
