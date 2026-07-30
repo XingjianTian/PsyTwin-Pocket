@@ -78,7 +78,7 @@
     <!-- 游戏背景层 - 始终显示 -->
     <view class="game-background">
       <!-- 场景背景图 -->
-      <image class="game-bg-image" src="/static/scenes/{{currentSceneId}}.png" mode="aspectFill" wx:if="{{currentView === 'game'}}"></image>
+      <image class="game-bg-image" src="/static/scenes/{{currentSceneId}}.jpg" mode="aspectFill" wx:if="{{currentView === 'game'}}"></image>
       
       <view class="scene-info-card" wx:if="{{currentView === 'game'}}">
         <text class="scene-location-text">{{currentScene}}</text>
@@ -182,7 +182,7 @@
     <block wx:if="{{currentView === 'map'}}">
       <view class="view-content map-view {{isEditMode ? 'edit-mode' : ''}}">
         <!-- 世界地图背景 -->
-        <image class="world-map-bg" src="/static/世界地图/worldmap.png" mode="aspectFill"></image>
+        <image class="world-map-bg" src="/static/世界地图/worldmap.jpg" mode="aspectFill"></image>
         
         <view class="map-scroll-content">
           <!-- 二级地图返回按钮 -->
@@ -244,7 +244,7 @@
             <!-- 二级场景背景图 -->
             <image
               class="secondary-map-bg"
-              src="/static/二级地图/{{activePrimarySceneId}}.png"
+              src="/static/二级地图/{{activePrimarySceneId}}.jpg"
 mode="aspectFill"
               wx:if="{{activePrimarySceneId}}"
             ></image>

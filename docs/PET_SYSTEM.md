@@ -220,9 +220,9 @@ Page({
 
 | 目录 | 内容 |
 |------|------|
-| `static/scenes/` | 24 个场景背景图 |
-| `static/世界地图/` | 世界地图背景 |
-| `static/二级地图/` | 5 个一级场景的二级地图 |
+| `static/scenes/` | 25 个 JPEG 场景背景图（质量 85，保留原始分辨率） |
+| `static/世界地图/` | JPEG 世界地图背景 |
+| `static/二级地图/` | 5 个 JPEG 一级场景的二级地图 |
 | `static/二级场景背景图/` | 按一级场景分类的 AI 生成背景 |
 
 ### 5.3 场景切换
@@ -232,7 +232,7 @@ Page({
 switchScene(sceneId) {
   this.setData({
     currentSceneId: sceneId,
-    sceneBackground: `/static/scenes/${sceneId}.png`,
+    sceneBackground: `/static/scenes/${sceneId}.jpg`,
   });
   
   // 同步到服务端

@@ -1,7 +1,44 @@
 {
   "description": "项目配置文件，详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "value": "server",
+        "type": "folder"
+      },
+      {
+        "value": "desktop",
+        "type": "folder"
+      },
+      {
+        "value": "docs",
+        "type": "folder"
+      },
+      {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
+        "value": "static/二级场景背景图",
+        "type": "folder"
+      },
+      {
+        "value": "static/scenes/bedroom-compressed-preview.jpg",
+        "type": "file"
+      },
+      {
+        "value": "test_openclaw.js",
+        "type": "file"
+      },
+      {
+        "value": "_fix2.py",
+        "type": "file"
+      },
+      {
+        "value": "_fix_all.py",
+        "type": "file"
+      }
+    ],
     "include": []
   },
   "setting": {
@@ -19,7 +56,7 @@
     "autoAudits": false,
     "newFeature": false,
     "uglifyFileName": false,
-    "uploadWithSourceMap": true,
+    "uploadWithSourceMap": false,
     "useIsolateContext": true,
     "nodeModules": false,
     "enhance": true,
@@ -53,7 +90,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.7.8",
-  "appid": "wx1ff989a54438596f",
+  "appid": "wx3fdc9581cf936b94",
   "projectname": "miniprogram-starter",
   "condition": {
     "miniprogram": {

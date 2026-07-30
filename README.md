@@ -273,10 +273,10 @@ TabBar 还监听全局事件：
 
 | 资源 | 位置 |
 | --- | --- |
-| 一级世界地图 | `static/世界地图/worldmap.png` |
-| 二级地图 | `static/二级地图/*.png` |
+| 一级世界地图 | `static/世界地图/worldmap.jpg` |
+| 二级地图 | `static/二级地图/*.jpg` |
 | 二级场景背景 | `static/二级场景背景图/` |
-| 规范化场景图 | `static/scenes/*.png` |
+| 规范化场景图 | `static/scenes/*.jpg` |
 | 心宠头像 | `static/头像/*.png` |
 | 心宠帧动画 | `static/pet/ExportedSprites/*.png` |
 
