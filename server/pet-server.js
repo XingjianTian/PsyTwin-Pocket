@@ -30,6 +30,7 @@ const {
   removeClient,
   startHeartbeat,
 } = require('./pet-connections');
+const { addHelpEvent, getVisibleHelpEvents } = require('./help-event-notifications');
 
 const app = express();
 const PORT = process.env.PORT || 13002;
@@ -778,7 +779,8 @@ app.post('/api/pet/events', (req, res) => {
     return res.status(404).json({ code: 404, message: '用户未找到' });
   }
 
-  const events = generateHelpEvents(state);
+  generateHelpEvents(state);
+  const events = getVisibleHelpEvents(state);
 
   // 生成事件后立即持久化到 JSON
   saveData(petData);
@@ -788,6 +790,41 @@ app.post('/api/pet/events', (req, res) => {
     message: 'success',
     data: { events },
   });
+});
+
+/**
+ * 接收 Sentinel 发来的学生关怀事件，并同步给所有观察共享心宠的客户端。
+ */
+app.post('/api/pet/events/notify', (req, res) => {
+  const expectedKey = process.env.PET_SYNC_INTERNAL_KEY || 'psytwin-pet-sync-local';
+  if (req.get('x-pet-sync-key') !== expectedKey) {
+    return res.status(401).json({ code: 401, message: '无权写入心宠事件' });
+  }
+
+  const { userId, event } = req.body || {};
+  if (!userId) {
+    return res.status(400).json({ code: 400, message: '缺少 userId' });
+  }
+
+  try {
+    let state = petData.get(userId);
+    if (!state) {
+      state = getDefaultState(userId);
+      petData.set(userId, state);
+    }
+
+    const result = addHelpEvent(state, event);
+    saveData(petData);
+    if (result.created) broadcastPetStatus(userId, state);
+
+    return res.json({
+      code: 0,
+      message: result.created ? '求助事件已创建' : '求助事件已存在',
+      data: result,
+    });
+  } catch (error) {
+    return res.status(400).json({ code: 400, message: error.message });
+  }
 });
 
 
@@ -1220,6 +1257,7 @@ const server = app.listen(PORT, () => {
   console.log(`  POST http://localhost:${PORT}/api/pet/pull           - 拉取实时状态（直接读取内存）`);
   console.log(`  POST http://localhost:${PORT}/api/pet/push           - 推送状态`);
   console.log(`  POST http://localhost:${PORT}/api/pet/events         - 获取帮助事件列表（预警模拟）`);
+  console.log(`  POST http://localhost:${PORT}/api/pet/events/notify  - 接收 Sentinel 求助事件`);
   console.log(`  POST http://localhost:${PORT}/api/pet/quiz           - 获取随机测评题目`);
   console.log(`  GET  http://localhost:${PORT}/api/pet/status?userId=xxx  - 查看状态`);
   console.log(`  GET  http://localhost:${PORT}/health                 - 健康检查`);
