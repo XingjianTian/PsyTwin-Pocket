@@ -50,14 +50,17 @@ Page({
   },
 
   onLoad() {
+    this._initialized = false;
     this.init();
   },
 
   onShow() {
-    this.init();
+    if (!this._initialized) this.init();
   },
 
   init() {
+    if (this._initialized) return;
+    this._initialized = true;
     // 检查角色
     const role = wx.getStorageSync('user_role') || 'student';
     this.setData({ role });

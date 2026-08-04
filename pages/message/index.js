@@ -58,9 +58,11 @@ Page({
   },
 
   onLoad() {
+    this._sessionPromise = null;
+    this._lastSessionLoadAt = 0;
     this.initGreeting();
     this.loadUserInfo();
-    this.loadLastSession();
+    this.loadLastSession({ force: true });
   },
 
   onShow() {
@@ -85,20 +87,30 @@ Page({
   },
 
   // 加载最近一条 AI 会话记录
-  async loadLastSession() {
-    try {
-      const res = await request('/student/message/sessions');
-      const sessions = res.data || [];
-      const aiSession = sessions.find((s) => s.type === 'ai');
-      if (aiSession && aiSession.lastMessage) {
-        this.setData({
-          hasHistory: true,
-          lastMessage: aiSession.lastMessage,
-        });
+  async loadLastSession({ force = false } = {}) {
+    const now = Date.now();
+    if (!force && now - this._lastSessionLoadAt < 15000) return;
+    if (this._sessionPromise) return this._sessionPromise;
+
+    this._lastSessionLoadAt = now;
+    this._sessionPromise = (async () => {
+      try {
+        const res = await request('/student/message/sessions');
+        const sessions = res.data || [];
+        const aiSession = sessions.find((s) => s.type === 'ai');
+        if (aiSession && aiSession.lastMessage) {
+          this.setData({
+            hasHistory: true,
+            lastMessage: aiSession.lastMessage,
+          });
+        }
+      } catch (err) {
+        // 无历史记录则不显示
+      } finally {
+        this._sessionPromise = null;
       }
-    } catch (err) {
-      // 无历史记录则不显示
-    }
+    })();
+    return this._sessionPromise;
   },
 
   // 点击 Chip 带预设 prompt 进入聊天

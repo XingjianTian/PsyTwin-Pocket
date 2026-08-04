@@ -35,7 +35,9 @@ Page({
   },
 
   onLoad() {
-    this.initData();
+    this._initPromise = null;
+    this._lastInitAt = 0;
+    this.initData({ force: true });
   },
 
   onShow() {
@@ -44,7 +46,19 @@ Page({
 
   // ===== 初始化 =====
 
-  async initData() {
+  async initData({ force = false } = {}) {
+    const now = Date.now();
+    if (!force && now - this._lastInitAt < 15000) return;
+    if (this._initPromise) return this._initPromise;
+
+    this._lastInitAt = now;
+    this._initPromise = this._initData().finally(() => {
+      this._initPromise = null;
+    });
+    return this._initPromise;
+  },
+
+  async _initData() {
     const role = wx.getStorageSync('user_role') || 'student';
     const token = wx.getStorageSync('access_token');
 

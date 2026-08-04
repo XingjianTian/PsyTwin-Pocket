@@ -76,6 +76,9 @@ const { getScaleForCategory, calculateScore } = require('../../utils/quizDatabas
 const { createDemoHelpEvent, mergeHelpEvents } = require('../../utils/demoHelpEvents');
 
 const DEMO_HELP_EVENTS_STORAGE_KEY = 'petDemoHelpEvents';
+const PET_SECONDARY_SYNC_INTERVAL = 60000;
+const PET_STORAGE_PERSIST_INTERVAL = 30000;
+const PET_SYNC_FAILURE_BACKOFF = 30000;
 
 // 其他心宠名字列表（60个）
 const PET_NAMES = [
@@ -1551,14 +1554,20 @@ Page({
   },
 
   onLoad() {
+    this._isActive = true;
+    this._runtimeStarted = false;
+    this._syncPromise = null;
+    this._secondarySyncTimer = null;
+    this._lastSyncAt = 0;
+    this._lastSecondarySyncAt = 0;
+    this._lastStoragePersistAt = 0;
+    this._syncFailureBackoffUntil = 0;
     this.restoreDemoHelpEvents();
     this.initGameView();
     // 初始化时间显示
     this.updateTimeDisplay();
     // 从服务器同步心宠状态（包含离线进度）
-    this.syncFromServer();
-    this.startStatusSync();
-    this._initWebSocket();
+    this.syncFromServer({ force: true });
     this.initCoins();
     this.initBagData();
     // initDiaryData 移到 syncFromServer 完成后调用，避免竞态
@@ -1567,33 +1576,25 @@ Page({
     this.startPetAnimation();
     // 初始化活动日志
     this.initActivityLog();
+    this.startRuntime();
   },
 
   onShow() {
+    this._isActive = true;
+    this.startRuntime();
     this.syncFromServer();
-    this.startStatusSync();
   },
 
   onHide() {
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
-    this.stopStatusSync();
+    this._isActive = false;
+    this.stopRuntime();
   },
 
   onUnload() {
-    if (this.statusTimer) {
-      clearInterval(this.statusTimer);
-    }
-    this.stopStatusSync();
-    if (this.moveTimer) {
-      clearInterval(this.moveTimer);
-    }
-    if (this.otherPetTimer) {
-      clearInterval(this.otherPetTimer);
-    }
-    // 停止主心宠动画
-    this.stopPetAnimation();
-    this._destroyWebSocket();
+    this._isActive = false;
+    this.stopRuntime();
     const app = getApp();
     app.eventBus.emit('tabbar-toggle', false);
   },
@@ -1697,17 +1698,36 @@ Page({
   },
 
   /** 从服务器拉取状态（小程序启动时调用） */
-  async syncFromServer() {
+  syncFromServer({ force = false } = {}) {
+    if (!this._isActive) return Promise.resolve();
+
+    const now = Date.now();
+    if (now < this._syncFailureBackoffUntil) return Promise.resolve();
+    if (!force && now - this._lastSyncAt < 15000) {
+      return this._syncPromise || Promise.resolve();
+    }
+    if (this._syncPromise) return this._syncPromise;
+
+    this._lastSyncAt = now;
+    this._syncPromise = this._syncFromServer().finally(() => {
+      this._syncPromise = null;
+    });
+    return this._syncPromise;
+  },
+
+  async _syncFromServer() {
     const userId = this.getPetUserId();
     console.log('[PetSync] 开始从服务器拉取状态, userId=', userId);
 
     const result = await fetchPetStatus(userId);
+    if (!this._isActive) return;
     if (!result.success) {
       console.log('[PetSync] 拉取失败, 使用本地状态:', result.error);
+      this._syncFailureBackoffUntil = Date.now() + PET_SYNC_FAILURE_BACKOFF;
       this.initDiaryData(false); // 网络失败时从本地 storage 加载兜底
-      await this.loadDiaryFromSentinel();
       return;
     }
+    this._syncFailureBackoffUntil = 0;
 
     const status = normalizePetStatus(result.data);
     if (!shouldApplyPetStatus(this.data.petStateVersion, status.stateVersion)) {
@@ -1740,39 +1760,100 @@ Page({
       return;
     }
 
-    // 把服务器数据持久化到本地存储，保证离线时也能看到完整数据
-    if (state.diaryDataMap) {
-      wx.setStorageSync('petDiaryMap', state.diaryDataMap);
-    }
-    if (state.activityLog) {
-      wx.setStorageSync('petActivityLog', state.activityLog);
-    }
-    if (typeof state.coins === 'number') {
-      const history = this.data.coinHistory || [];
-      wx.setStorageSync('petCoins', { amount: state.coins, history });
-    }
-    if (state.bagItems) {
-      const enrichedBag = this.enrichBagItems(state.bagItems); wx.setStorageSync('petBagItems', enrichedBag);
-    }
+    this.persistPetState(state);
 
     // 如果离线时间较长，提示用户
     if (offlineSeconds > 60) {
       wx.showToast({ title: `心宠在你离开时也在好好生活~`, icon: 'none', duration: 2500 });
     }
 
-    // 同步完成后刷新日记数据（服务器数据为准，跳过本地过滤）
+    // 先刷新本地日记，避免日记、帮助事件请求阻塞首屏
     this.initDiaryData(true);
-    await this.backfillDiaryFromSentinel(offlineSeconds);
-    await this.loadDiaryFromSentinel();
+    this.scheduleSecondarySync(offlineSeconds);
+  },
 
-    // 同步完成后加载帮助事件，与离线事件合并
-    this.initHelpData();
+  scheduleSecondarySync(offlineSeconds = 0) {
+    const now = Date.now();
+    if (now - this._lastSecondarySyncAt < PET_SECONDARY_SYNC_INTERVAL) return;
+    if (this._secondarySyncTimer) return;
+
+    this._lastSecondarySyncAt = now;
+    this._secondarySyncTimer = setTimeout(async () => {
+      this._secondarySyncTimer = null;
+      if (!this._isActive) return;
+
+      try {
+        await this.backfillDiaryFromSentinel(offlineSeconds);
+        if (!this._isActive) return;
+        await this.loadDiaryFromSentinel();
+        if (this._isActive) this.initHelpData();
+      } catch (error) {
+        console.warn('[PetSync] 延迟数据同步失败:', error);
+      }
+    }, 200);
+  },
+
+  persistPetState(state) {
+    const now = Date.now();
+    if (now - this._lastStoragePersistAt < PET_STORAGE_PERSIST_INTERVAL) return;
+
+    this._lastStoragePersistAt = now;
+    if (state.diaryDataMap) wx.setStorageSync('petDiaryMap', state.diaryDataMap);
+    if (state.activityLog) wx.setStorageSync('petActivityLog', state.activityLog);
+    if (typeof state.coins === 'number') {
+      const history = this.data.coinHistory || [];
+      wx.setStorageSync('petCoins', { amount: state.coins, history });
+    }
+    if (state.bagItems) {
+      const enrichedBag = this.enrichBagItems(state.bagItems);
+      wx.setStorageSync('petBagItems', enrichedBag);
+    }
+  },
+
+  startRuntime() {
+    if (this._runtimeStarted) return;
+    this._runtimeStarted = true;
+    this.startStatusSync();
+    this._initWebSocket();
+
+    if (!this.moveTimer) {
+      this.moveTimer = setInterval(() => {
+        if (this._isActive && this.data.currentView === 'game' && Math.random() < 0.4) {
+          this.movePetSmoothly();
+        }
+      }, 3000);
+    }
+
+    if (!this.otherPetTimer) this.startOtherPetsMovement();
+    if (this.data.currentView === 'game' && this.data.petAnimationReady && !this.animationTimer) {
+      this.scheduleNextPetFrame();
+    }
+  },
+
+  stopRuntime() {
+    this._runtimeStarted = false;
+    this.stopStatusSync();
+
+    if (this._secondarySyncTimer) {
+      clearTimeout(this._secondarySyncTimer);
+      this._secondarySyncTimer = null;
+    }
+    if (this.moveTimer) {
+      clearInterval(this.moveTimer);
+      this.moveTimer = null;
+    }
+    if (this.otherPetTimer) {
+      clearInterval(this.otherPetTimer);
+      this.otherPetTimer = null;
+    }
+    this.stopPetAnimation();
+    this._destroyWebSocket();
   },
 
   startStatusSync() {
     this.stopStatusSync();
     this.statusTimer = setInterval(() => {
-      this.syncFromServer();
+      if (this._isActive) this.syncFromServer({ force: true });
     }, PET_SYNC_INTERVAL);
   },
 
@@ -1815,13 +1896,6 @@ Page({
       petAnimation: this.petAnim.export(),
       mainPetAvatar: mainAvatar,
     });
-
-    // 心宠随机移动定时器：每3秒有40%概率移动
-    this.moveTimer = setInterval(() => {
-      if (Math.random() < 0.4) {
-        this.movePetSmoothly();
-      }
-    }, 3000);
 
     // 初始化其他心宠
     this.initOtherPets();
@@ -1869,8 +1943,11 @@ Page({
   },
 
   scheduleNextPetFrame() {
+    if (!this._isActive || this.data.currentView !== 'game') return;
     if (this.animationTimer) clearTimeout(this.animationTimer);
     this.animationTimer = setTimeout(() => {
+      this.animationTimer = null;
+      if (!this._isActive || this.data.currentView !== 'game') return;
       const nextIndex = (this.data.petAnimationIndex + 1) % ANIMATION_FRAME_COUNT;
       const nextSlot = this.data.petActiveFrameSlot === 'a' ? 'b' : 'a';
       this.pendingPetFrameSlot = nextSlot;
@@ -1995,21 +2072,21 @@ Page({
 
     this.setData({ otherPets });
 
-    // 启动其他心宠的移动循环
-    this.startOtherPetsMovement();
   },
 
   // 启动其他心宠的移动
   startOtherPetsMovement() {
+    if (this.otherPetTimer) return;
     // 每3秒更新一次其他心宠（包括对话）
     this.otherPetTimer = setInterval(() => {
-      this.updateOtherPets();
+      if (this._isActive) this.updateOtherPets();
     }, 3000);
   },
 
   // 更新所有其他心宠的状态
   updateOtherPets() {
     if (this.data.demoConversationActive) return;
+    if (this.data.currentView !== 'game') return;
 
     const { otherPets, petSceneId, petSpriteX, petSpriteY } = this.data;
     const updatedPets = [...otherPets];
@@ -2955,8 +3032,10 @@ Page({
     if (this.data.currentView === view) {
       // 如果已经是当前视图，则返回游戏
       this.setData({ currentView: 'game' });
+      if (this.data.petAnimationReady && !this.animationTimer) this.scheduleNextPetFrame();
     } else {
       this.setData({ currentView: view });
+      this.stopPetAnimation();
       if (view === 'bag') {
         this.updateFilteredBagItems();
       }
@@ -2966,6 +3045,7 @@ Page({
   // 返回游戏视图
   backToGame() {
     this.setData({ currentView: 'game' });
+    if (this.data.petAnimationReady && !this.animationTimer) this.scheduleNextPetFrame();
   },
 
   // ========== 世界地图 ==========

@@ -30,8 +30,10 @@ Page({
   },
 
   onLoad() {
+    this._recordsPromise = null;
+    this._lastRecordsLoadAt = 0;
     this.loadServices();
-    this.loadRecords();
+    this.loadRecords({ force: true });
   },
 
   onShow() {
@@ -121,19 +123,29 @@ Page({
     return match ? parseInt(match[0], 10) : 0;
   },
 
-  async loadRecords() {
-    try {
-      const res = await request('/student/appointment/records');
-      const records = (res.data?.records || []).map((r) => ({
-        ...r,
-        status: (r.status || 'pending').toLowerCase(),
-      }));
-      const pendingCount = records.filter((r) => r.status === 'pending' || r.status === 'confirmed').length;
-      this.setData({ records: records, pendingCount: pendingCount });
-      this.applyStatusFilter(records, this.data.activeStatusFilter);
-    } catch (err) {
-      console.error('加载记录失败:', err);
-    }
+  async loadRecords({ force = false } = {}) {
+    const now = Date.now();
+    if (!force && now - this._lastRecordsLoadAt < 15000) return;
+    if (this._recordsPromise) return this._recordsPromise;
+
+    this._lastRecordsLoadAt = now;
+    this._recordsPromise = (async () => {
+      try {
+        const res = await request('/student/appointment/records');
+        const records = (res.data?.records || []).map((r) => ({
+          ...r,
+          status: (r.status || 'pending').toLowerCase(),
+        }));
+        const pendingCount = records.filter((r) => r.status === 'pending' || r.status === 'confirmed').length;
+        this.setData({ records: records, pendingCount: pendingCount });
+        this.applyStatusFilter(records, this.data.activeStatusFilter);
+      } catch (err) {
+        console.error('加载记录失败:', err);
+      } finally {
+        this._recordsPromise = null;
+      }
+    })();
+    return this._recordsPromise;
   },
 
   updateStats(services) {
@@ -212,7 +224,7 @@ Page({
     }
     wx.showToast({ title: '预约成功', icon: 'success' });
     this.setData({ showForm: false });
-    this.loadRecords();
+    this.loadRecords({ force: true });
   },
 
   onCancel(e) {
