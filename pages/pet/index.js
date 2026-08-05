@@ -1527,12 +1527,9 @@ Page({
       });
     });
 
-    // 监听重连失败
+    // 监听重连失败：演示期间不打扰用户，仅保留日志和本地状态兜底
     ws.on('reconnect_failed', () => {
-      wx.showToast({
-        title: '连接失败，请检查网络',
-        icon: 'none',
-      });
+      console.warn('[PetWebSocket] 重连失败，演示继续使用本地状态');
     });
 
     // 建立连接
