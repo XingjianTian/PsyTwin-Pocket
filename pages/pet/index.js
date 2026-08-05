@@ -4280,16 +4280,18 @@ ${activities || '今天没有发生什么特别的事情'}
       // 橙色中危 → 进入答题
       this.startQuiz(event);
     } else {
-      // 绿色正常 → 纯提示
-      const tips = [
-        '心宠状态不错，继续保持关注哦~',
-        '心宠一切安好，给它一个大大的拥抱吧！',
-        '心宠今天心情很好，陪它玩玩吧~',
-      ];
-      const randomTip = tips[Math.floor(Math.random() * tips.length)];
-      wx.showToast({ title: randomTip, icon: 'none' });
-      // 低危事件直接标记为已解决（无需操作）
-      this.resolveHelpEvent(event.id, { resolvedText: '已查看，状态正常' });
+      // 绿色温馨通知 → 引导学生预约线下放松体验
+      wx.showModal({
+        title: '💚 温馨通知',
+        content: `「${title}」\n\n欢迎来到线下体验空间，预约一场 VR 放松活动，让自己慢下来、放松一下吧。`,
+        confirmText: '去预约',
+        cancelText: '稍后再说',
+        success: (res) => {
+          if (res.confirm) {
+            wx.switchTab({ url: '/pages/appointment/index' });
+          }
+        },
+      });
     }
   },
 

@@ -38,6 +38,21 @@ test('returns all active unexpired events for existing Pocket consumers', () => 
   assert.deepEqual(getVisibleHelpEvents(state, 1000).map((event) => event.id), ['active']);
 });
 
+test('keeps a low-severity Sentinel event as a daily warm notification', () => {
+  const state = { helpEvents: [], stateVersion: 1 };
+  const result = addHelpEvent(state, {
+    sourceId: 'warm-notification-1',
+    category: 'emotion',
+    severity: 'low',
+    title: '💚 温馨通知',
+    description: '欢迎来到线下体验空间，预约一场 VR 放松活动。',
+  }, 1000);
+
+  assert.equal(result.event.severity, 'low');
+  assert.equal(result.event.type, 'daily');
+  assert.equal(result.event.title, '💚 温馨通知');
+});
+
 test('pet server authenticates, persists, and broadcasts Sentinel events', () => {
   const source = fs.readFileSync(path.join(__dirname, 'pet-server.js'), 'utf8');
 

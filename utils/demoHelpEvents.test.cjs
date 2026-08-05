@@ -45,6 +45,16 @@ test('demo help action requests the sad pet expression', () => {
   assert.match(apiSource, /request\('\/pet\/expression', 'POST', \{ expression: 'sad' \}\)/);
 });
 
+test('renders low-severity server events as warm notifications with an offline relaxation invitation', () => {
+  const markup = fs.readFileSync(path.join(__dirname, '..', 'pages', 'pet', 'index.wxml'), 'utf8');
+  const pageSource = fs.readFileSync(path.join(__dirname, '..', 'pages', 'pet', 'index.js'), 'utf8');
+
+  assert.match(markup, /item\.severity === 'low' \? '温馨通知'/);
+  assert.match(markup, /'前往线下体验放松 →'/);
+  assert.match(pageSource, /title: '💚 温馨通知'/);
+  assert.match(pageSource, /wx\.switchTab\(\{ url: '\/pages\/appointment\/index' \}\)/);
+});
+
 test('demo help events use independent storage and are re-merged at authoritative apply time', () => {
   const pageSource = fs.readFileSync(path.join(__dirname, '..', 'pages', 'pet', 'index.js'), 'utf8');
 

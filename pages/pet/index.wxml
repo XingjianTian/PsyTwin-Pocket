@@ -505,7 +505,7 @@ mode="aspectFill"
               <view class="event-header">
                 <view class="event-tags">
                   <text class="event-severity-tag severity-{{item.severity}}">
-                    {{item.severity === 'high' ? '高危预警' : item.severity === 'medium' ? '中危预警' : '正常'}}
+                    {{item.severity === 'high' ? '高危预警' : item.severity === 'medium' ? '中危预警' : item.severity === 'low' ? '温馨通知' : '状态提醒'}}
                   </text>
                   <text class="event-status {{item.status}}">{{item.status === 'pending' ? '待处理' : '已解决'}}</text>
                 </view>
@@ -516,7 +516,7 @@ mode="aspectFill"
 
               <!-- 点击提示 -->
               <view wx:if="{{item.status === 'pending'}}" class="event-tap-hint">
-                <text class="tap-hint-text">{{item.severity === 'high' ? '点击寻求帮助 →' : item.severity === 'medium' ? '点击陪伴心宠 →' : '点击查看详情 →'}}</text>
+                <text class="tap-hint-text">{{item.severity === 'high' ? '点击寻求帮助 →' : item.severity === 'medium' ? '点击陪伴心宠 →' : item.severity === 'low' ? '前往线下体验放松 →' : '点击查看详情 →'}}</text>
               </view>
 
               <!-- 已解决显示结果 -->
