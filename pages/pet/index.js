@@ -76,6 +76,9 @@ const { getScaleForCategory, calculateScore } = require('../../utils/quizDatabas
 const { createDemoHelpEvent, mergeHelpEvents } = require('../../utils/demoHelpEvents');
 
 const DEMO_HELP_EVENTS_STORAGE_KEY = 'petDemoHelpEvents';
+/** 已读帮助事件 id 集合：跨会话持久化，保证"点过就不再显示红点" */
+const HELP_EVENT_READ_STORAGE_KEY = 'petReadHelpEventIds';
+const HELP_EVENT_READ_ID_LIMIT = 200;
 const PET_SECONDARY_SYNC_INTERVAL = 60000;
 const PET_STORAGE_PERSIST_INTERVAL = 30000;
 const PET_SYNC_FAILURE_BACKOFF = 30000;
@@ -985,6 +988,8 @@ Page({
     // 事件
     hasEvent: false,
     eventCount: 0,
+    // 是否存在未点击过的求助事件（底部红点显示条件）
+    hasUnreadEvent: false,
     // 其他心宠列表
     otherPets: [],
     // 当前显示的对话
@@ -1517,6 +1522,7 @@ Page({
       console.log('[Pet] Event triggered:', payload);
       this.setData({
         hasEvent: true,
+        hasUnreadEvent: true,
         eventCount: (this.data.eventCount || 0) + 1,
       });
       wx.showModal({
@@ -1669,11 +1675,14 @@ Page({
 
     const authoritativePatch = { ...extraPatch };
     if (authoritativePatch.helpEvents) {
-      authoritativePatch.helpEvents = mergeHelpEvents(
+      const mergedHelpEvents = mergeHelpEvents(
         authoritativePatch.helpEvents,
         this.demoHelpEvents || [],
       );
-      authoritativePatch.hasEvent = authoritativePatch.helpEvents.length > 0;
+      const decoratedHelpEvents = this.decorateHelpEvents(mergedHelpEvents);
+      authoritativePatch.helpEvents = decoratedHelpEvents;
+      authoritativePatch.hasEvent = decoratedHelpEvents.length > 0;
+      authoritativePatch.hasUnreadEvent = decoratedHelpEvents.some((event) => event.unread);
     }
 
     this.setData({
@@ -4135,6 +4144,53 @@ ${activities || '今天没有发生什么特别的事情'}
 
   // ========== 帮助事件 ==========
 
+  /** 读取已读事件 id 集合（跨会话持久化） */
+  getReadHelpEventIds() {
+    const saved = wx.getStorageSync(HELP_EVENT_READ_STORAGE_KEY);
+    return new Set(Array.isArray(saved) ? saved : []);
+  },
+
+  /** 标记单个帮助事件为已读 */
+  markHelpEventRead(eventId) {
+    if (!eventId) return;
+    const readIds = this.getReadHelpEventIds();
+    if (readIds.has(eventId)) return;
+    readIds.add(eventId);
+    // 只保留最近若干条，避免 storage 无限增长
+    wx.setStorageSync(HELP_EVENT_READ_STORAGE_KEY, [...readIds].slice(-HELP_EVENT_READ_ID_LIMIT));
+  },
+
+  /** 格式化事件时间：今天 11:43 / 昨天 20:15 / 09-13 11:43 */
+  formatHelpEventTime(timestamp) {
+    const ts = Number(timestamp);
+    if (!Number.isFinite(ts) || ts <= 0) return '';
+
+    const date = new Date(ts);
+    const pad = (value) => String(value).padStart(2, '0');
+    const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const startOfDay = (input) => {
+      const copy = new Date(input);
+      copy.setHours(0, 0, 0, 0);
+      return copy.getTime();
+    };
+    const dayDiff = Math.round((startOfDay(new Date()) - startOfDay(date)) / (24 * 60 * 60 * 1000));
+
+    if (dayDiff === 0) return `今天 ${clock}`;
+    if (dayDiff === 1) return `昨天 ${clock}`;
+    return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${clock}`;
+  },
+
+  /** 为事件附加 timeText 与 unread，供 WXML 直接渲染 */
+  decorateHelpEvents(events = []) {
+    const readIds = this.getReadHelpEventIds();
+    return (events || []).map((event) => ({
+      ...event,
+      // 只认事件自身的 createdAt；deadline 是截止时间，拿它当"发生时间"会显示成未来时刻，误导用户
+      timeText: event.createdAt ? this.formatHelpEventTime(event.createdAt) : '',
+      unread: event.status !== 'resolved' && !readIds.has(event.id),
+    }));
+  },
+
   restoreDemoHelpEvents() {
     const savedEvents = wx.getStorageSync(DEMO_HELP_EVENTS_STORAGE_KEY);
     const now = Date.now();
@@ -4143,9 +4199,13 @@ ${activities || '今天没有发生什么特别的事情'}
       : [];
 
     if (this.demoHelpEvents.length > 0) {
+      const helpEvents = this.decorateHelpEvents(
+        mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
+      );
       this.setData({
-        helpEvents: mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
+        helpEvents,
         hasEvent: true,
+        hasUnreadEvent: helpEvents.some((event) => event.unread),
       });
     }
   },
@@ -4163,13 +4223,14 @@ ${activities || '今天没有发生什么特别的事情'}
       .then((result) => {
         if (result.success && result.data && result.data.events && result.data.events.length > 0) {
           const currentServerEvents = this.data.helpEvents.filter((event) => event.source !== 'demo');
-          const helpEvents = mergeHelpEvents(
+          const helpEvents = this.decorateHelpEvents(mergeHelpEvents(
             [...currentServerEvents, ...result.data.events],
             this.demoHelpEvents || [],
-          );
+          ));
           this.setData({
             helpEvents,
             hasEvent: helpEvents.length > 0,
+            hasUnreadEvent: helpEvents.some((event) => event.unread),
             helpLoading: false,
           });
           console.log('[Help] 从服务器加载事件:', result.data.events.length, '个');
@@ -4222,13 +4283,14 @@ ${activities || '今天没有发生什么特别的事情'}
 
     // 合并而不是覆盖，保留 syncFromServer 已加载的事件
     const currentServerEvents = this.data.helpEvents.filter((event) => event.source !== 'demo');
-    const helpEvents = mergeHelpEvents(
+    const helpEvents = this.decorateHelpEvents(mergeHelpEvents(
       [...currentServerEvents, ...mockEvents],
       this.demoHelpEvents || [],
-    );
+    ));
     this.setData({
       helpEvents,
       hasEvent: helpEvents.length > 0,
+      hasUnreadEvent: helpEvents.some((event) => event.unread),
       helpLoading: false,
     });
   },
@@ -4242,9 +4304,13 @@ ${activities || '今天没有发生什么特别的事情'}
         const demoEvent = createDemoHelpEvent(severity);
         this.demoHelpEvents = [demoEvent, ...(this.demoHelpEvents || [])];
         this.saveDemoHelpEvents();
+        const helpEvents = this.decorateHelpEvents(
+          mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
+        );
         this.setData({
-          helpEvents: mergeHelpEvents(this.data.helpEvents, this.demoHelpEvents),
+          helpEvents,
           hasEvent: true,
+          hasUnreadEvent: helpEvents.some((event) => event.unread),
           currentView: 'help',
         });
         const expressionResult = await triggerSadPetExpression();
@@ -4260,6 +4326,18 @@ ${activities || '今天没有发生什么特别的事情'}
     const { index } = e.currentTarget.dataset;
     const event = this.data.helpEvents[index];
     if (!event || event.status === 'resolved') return;
+
+    // 点击即视为已读：清掉卡片右上角红点，并同步底部红点显示条件
+    if (event.unread) {
+      this.markHelpEventRead(event.id);
+      const helpEvents = this.data.helpEvents.map((item) => (
+        item.id === event.id ? { ...item, unread: false } : item
+      ));
+      this.setData({
+        helpEvents,
+        hasUnreadEvent: helpEvents.some((item) => item.unread),
+      });
+    }
 
     const { severity, title } = event;
 
@@ -4414,6 +4492,10 @@ ${activities || '今天没有发生什么特别的事情'}
       }
       : event));
     this.saveDemoHelpEvents();
-    this.setData({ helpEvents });
+    const decoratedHelpEvents = this.decorateHelpEvents(helpEvents);
+    this.setData({
+      helpEvents: decoratedHelpEvents,
+      hasUnreadEvent: decoratedHelpEvents.some((event) => event.unread),
+    });
   },
 });

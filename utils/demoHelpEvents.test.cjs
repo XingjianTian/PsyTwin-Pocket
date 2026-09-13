@@ -60,8 +60,32 @@ test('demo help events use independent storage and are re-merged at authoritativ
 
   assert.match(pageSource, /DEMO_HELP_EVENTS_STORAGE_KEY = 'petDemoHelpEvents'/);
   assert.match(pageSource, /this\.demoHelpEvents = \[demoEvent, \.\.\.\(this\.demoHelpEvents \|\| \[\]\)\]/);
+  // 权威状态应用时重新合并 demo 事件，并写回带 timeText / unread 的装饰结果
   assert.match(
     pageSource,
-    /authoritativePatch\.helpEvents = mergeHelpEvents\([\s\S]*?this\.demoHelpEvents \|\| \[\]/,
+    /const mergedHelpEvents = mergeHelpEvents\([\s\S]*?this\.demoHelpEvents \|\| \[\]/,
   );
+  assert.match(pageSource, /authoritativePatch\.helpEvents = decoratedHelpEvents/);
+});
+
+test('help events show a timestamp and use a plain dot instead of a count badge', () => {
+  const markup = fs.readFileSync(path.join(__dirname, '..', 'pages', 'pet', 'index.wxml'), 'utf8');
+  const pageSource = fs.readFileSync(path.join(__dirname, '..', 'pages', 'pet', 'index.js'), 'utf8');
+
+  // 通知时间显示在事件卡片头部
+  assert.match(markup, /class="event-time"/);
+  assert.match(pageSource, /formatHelpEventTime\(timestamp\)/);
+  // 只认 createdAt：deadline 是截止时间，拿来当"发生时间"会显示未来时刻
+  assert.match(pageSource, /timeText: event\.createdAt \? this\.formatHelpEventTime\(event\.createdAt\) : ''/);
+  assert.doesNotMatch(pageSource, /timeText: this\.formatHelpEventTime\(event\.createdAt \|\| event\.deadline\)/);
+
+  // 底部求助入口只显示一个红点，不再显示数量
+  assert.match(markup, /wx:if="\{\{hasUnreadEvent\}\}" class="event-dot"/);
+  assert.doesNotMatch(markup, /class="event-badge"/);
+
+  // 未读事件在卡片右上角显示红点，点击后清除
+  assert.match(markup, /class="event-unread-dot"/);
+  assert.match(pageSource, /HELP_EVENT_READ_STORAGE_KEY = 'petReadHelpEventIds'/);
+  assert.match(pageSource, /unread: event\.status !== 'resolved' && !readIds\.has\(event\.id\)/);
+  assert.match(pageSource, /this\.markHelpEventRead\(event\.id\)/);
 });
